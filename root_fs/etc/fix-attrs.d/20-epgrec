@@ -1,0 +1,16 @@
+/var/www/localhost/templates_c false 1000:1000 0644 0777
+/var/www/localhost/recorded false 1000:1000 0644 0777
+/var/www/localhost/thumbs false 1000:1000 0644 0777
+/var/www/localhost/plogs false 1000:1000 0644 0777
+/var/www/localhost/settings false 1000:1000 0644 0777
+/var/www/localhost/bin/recomplete.php false 1000:1000 0755 0755
+/var/www/localhost/bin/shepherd.php false 1000:1000 0755 0755
+/var/www/localhost/bin/sheepdog.php false 1000:1000 0755 0755
+/var/www/localhost/bin/collie.php false 1000:1000 0755 0755
+/var/www/localhost/bin/airwavesSheep.php false 1000:1000 0755 0755
+/var/www/localhost/bin/trans_manager.php false 1000:1000 0755 0755
+/var/www/localhost/bin/scoutEpg.php false 1000:1000 0755 0755
+/var/www/localhost/bin/repairEpg.php false 1000:1000 0755 0755
+/var/www/localhost/bin/gen-thumbnail.sh false 1000:1000 0755 0755
+/var/www/localhost/bin/radikoStation.php false 1000:1000 0755 0755
+/var/www/localhost/bin/radikoProgram.php false 1000:1000 0755 0755

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# at SEQ
+touch /var/spool/atd/.SEQ
+chmod 600 /var/spool/atd/.SEQ
+chown at:at /var/spool/atd/.SEQ

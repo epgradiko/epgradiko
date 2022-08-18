@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>メンテナンス</title>
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/css/jquery-ui.min.css" type="text/css">
+<link rel="stylesheet" href="/css/layout.css" type="text/css">
+<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript" src="/js/mdabasic.js"></script>
+<script type="text/javascript">
+$(function() {
+	$("#maintenance").tabs({ active: {$act} });
+	{if !isset($settings->initial_done)}$("#maintenance").tabs("disable", 0);{/if}
+	{if !isset($settings->initial_done)}$("#maintenance").tabs("disable", 1);{/if}
+	{if !isset($settings->initial_done)}$("#maintenance").tabs("disable", 2);{/if}
+	{if !isset($settings->initial_done)}$("#maintenance").tabs("disable", 3);{/if}
+	{if !isset($settings->initial_done)}$("#maintenance").tabs("disable", 4);{/if}
+	{if !isset($settings->initial_done)}$("#maintenance").tabs("disable", 5);{/if}
+	{if !isset($settings->initial_done)}$("#maintenance").tabs("disable", 6);{/if}
+	{if !isset($settings->initial_done) || isset($gr_disabled)}$("#maintenance").tabs("disable", 7);{/if}
+	{if !isset($settings->initial_done)}$("#maintenance").tabs("disable", 8);{/if}
+	{if !isset($settings->initial_done) || isset($channel_disabled)}$("#maintenance").tabs("disable", 9);{/if}
+});
+</script>
+
+<style type="text/css">
+<!--
+#maintenance{}
+-->
+</style>
+
+</head>
+
+<body>
+<div id="all">
+
+{include file='menu_star.tpl'}
+
+<div id="nav_margin" style="margin-top:35px;">
+<div id="maintenance">
+	<ul>
+		<li><a href="/sub/mysqlSetting.php">MySQL</a></li>
+		<li><a href="/sub/directorySetting.php">ディレクトリ</a></li>
+		<li><a href="/sub/commandSetting.php">コマンド</a></li>
+		<li><a href="/sub/tunerSetting.php">チューナー</a></li>
+		<li><a href="/sub/recordingSetting.php">録画関連</a></li>
+		<li><a href="/sub/programSetting.php">番組表表示</a></li>
+		<li><a href="/sub/viewSetting.php">視聴</a></li>
+		<li><a href="/sub/grSetting.php">地デジ</a></li>
+		<li><a href="/sub/epgSetting.php">EPG</a></li>
+		<li><a href="/sub/channelSetting.php{if isset($type)}?type={$type}"{/if}>チャンネル</a></li>
+		{if !isset($settings->initial_done)}<li><a href="/sub/initialSetting.php?initial_step={$settings->initial_step}">初期設定</a></li>{/if}
+	</ul>
+
+</div>
+</div>
+{include file='menu_list.tpl' menu_list=$menu_list}
+</div>
+<div id="pagetop"><img src="/imgs/b_pagetop.png" alt="TOP"></div>
+
+</script>
+</body>
+</html>

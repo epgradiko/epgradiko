@@ -1,0 +1,78 @@
+<form method="post" action="/customReservation.php">
+<div>
+  <span class="labelLeft2">番組録画:</span><input type="checkbox" name="program_id" id="id_program_id" value="{$program_id}" checked="checked" onchange="change_checkBox(this.checked)">
+(未チェックの場合、時刻録画)<br>
+ <script type="text/javascript">{literal}
+    function change_checkBox(checked_state){
+      document.querySelectorAll("div#id_div_time input")
+        .forEach( e => e.disabled = checked_state );
+    }
+ {/literal}</script>
+</div>
+
+<div name='div_start' id='id_div_time'>
+    <span class="labelLeft2">開始日時:</span>
+        <input type="number" style="width: 3.5em;" size="4" name="syear" id="id_syear" value="{$syear}" disabled="true">年</input>
+        <input type="number" min="1" max="12" style="width: 2.3em;" size="2" name="smonth" id="id_smonth" value="{$smonth}" disabled="true">月</input>
+        <input type="number" min="1" max="31" style="width: 2.3em;" size="2" name="sday" id="id_sday" value="{$sday}" disabled="true">日</input>
+        <input type="number" min="0" max="23" style="width: 2.3em;" size="2" name="shour" id="id_shour" value="{$shour}" disabled="true">時</input>
+        <input type="number" min="0" max="59" style="width: 2.3em;" size="2" name="smin" id="id_smin" value="{$smin}" disabled="true">分</input>
+        <input type="number" min="0" max="59" style="width: 2.3em;" size="2" name="ssec" id="id_ssec" value="{$ssec}" disabled="true">秒～</input><br>
+    <span class="labelLeft2">終了日時:</span>
+        <input type="number" style="width: 3.5em;" size="4" name="eyear" id="id_eyear" value="{$eyear}" disabled="true">年</input>
+        <input type="number" min="1" max="12" style="width: 2.3em;" size="2" name="emonth" id="id_emonth" value="{$emonth}" disabled="true">月</input>
+        <input type="number" min="1" max="31" style="width: 2.3em;" size="2" name="eday" id="id_eday" value="{$eday}" disabled="true">日</input>
+        <input type="number" min="0" max="23" style="width: 2.3em;" size="2" name="ehour" id="id_ehour" value="{$ehour}" disabled="true">時</input>
+        <input type="number" min="0" max="59" style="width: 2.3em;" size="2" name="emin" id="id_emin" value="{$emin}" disabled="true">分</input>
+        <input type="number" min="0" max="59" style="width: 2.3em;" size="2" name="esec" id="id_esec" value="{$esec}" disabled="true">秒</input><br>
+    <span class="labelLeft2">録画連続時:</span>
+	<input type="checkbox" name="discontinuity" size="2" id="id_discontinuity" value="1"{$discontinuity} disabled="true">終了時刻を早めない</input>
+</div>
+
+<div>
+<span class="labelLeft2">チャンネル:</span>&nbsp;{if $type=="GR"}{$type}{/if}{$channel}ch
+       <input type="hidden" name="channel_id" id="id_channel_id" value="{$channel_id}" />　
+ 優先度<input type="number" style="width: 2.5em;" size="2" name="priority" id="id_priority" value="{$priority}" />
+</div>
+
+<div>
+<span class="labelLeft2">変換モード:</span>
+	<select name="record_mode" id="id_record_mode">
+        {section name=mode loop=$record_mode}
+          <option value="{$smarty.section.mode.index}"{if $smarty.section.mode.index==$autorec_mode} selected{/if}>{$record_mode[mode].name}</option>
+        {/section}
+        </select>
+変換後、元ファイルを削除する<input type="checkbox" name="ts_del" id="id_ts_del" value="1" checked="checked" />
+</div>
+
+<div>
+<span class="labelLeft2">タイトル:</span>
+   <input type="text" size="50" name="title" id="id_title" value="{$title|escape}" />
+   <input type="hidden" name="pre_title" id="id_pre_title" value="{$pre_title|escape}" />
+   <input type="hidden" name="post_title" id="id_post_title" value="{$post_title|escape}" />
+</div>
+
+<div>
+<span class="labelLeft2">概要:</span>
+    <textarea name="description" id="id_description" rows="5" cols="50" >{$description|escape}</textarea>
+</div>
+
+<div>
+<span class="labelLeft2">ジャンル:</span>
+      <select name="category_id" id="id_category_id">
+      {foreach from=$cats item=cat}
+        <option value="{$cat.id}" {$cat.selected}>{$cat.name}</option>
+      {/foreach}
+      </select>
+</div>
+<br>
+<div>
+<span class="labelLeft2">録画Dir:</span>
+   <input type="text" size="50" name="rec_dir" id="id_rec_dir" value="{$rec_dir|escape}" />
+</div>
+
+<div>
+<span class="labelLeft2">変換後Dir:</span>
+   <input type="text" size="50" name="trans_dir" id="id_trans_dir" value="{$trans_dir|escape}" />
+</div>
+</form>

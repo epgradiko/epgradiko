@@ -1,0 +1,108 @@
+// サンプルは、視認性を上げるために改行している。構造は簡素化するが連想添字は変更しない。
+// epgrec側の処理を全体を一気に行う方式からチャンネル単位に変更する。境界を探る必要がなくなるので処理の簡素化が期待できる。
+
+// チャンネル定義
+// 全チャンネルを１行にまとめる
+a:2:{
+	i:0;a:8:{
+		s:2:"id";s:5:"CS123";
+		s:12:"display-name";s:3:"ABC";
+		s:2:"ts";i:1234;
+		s:2:"on";i:6;
+		s:2:"sv";i:123;
+		s:2:"st";i:1;
+		s:4:"node";i:2;
+		s:4:"slot";i:0;
+	}
+	i:1;a:8:{
+		s:2:"id";s:5:"CS333";
+		s:12:"display-name";s:3:"CBC";
+		s:2:"ts";i:1234;
+		s:2:"on";i:6;
+		s:2:"sv";i:333;
+		s:2:"st";i:1;
+		s:4:"node";i:2;
+		s:4:"slot";i:0;
+	}
+}
+
+// epg定義
+// チャンネル単位で3行(para,pf,sch)
+a:3:{s:4:"disc";s:5:"CS123";s:6:"pf_cnt";i:2;s:7:"sch_cnt";i:2;}
+a:2:{
+	i:0;a:17:{
+		s:9:"starttime";s:19:"YYYY-MM-DD hh:mm:ss";
+		s:7:"endtime";s:19:"YYYY-MM-DD hh:mm:ss";
+		s:12:"channel_disc";s:5:"CS123";
+		s:3:"eid";i:1234;
+		s:5:"title";s:4:"test";
+		s:4:"desc";s:4:"test";
+		s:8:"category";i:1;		// epgrec用に１が加算されている
+		s:9:"sub_genre";i:0;
+		s:6:"genre2";i:2;
+		s:10:"sub_genre2";i:15;
+		s:6:"genre3";i:0;
+		s:10:"sub_genre3";i:16;
+		s:10:"video_type";i:123;
+		s:10:"audio_type";i:123;
+		s:10:"multi_type";i:123;
+		s:6:"status";i:0;
+		s:7:"sch_pnt";i:123;
+	}
+	i:1;a:17:{
+		s:9:"starttime";s:19:"YYYY-MM-DD hh:mm:ss";
+		s:7:"endtime";s:19:"YYYY-MM-DD hh:mm:ss";
+		s:12:"channel_disc";s:5:"CS123";
+		s:3:"eid";i:1234;
+		s:5:"title";s:4:"test";
+		s:4:"desc";s:4:"test";
+		s:8:"category";i:1;
+		s:9:"sub_genre";i:0;
+		s:6:"genre2";i:2;
+		s:10:"sub_genre2";i:15;
+		s:6:"genre3";i:0;
+		s:10:"sub_genre3";i:16;
+		s:10:"video_type";i:123;
+		s:10:"audio_type";i:123;
+		s:10:"multi_type";i:123;
+		s:6:"status";i:0;
+		s:7:"sch_pnt";i:123;
+	}
+}
+a:2:{
+	i:0;a:15:{
+		s:9:"starttime";s:19:"YYYY-MM-DD hh:mm:ss";
+		s:7:"endtime";s:19:"YYYY-MM-DD hh:mm:ss";
+		s:12:"channel_disc";s:5:"CS123";
+		s:3:"eid";i:1234;
+		s:5:"title";s:4:"test";
+		s:4:"desc";s:4:"test";
+		s:8:"category";i:1;
+		s:9:"sub_genre";i:0;
+		s:6:"genre2";i:2;
+		s:10:"sub_genre2";i:15;
+		s:6:"genre3";i:0;
+		s:10:"sub_genre3";i:16;
+		s:10:"video_type";i:123;
+		s:10:"audio_type";i:123;
+		s:10:"multi_type";i:123;
+	}
+	i:1;a:15:{
+		s:9:"starttime";s:19:"YYYY-MM-DD hh:mm:ss";
+		s:7:"endtime";s:19:"YYYY-MM-DD hh:mm:ss";
+		s:12:"channel_disc";s:5:"CS123";
+		s:3:"eid";i:1234;
+		s:5:"title";s:4:"test";
+		s:4:"desc";s:4:"test";
+		s:8:"category";i:1;
+		s:9:"sub_genre";i:0;
+		s:6:"genre2";i:2;
+		s:10:"sub_genre2";i:15;
+		s:6:"genre3";i:0;
+		s:10:"sub_genre3";i:16;
+		s:10:"video_type";i:123;
+		s:10:"audio_type";i:123;
+		s:10:"multi_type";i:123;
+	}
+}
+

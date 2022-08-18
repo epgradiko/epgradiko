@@ -1,0 +1,4 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+29 */2 * * * /var/www/localhost/bin/shepherd.php 2>&1
+04 5 * * * /var/www/localhost/bin/radikoStation.php 2>&1

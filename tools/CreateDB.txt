@@ -1,0 +1,3 @@
+create database epgrec;
+grant all on epgrec.* to epgrec@"%" identified by 'epgrec';
+grant all on epgrec.* to epgrec@localhost identified by 'epgrec';
