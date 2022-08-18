@@ -153,13 +153,9 @@ while( time() < $lmt_tm ){
 if( isset($end_chk) ){
 	$reserve   = new DBRecord( RESERVE_TBL, 'id', $argv[1] );
 	$sleep_time = strtotime($reserve->endtime) - time() - 120;
-reclog('$record_cmd[$type][program_rec][command]='.$record_cmd[$type]['program_rec']['command']);
-reclog('$reserve->complete='.$reserve->complete);
-reclog('$sleep_time='.$sleep_time);
 	if( isset($record_cmd[$type]['program_rec']['command'])
 	    && (!$reserve->complete) && ($sleep_time > 0) ){
 		@exec('('.$settings->sleep.' '.$sleep_time.' && '.INSTALL_PATH.'/bin/scoutEpg.php '.$reserve->id.') > /dev/null 2>&1 &');
-reclog('exec!');
 	}
 }
 exit();
