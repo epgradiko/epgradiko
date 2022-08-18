@@ -1,0 +1,202 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>{$sitetitle}</title>
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+{literal}
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/css/jquery-ui.min.css" type="text/css">
+<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript">
+	var PRG = {
+
+		cancelform:function(id, a_id){
+			$.get('/cancelReservationForm.php', { reserve_id: id, autorec: a_id }, function(data) {
+				if(data.match(/^error/i)){
+					$('#floatBox4Dialog').dialog('close');
+					alert(data);
+				}
+				else {
+					var str = data;
+					str += '<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.cancelrec()" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">予約キャンセル</a></div>';
+					$('#floatBox4Dialog').html(str);
+					$('#floatBox4Dialog').dialog('option', 'title', '予約削除');
+					$('#floatBox4Dialog').dialog('open', 'center');
+				}
+			});
+		},
+		cancelrec:function() {
+			var id_reserve_id = $('#id_reserve_id').val();
+			var tmp_disc = $('#id_autorec').prop('checked');
+			var id_autorec = tmp_disc ? 1 : 0;
+
+			$.get('/cancelReservation.php', { reserve_id: id_reserve_id,
+							autorec: id_autorec }, function(data) {
+				if(data.match(/^error/i)){
+					$('#floatBox4Dialog').dialog('close');
+					alert(data);
+				}
+				else {
+					$('#resid_' + id_reserve_id ).hide();
+					$('#floatBox4Dialog').dialog('close');
+				}
+			});
+		},
+		editdialog:function(id) {
+			var str;
+			str  = '<div class="prg_title">予約ID:' + id + '</div>';
+			str += '<input type="hidden" name="reserve_id" id="id_reserve_id" value="' + id +  '">';
+			str += '<div><span class="labelLeft2">タイトル:</span><input name="title" size="50" id="id_title" value="'+ $('#tid_' + id ).html() + '"></div>';
+			str += '<div><span class="labelLeft2">概要:</span><textarea name="description" id="id_description" cols="50" rows="5" >' + $('#did_' + id ).html().trim() + '</textarea></div>';
+			str += '<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.edit()" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">変更する</a></div>';
+			
+			$('#floatBox4Dialog').html(str);
+			$('#floatBox4Dialog').dialog('option', 'title', '情報変更');
+			$('#floatBox4Dialog').dialog('open','center');
+		},
+		edit:function() {
+			var id_reserve_id = $('#id_reserve_id').val();
+			var id_title = $('#id_title').val();
+			var id_description = $('#id_description').val();
+
+			$.post('/changeReservation.php', { reserve_id: id_reserve_id,
+							  title: id_title,
+							  description: id_description }, function( data ) {
+				if(data.match(/^error/i)){
+					alert(data);
+					$('#floatBox4Dialog').dialog('close');
+
+				}
+				else {
+					$('#tid_' + id_reserve_id ).html( id_title );
+					$('#did_' + id_reserve_id ).html( id_description );
+					$('#floatBox4Dialog').dialog('close');
+				}
+			});
+		}
+	}
+
+	function disp_diag_msg(msg){
+		$('#floatBox4Dialog').dialog('option', 'title', '概要');
+		$('#floatBox4Dialog').html(msg);
+		$('#floatBox4Dialog').dialog('open','left');
+	}
+
+	$(document).ready(function () {
+		var DG = $('#floatBox4Dialog');
+		DG.dialog({title:'予約編集',width:600});
+		DG.dialog('close');
+	});
+</script>
+
+<link rel="stylesheet" href="css/layout.css" type="text/css">
+<style type="text/css">
+<!--
+input.example1 { width: 80%; }
+
+textarea {
+    width: 450px;
+    height: 5em;
+}
+
+/*
+a.bold {font-weight:bold;}
+a.small {font-size:75%;}
+*/
+
+table#reservation_table {
+    border: 2px gray solid;
+    border-spacing: 1px;
+}
+/*
+table#reservation_table tr {
+    border: 1px #BBB solid;
+}
+*/
+table#reservation_table th {
+    border: 1px gray solid;
+    white-space: nowrap;
+}
+
+table#reservation_table td {
+    border: 1px gray solid;
+    text-align: center;
+}
+
+.mark_class {line-height: 10pt; display: inline-block; border: 1px solid; border-radius: 2px;}
+
+-->
+</style>
+{/literal}
+
+</head>
+
+<body>
+<div id="all">
+{include file='menu_star.tpl'}
+
+<div id="nav_margin" style="margin-top:30px;">
+{if $pager != ''}{$pager}{/if}
+<form method="post" action="/reservationTanle.php" >
+<input type="hidden" name="order" value="{$order}">
+</form>
+</div>
+
+{if count($reservations)}
+<table id="reservation_table">
+ <tr style="position: -webkit-sticky; position: sticky; top: 28px; z-index: 1;">
+  <th style="width:1.5em;">No</th>
+  <th style="width: 160px;">タイトル<a href="{$pager_option}order=title+ASC">▲</a><a href="{$pager_option}order=title+DESC">▼</a></th>
+  <th class="rec_date" style="width: 140px;">録画日時<a href="{$pager_option}order=starttime+ASC">▲</a><a href="{$pager_option}order=starttime+DESC">▼</a>
+			<br>(録画時間)
+			<br>放送局<a href="{$pager_option}order=channel_id+ASC">▲</a><a href="{$pager_option}order=channel_id+DESC">▼</a></th>
+  <th class="type" style="width: 100px;">予約方式</th>
+  <th class="rec_mode" style="width: 80px;">録画モード</th>
+  <th>概要</th>
+  <th class="sell_button" style="width: 80px;">予約情報</th>
+ </tr>
+
+{foreach from=$reservations name=loop item=reserve}
+ <tr id="resid_{$reserve.id}" class="ctg_{$reserve.cat}" onMouseover="this.style.border='2px solid blue'" onMouseout="this.style.border=''">
+  <td style="text-align: center;">{$smarty.foreach.loop.iteration}</td>
+  <td style="text-align: left"><a {if $reserve.keyword != ""}href="{$reserve.keyword}" title="番組検索にジャンプ"{/if} id="tid_{$reserve.id}">{$reserve.title|escape}</a></td>
+  <td style="text-align: center;white-space: nowrap;"><a href="/index.php?type={$reserve.type}&length=8&time={$reserve.prg_top}" title="EPG番組表へジャンプ">{$reserve.date}</a>
+  <br><a href="/revchartTable.php?length=8&time={$reserve.prg_top}" title="予約遷移一覧へジャンプ">{$reserve.starttime}{$reserve.endtime}<br>({$reserve.duration})
+  <br>{$reserve.channel_name}</td>
+  <td class="" style="border-collapse:separate; text-align:center;">{$reserve.source}</td>
+  <td style="text-align: center; white-space: pre;">{$reserve.mode}{$reserve.trans_mode}</td>
+  <td><table style="border: 0px; cellpadding: 0px; cellspacing: 0px;">
+      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;">{$reserve.mark}</td></tr>
+      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;{if $reserve.description|count_characters != $reserve.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|count_characters} cursor:pointer" onclick="disp_diag_msg('{$reserve.description|escape:'javascript'}');{/if}" id="did_{$reserve.id}">{$reserve.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|escape}</td></tr>
+  </table></td>
+  <td style="text-align: center;white-space: nowrap;">
+  {if $reserve.autorec}<a href="/programTable.php?keyword_id={$reserve.autorec}" title="キーワード予約にジャンプ">自動</a>{else}手動{/if}<br>
+  予約ID:<br>{$reserve.id}<br><input type="button" value="変更" onClick="javascript:PRG.editdialog('{$reserve.id}')" style="padding:0;">
+  <input type="button" value="削除" onClick="javascript:PRG.cancelform('{$reserve.id}','{$reserve.autorec}')" style="padding:0;">
+ </tr>
+{/foreach}
+</table>
+{if $pager != ''}{$pager}{/if}
+{else}
+  現在、予約はありません
+{/if}
+{include file='menu_list.tpl' menu_list=$menu_list}
+</div>
+<div id="floatBox4Dialog">jQuery UI Dialog</div>
+<div id="pagetop" style="right:140px;"><img src="imgs/b_pagetop.png" alt="TOP"></div>
+
+
+{literal}
+<script type="text/javascript">
+var INISet = {
+	prgCancelURL : '/cancelReservation.php'		// 予約キャンセル
+}
+</script>
+{/literal}
+</body>
+</html>

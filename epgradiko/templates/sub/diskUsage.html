@@ -1,0 +1,32 @@
+<div>背景色が赤のストレージは、書き込みが出来ない可能性が高いです。</div>
+<table id="disk_table" border="1" style="border-collapse: collapse">
+ <tr>
+  <th>DEVICE名</th>
+  <th>PATH</th>
+  <th>所有者</th>
+  <th>グループ</th>
+  <th>パーミッション</th>
+  <th>残容量</th>
+  <th>残時間<br>({$ts_rate}M{$byte_unit}/min)</th>
+ </tr>
+ <tr>
+  <td>全録画ストレージ</td>
+  <td style="text-align: left;">{$spool_disks[0].path}</td>
+  <td>---</td>
+  <td>---</td>
+  <td>------</td>
+  <td style="text-align: right;">{$free_size}G{$byte_unit}</td>
+  <td style="text-align: right;">{$free_time}</td>
+ </tr>
+{foreach from=$spool_disks item=disk}
+ <tr id="stid_{$disk.dev}" {if $disk.wrtbl=='0'}style="background-color: red"{/if}>
+  <td style="text-align: left;">{$disk.dname}</td>
+  <td style="text-align: left;">{$disk.path}</td>
+  <td>{$disk.owner}</td>
+  <td>{$disk.grupe}</td>
+  <td>{$disk.perm}</td>
+  <td style="text-align: right;">{$disk.size}G{$byte_unit}</td>
+  <td style="text-align: right;">{$disk.time}</td>
+ </tr>
+{/foreach}
+</table>

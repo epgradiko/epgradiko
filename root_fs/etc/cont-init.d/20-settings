@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# initial crontab files
+cp -np /var/www/localhost/initial/crontabs/*	/etc/crontabs/
+
+# initial setting files
+cp -npr /var/www/localhost/initial/settings/*	/var/www/localhost/settings/
+
+# initial config file
+cp -np /var/www/localhost/initial/config.php	/var/www/localhost/

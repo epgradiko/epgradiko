@@ -1,0 +1,8 @@
+#EXTM3U
+{foreach from=$channels item=ch}
+#EXTINF:-1 tvg-id="{$ch.channel}_{$ch.sid}"{if isset($ch.tvg_logo)} tvg-logo="{$ch.tvg_logo}"{/if}{if isset($ch.group_title)} group-title="{$ch.group_title}"{/if} tvg-name="{$ch.channel}_{$ch.sid}",{$ch.name}
+{$url}?type={$ch.type}&ch={$ch.channel}&sid={$ch.sid}{if $trans}&trans={$trans}
+{else}
+
+{/if}
+{/foreach}

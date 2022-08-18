@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>{$sitetitle}</title>
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+{literal}
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/css/jquery-ui.min.css" type="text/css">
+<script type="text/javascript" src="/js/genre.js"></script>
+<link rel="stylesheet" href="/css/layout.css" type="text/css">
+<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript">
+	var PRG = {
+		delkey:function(id){
+			if( window.confirm( "削除してもよろしいですか？" )){
+				$.get(INISet.prgDelKeyURL, { keyword_id: id } ,function(data){
+					if(data.match(/^error/i)){
+						alert(data);
+					}else{
+						$('#keyid_' + id).hide();
+					}
+				});
+			}
+		}
+	}
+</script>
+
+<style type="text/css">
+<!--
+table#reservation_table {
+    border: 2px solid gray;
+    border-spacing: 1px;
+}
+
+table#reservation_table th{
+    border: 1px solid gray;
+    background-color: skyblue;
+}
+table#reservation_table td {
+    border: 1px solid gray;
+    text-align: center;
+}
+
+.mark_class {line-height: 10pt; display: inline-block; border: 1px solid; border-radius: 2px;}
+
+-->
+</style>
+{/literal}
+
+</head>
+
+<body>
+<div id="all">
+{include file='menu_star.tpl'}
+
+<div id="nav_margin" style="margin-top:30px;">
+{if count($keywords)}
+<table id="reservation_table">
+ <thead>
+  <tr style="position: -webkit-sticky; position: sticky; top: 28px; z-index: 1;">
+   <th style="width:1.5em;">No</th>
+   <th style="width: 160px;">名前</th>
+   <th style="width: 140px;">検索曜日<br>(録画時間)<br>放送局名</th>
+   <th style="width: 100px;">検索ジャンル<br>(サブジャンル)</th>
+   <th style="width: 20px"></th>
+   <th style="width: 80px">番組記号</th>
+   <th>キーワード</th>
+   <th style="width: 80px">キーワード<br>情報</th>
+  </tr>
+ </thead>
+
+{foreach from=$keywords name=loop item=keyword}
+ <tbody id="keyid_{$keyword.id}" onMouseover="this.style.border='2px solid blue'" onMouseout="this.style.border=''">
+  <tr class="{if !$keyword.k_type}freeze{/if}">
+   <td rowspan="2">{$smarty.foreach.loop.iteration}</td>
+   <td rowspan="2" style="text-align: left;"><large><b>{$keyword.name|escape}</b></large><br>
+     <small>優先順位:{$keyword.priority}<br>
+     録画モード:{$keyword.autorec_mode}<br>
+     {$keyword.alert}</small></td>
+   <td rowspan="2">{$keyword.weekofday}{if $keyword.disp_prgtime}{$keyword.disp_prgtime}{/if}
+   {if $keyword.disp_duration}<br>({$keyword.disp_duration}){/if}
+   <br>{$keyword.type}{$keyword.channel|escape}{if $keyword.free}無料放送のみ{/if}</td>
+   <td rowspan="2">{$keyword.category}<br>(<script type="text/javascript">sub_genre_view({$keyword.k_category}, {$keyword.sub_genre});</script>)</td>
+   <td style="line-height: 14px;">絞込</td>
+   <td style="text-align: left;"><small>{$keyword.disp_search_marks}</small></td>
+   <td style="text-align: left;"><small>{$keyword.options}</small><br>{$keyword.keyword|escape|truncate:300:'...':true:true|wordwrap:100}</td>
+   <td rowspan="2" style="margin: 0;padding: 0;"><small>予約可能数:{$keyword.res_able_cnt}</small><br>
+						       {if $keyword.res_cnt}予約数:{$keyword.res_cnt}<br>{/if}
+						       {if $keyword.rec_cnt}<a href="/recordedTable.php?key={$keyword.id}" title="自動キーワードIDで絞り込んで録画済一覧にジャンプ">録画数:{$keyword.rec_cnt}</a><br>{/if}
+				<br><input type="button" value="編集" onClick="location.href='/programTable.php?keyword_id={$keyword.id}{if !$keyword.rec_cnt}&norec{/if}'" style="padding:0;">
+  				    <input type="button" value="削除" onClick="javascript:PRG.delkey('{$keyword.id}')" style="padding:0;"></td>
+  </tr>
+  <tr class="{if !$keyword.k_type}freeze{/if}">
+   <td style="line-height: 14px;">除外</td>
+   <td style="text-align: left;"><small>{$keyword.disp_search_exmarks}</small></td>
+   <td style="text-align: left;"><small>{$keyword.options_ex}</small><br>{$keyword.keyword_ex|escape|truncate:300:'...':true:true|wordwrap:100}</td>
+  </tr>
+ </tbody>
+{/foreach}
+</table>
+{else}
+  キーワードはありません
+{/if}
+</div>
+<input type="button" value="キーワード登録" onClick="location.href='/programTable.php'">
+{include file='menu_list.tpl' menu_list=$menu_list}
+</div>
+<div id="pagetop" style="right:60px;"><img src="/imgs/b_pagetop.png" alt="TOP"></div>
+
+{literal}
+<script type="text/javascript">
+var INISet = {
+	prgDelKeyURL : '/deleteKeyword.php'		// キーワード削除
+}
+</script>
+{/literal}
+</body>
+</html>

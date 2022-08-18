@@ -1,0 +1,22 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/ api.php [QSA,L]
+RewriteRule ^recorded/reserve_id/([0-9]+)\.([0-9a-zA-Z]{1,3})$ sendstream.php?reserve_id=$1&trans_id=0&ext=$2 [L]
+RewriteRule ^recorded/reserve_id/([0-9]+)$ sendstream.php?reserve_id=$1 [L]
+RewriteRule ^recorded/reserve_id/([0-9]+)/(.*)$ sendstream.php?reserve_id=$1&title=$2 [L]
+RewriteRule ^recorded/trans_id/([0-9]+)\.([0-9a-zA-Z]{1,3})$ sendstream.php?trans_id=$1&ext=$2 [L]
+RewriteRule ^recorded/trans_id/([0-9]+)$ sendstream.php?trans_id=$1 [L]
+RewriteRule ^recorded/trans_id/([0-9]+)/(.*)$ sendstream.php?trans_id=$1&title=$2 [L]
+RewriteRule ^stream/reserve_id/([0-9a-zA-Z_]+)$ sendstream.php?reseve_id=$1 [L]
+RewriteRule ^stream/reserve_id/([0-9a-zA-Z_]+)/(.*)$ sendstream.php?reseve_id=$1&title=$2 [L]
+RewriteRule ^stream/trans_id/([0-9a-zA-Z_]+)$ sendstream.php?trans_id=$1 [L]
+RewriteRule ^stream/trans_id/([0-9a-zA-Z_]+)/(.*)$ sendstream.php?trans_id=$1&title=$2 [L]
+RewriteRule ^stream/([0-9a-zA-Z]+)/([0-9a-zA-Z_]+)/([0-9a-zA-Z_-]+)$ sendstream.php?type=$1&ch=$2&sid=$3 [L]
+RewriteRule ^stream/([0-9a-zA-Z]+)/([0-9a-zA-Z_]+)/([0-9a-zA-Z_-]+)/(.*)$ sendstream.php?type=$1&ch=$2&sid=$3&title=$4 [L]
+RewriteRule ^stream([0-9]+)/reserve_id/([0-9a-zA-Z_]+)$ sendstream.php?reserve_id=$2&trans=$1 [L]
+RewriteRule ^stream([0-9]+)/reserve_id/([0-9a-zA-Z_]+)/(.*)$ sendstream.php?reserve_id=$2&title=$3&trans=$1 [L]
+RewriteRule ^stream([0-9]+)/trans_id/([0-9a-zA-Z_]+)$ sendstream.php?trans_id=$2&trans=$1 [L]
+RewriteRule ^stream([0-9]+)/trans_id/([0-9a-zA-Z_]+)/(.*)$ sendstream.php?trans_id=$2&title=$3&trans=$1 [L]
+RewriteRule ^stream([0-9]+)/([0-9a-zA-Z]+)/([0-9a-zA-Z_]+)/([0-9a-zA-Z_-]+)$ sendstream.php?type=$2&ch=$3&sid=$4&trans=$1 [L]
+RewriteRule ^stream([0-9]+)/([0-9a-zA-Z]+)/([0-9a-zA-Z_]+)/([0-9a-zA-Z_-]+)/(.*)$ sendstream.php?type=$2&ch=$3&sid=$4&title=$5&trans=$1 [L]

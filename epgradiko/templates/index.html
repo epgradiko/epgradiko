@@ -1,0 +1,1003 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>{$sitetitle}</title>
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="css/jquery-ui.min.css" type="text/css">
+<link rel="stylesheet" href="css/layout.css" type="text/css">
+<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript" src="/js/mdabasic.js"></script>
+<script type="text/javascript" src="/js/genre.js"></script>
+<script type="text/javascript" src="/js/transcode.js"></script>
+<script type="text/javascript">
+	function genres_view( genre, sub_genre ){
+		var str;
+
+		if( 0<genre && genre<=16 ){
+			str = genre_tbl[genre-1] + '[';
+			if( sub_genre == 16 )
+				str += "すべて";
+			else
+			if( sub_genre == 15 )
+				str += "その他";
+			else
+				str += sub_genre_tbl[genre-1][sub_genre];
+			str += ']';
+		}else
+			str = '未指定';
+		return str;
+	}
+	function tvtimes_scroll(){
+		var t2max = $('#tvtimes2').position().left;
+		var ftmin = $('#float_titles').position().top;
+		tvtimes2scrl();
+		$(window).scroll(function () {
+			var newLeft = parseInt($(document ).scrollLeft());
+			$('#tvtimes').css( 'left', newLeft );
+			$('#' + nowBar.defaultIDtxt).css( 'left', newLeft );
+			var newTop = parseInt($(document ).scrollTop());
+			if(newTop < ftmin) newTop = ftmin;
+			$('#float_titles').css('top', newTop);
+			tvtimes2scrl();
+			$('#float_follows').css('left', parseInt($(document ).scrollLeft()));
+		});
+		$(window).resize(function () {  tvtimes2scrl();});
+		function tvtimes2scrl(){
+			var inwidth = parseInt($('body').innerWidth());
+			// IE6
+			if ($.support.msie && $.support.version == 6) inwidth = document.documentElement.clientWidth;
+			var newLeft = inwidth - parseInt($('#tvtimes2').width()) + parseInt($( document ).scrollLeft());
+			if(newLeft > t2max ) newLeft = t2max;
+			$('#tvtimes2').css('left', newLeft);
+			$('#float_follows').width(inwidth);
+		}
+	}
+	function prg_hover(){
+		function aClick(){
+			var TG = $(this).children('.prg_dummy');
+			var startTime = new Date(TG.children('.prg_start').html());
+			var duration = parseInt(TG.children('.prg_duration').html());
+			var endTime = new Date(startTime.getTime() + duration * 1000);
+			var prgID = parseInt(TG.children('.prg_id').html());
+			var tuner = parseInt(TG.children('.prg_tuner').html());
+			var autorec = parseInt(TG.children('.prg_autorec').html());
+			var keyID = parseInt(TG.children('.prg_key_id').html());
+			var nowTime = new Date();
+
+			var str = '<div class="prg_title">' + TG.children('.prg_title').html() +'</div>' + 
+				'<div class="prg_rec_cfg ui-corner-all"><div class="prg_channel"><span class=" labelLeft">チャンネル：</span><span class="bold">' + TG.children('.prg_channel').html() + '</span></div>' +
+				'<div class="prg_startTime" style="clear: left"><span class=" labelLeft">日時：</span>' + MDA.Days.time4Disp(startTime) + ' ～ ' + MDA.Days.time4DispH(endTime) + '</div>' +
+				'<div class="prg_duration" style="clear: left"><span class=" labelLeft">録画時間：</span><span class="bold">' + parseInt(duration / 60) +'</span>分' + ((duration % 60)>0?'<span class="bold">' + parseInt(duration % 60) + '</span>秒':'') +
+				'</div>';
+			if ($(this).hasClass('prg_rec' + tuner) ){
+				$('#floatBox4Dialog').dialog('option', 'title', '予約削除');
+				if( startTime.getTime() <= nowTime.getTime()){
+					str += '<div><span class="labelLeft">録画File削除：</span><input type="checkbox" name="delete_file" id="id_delete_file" value="1" {if $delete_select}checked{/if}></div>';
+				}else{
+					str += '<div><span class="labelLeft">自動予約禁止：</span><input type="checkbox" name="autorec" id="id_autorec" value="1"';
+					if( keyID ){
+						str += ' checked';
+					}
+					str += '></div>';
+				}
+				str += '<div style="margin:1em 0 0.5em 0;text-align:center;"><a href="javascript:PRG.cancel(' + prgID + ')" id="id_cancel" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">予約キャンセル</a></div></div><div style="margin:2em 0 1em 0;text-align:right;">';
+			} else {
+				$('#floatBox4Dialog').dialog('option', 'title', '録画予約');
+				str += '</div><div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.rec(' + prgID + ')" id="id_rec" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">簡易予約</a>　<a href="javascript:PRG.customform(' + prgID + ')" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">予約カスタマイズ</a>　';
+			}
+			str += '<a href="javascript:PRG.toggleautorec(' + prgID + ')" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">自動予約' + (autorec ? '禁止':'許可') + '</a><a>  </a>';
+			if( keyID > 0 )
+				str += '<a href="/programTable.php?keyword_id=' + keyID + '" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">自動キーワード編集</a><a>  </a>';
+			str += '<a href="' + TG.children('.prg_keyword').html() + '" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">番組検索</a></div>';
+			$('#floatBox4Dialog').html(str);
+			$('#floatBox4Dialog').dialog('open', 'center');
+		};
+		$('.prg').hover(
+			function(){
+				$('#tv_chs .prg_hover').removeClass('prg_hover');
+				if($(this).hasClass('prg_none')) return ;
+				$(this).addClass('prg_hover');
+				var TG = $(this).children('.prg_dummy');
+				var startTime = new Date(TG.children('.prg_start').html());
+				var duration = parseInt(TG.children('.prg_duration').html());
+				var genre = parseInt(TG.children('.prg_genre').html());
+				var sub_genre = parseInt(TG.children('.prg_sub_genre').html());
+				var prioritys = TG.children('.prg_subtitle').children('div').children('a').html();
+				prioritys = prioritys ? ' 優先度:' + prioritys.slice(2, -1) : '';
+				var endTime = new Date(startTime.getTime() + duration * 1000);
+				var str = '<div class="prg_title">' + TG.children('.prg_title').html() + '</div>' +
+					'<div class="prg_desc"><span class="prg_sub">' + TG.children('.prg_channel').html() + '：' + MDA.Days.time4Disp(startTime) + '～' + MDA.Days.time4DispH(endTime) + '(';
+				if( duration >= 3600 )
+					str += parseInt(duration/3600) + 'h';
+				str += ('00'+parseInt(duration/60)%60).substr(-2) + 'm';
+				if( duration % 60 )
+					str += ('00'+duration%60).substr(-2) + 's';
+				str += ') ' + genres_view( genre, sub_genre ) + prioritys + ' </span><br>' + TG.children('.prg_desc').html() + '</div>';
+				var new_heigth = $('#float_titles').height();
+
+/*				$('#prg_info').css( { 'height': new_heigth } ).html('<div class="prg_dummy">' + str + '</div>').show(); */
+				$(this).click(aClick);
+			},
+			function(){
+				$(this).removeClass('prg_hover');$('#prg_info').hide();
+				$(this).unbind('click',aClick);
+			}
+		); 
+	}
+	var PRG = {
+		chdialog:function(chash){
+			$('#channelDialog').dialog('close');
+			var skip = $('#ch_title_'+chash+' .ch_skip').html();
+			var st_name = $('#ch_title_'+chash+' .ch_name').html();
+			var sid = $('#ch_title_'+chash+' .ch_sid').html();
+			var disc = $('#ch_title_'+chash+' .ch_disc').html();
+
+			var str = '<div class="prg_title">';
+			str += st_name;
+			str += '</div>';
+			str += '<form method="post" action="/setChannelInfo.php">';
+			// スキップ
+			str += '<div class="prg_channel"><span class="labelLeft">視聴しない：</span>';
+			str += '<span>';
+			if( skip == 1 ) {
+				str += '<input type="checkbox" name="n_skip_name" id="id_ch_skip" value="'+skip+'" checked>';
+			}
+			else {
+				str += '<input type="checkbox" name="n_skip_name" id="id_ch_skip" value="'+skip+'">';
+			}
+			str += '</span></div>';
+			// サービスID
+			str += '<div class="prg_channel"><span class="labelLeft">サービスID：</span>';
+			str += '<span><input type="text" name="n_sid" size="20" id="id_sid" value="';
+			str += sid;
+			str += '"></span></div>';
+
+			str += '<input type="hidden" name="n_channel_disc" id="id_disc" value="';
+			str += disc;
+			str += '">';
+			str += '<input type="hidden" name="n_channel_hash" id="id_hash" value="';
+			str += chash;
+			str += '">';
+
+
+			str += '</form>';
+			
+			str += '<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.chupdate()" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">更新</a>  <a href="javascript:PRG.singleEPG()" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">EPG更新</a></div>';
+			
+			$('#floatBox4Dialog').dialog('option', 'title', 'EPG更新');
+			$('#channelDialog').html(str);
+			$('#channelDialog').dialog('open', 'center');
+		},
+		chupdate:function() {
+			var v_sid = $('#id_sid').val();
+			var v_channel_disc = $('#id_disc').val();
+			var v_hash = $('#id_hash').val();
+			var v_skip = $('#id_ch_skip').prop('checked');
+			var n_skip = v_skip ? 1 : 0;
+
+			$.post('/setChannelInfo.php', { channel_disc: v_channel_disc,
+						      sid: v_sid,
+						      skip: n_skip
+						    }, function(data) {
+				if(data.match(/^error/i)){
+					alert(data);
+				}
+				else {
+					var old_skip = $('#ch_title_'+v_hash+' .ch_skip').html();
+					if( old_skip != n_skip ) {
+						if( v_skip ) {
+							(INISet.num_ch)--;
+							$('#ch_title_'+v_hash ).addClass('ch_title_skip');
+							$('#tv_chs_'+v_hash ).addClass('ch_set_skip');
+							$('#ch_title_str_'+v_hash ).addClass('ch_skip_color');
+							$('#ch_title_'+v_hash+' .ch_skip').html('1');
+						}
+						else {
+							(INISet.num_ch)++;
+							$('#ch_title_'+v_hash ).removeClass('ch_title_skip');
+							$('#tv_chs_'+v_hash ).removeClass('ch_set_skip');
+							$('#ch_title_str_'+v_hash ).removeClass('ch_skip_color');
+							$('#ch_title_'+v_hash+' .ch_skip').html('0');
+						}
+						if( PRG.F_Skip == 1 ) {
+							PRG.chSkipHide();
+						}
+						else {
+							$('#ch_title_bar div.ch_title_skip').show();
+							$('#tv_chs div.ch_set_skip').show();
+						}
+					}
+				}
+				$('#channelDialog').dialog('close');
+			});
+		},
+		singleEPG:function() {
+			var v_channel_disc = $('#id_disc').val();
+			var v_mode = 1;
+			var str = '<div style="margin:2em 0 1em 0;text-align:center;">EPGを更新中です</div>';
+
+			$('#channelDialog').dialog('close');
+			$('#channelDialog').html(str);
+			$('#floatBox4Dialog').dialog('option', 'title', 'EPG更新中');
+			$('#channelDialog').dialog('open', 'center');
+			$.get('/singleEpg.php', { disc: v_channel_disc,
+						 mode: v_mode,
+						    }, function(data) {
+				if(data.match(/^error/i)){
+					alert(data);
+					$('#channelDialog').dialog('close');
+				}
+				else {
+					$('#channelDialog').dialog('close');
+					location.reload(true);
+				}
+			});
+		},
+		rec:function(id){
+			$.get(INISet.prgRecordURL, { program_id: id } ,function(data){
+				document.getElementById("id_rec").disabled = true;
+				var recv = data.match(/error/i);
+				if( recv != null ){
+					alert(data);
+					$('#floatBox4Dialog').dialog('close');
+				}else{
+					var pt = data.split( ':' );
+					var r_id = parseInt(pt[0]);
+					var tuner = pt[1];
+					var reload = parseInt(pt[3]);
+					if( reload ){
+						location.reload();
+					}else{
+						if( r_id ) {
+							$('#prgID_' + r_id).addClass('prg_rec' + pt[1]);
+							var TG = $('#prgID_' + r_id).children('.prg_dummy');
+							var pg_heigth = $('#prgID_' + r_id).height();
+							pg_heigth -= 10;
+							$('#prgID_' + r_id).height(pg_heigth);
+							TG.children('.prg_tuner').html(tuner);
+						}
+						$('#floatBox4Dialog').dialog('close');
+					}
+				}
+			});
+		},
+		cancel:function(id){
+			// 1番組に複数の予約がある場合に最初に予約した物しかキャンセルされない
+			var tmp_disc = $('#id_autorec').prop('checked');
+			var id_autorec = tmp_disc ? 1 : 0;
+			var tmp_disc = $('#id_delete_file').prop('checked');
+			var id_delete_file = tmp_disc ? 1 : 0;
+			var str = '<div style="margin:2em 0 1em 0;text-align:center;">予約を削除中です</div>';
+
+			$('#channelDialog').html(str);
+			$('#floatBox4Dialog').dialog('option', 'title', '予約削除中');
+			$('#channelDialog').dialog('open', 'center');
+			$.get(INISet.prgCancelURL, {
+				program_id: id,
+				autorec: id_autorec,
+				delete_file: id_delete_file
+			} ,function(data){
+				document.getElementById("id_cancel").disabled = true;
+				if(data.match(/^error/i)){
+					alert(data);
+					$('#floatBox4Dialog').dialog('close');
+					$('#channelDialog').dialog('close');
+				}else{
+					var reload = parseInt(data);
+					if( reload ){
+						location.reload();
+					}else{
+						var TG = $('#prgID_' + id).children('.prg_dummy');
+						var tuner = 'prg_rec' + TG.children('.prg_tuner').html();
+						var pg_heigth = $('#prgID_' + id).height();
+						pg_heigth += 10;
+						$('#prgID_' + id).height(pg_heigth);
+						$('#prgID_' + id).removeClass(tuner);
+						if( id_autorec ){
+							$('#prgID_' + id).addClass('freeze');
+							TG.children('.prg_autorec').html('0');
+						}
+						$('#floatBox4Dialog').dialog('close');
+						$('#channelDialog').dialog('close');
+					}
+				}
+			});
+		},
+		toggleautorec:function(id){
+			var TG = $('#prgID_' + id).children('.prg_dummy');
+			var autorec = parseInt(TG.children('.prg_autorec').html());
+			$.get('/toggleAutorec.php', { program_id: id, bef_auto: autorec }, function() {
+				if( autorec ){
+					autorec = '0';
+					$('#prgID_' + id).addClass('freeze');
+				}else{
+					autorec = '1';
+					$('#prgID_' + id).removeClass('freeze');
+				}
+				TG.children('.prg_autorec').html(autorec);
+				$('#floatBox4Dialog').dialog('close');
+			});
+		},
+		customform:function(id) {
+			$('#floatBox4Dialog').dialog('close');
+			$.get('/reservationform.php', { program_id: id }, function(data) {
+				if(data.match(/^error/i)){
+					alert(data);
+				}
+				else {
+					var str = data;
+					str += '<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.customrec()" id="id_customrec" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">予約する</a></div>';
+					$('#floatBox4Dialog').html(str);
+					$('#floatBox4Dialog').dialog('option', 'title', '詳細予約');
+					$('#floatBox4Dialog').dialog('open', 'center');
+				}
+			});
+		},
+		customrec:function() {
+			var id_syear = $('#id_syear').val();
+			var id_smonth = $('#id_smonth').val();
+			var id_sday = $('#id_sday').val();
+			var id_shour = $('#id_shour').val();
+			var id_smin = $('#id_smin').val();
+			var id_ssec = $('#id_ssec').val();
+			var id_eyear = $('#id_eyear').val();
+			var id_emonth = $('#id_emonth').val();
+			var id_eday = $('#id_eday').val();
+			var id_ehour = $('#id_ehour').val();
+			var id_emin = $('#id_emin').val();
+			var id_esec = $('#id_esec').val();
+			var id_channel_id = $('#id_channel_id').val();
+			var id_record_mode = $('#id_record_mode').val();
+			var id_title = $('#id_title').val();
+			var id_pre_title = $('#id_pre_title').val();
+			var id_post_title = $('#id_post_title').val();
+			var id_description = $('#id_description').val();
+			var id_rec_dir = $('#id_rec_dir').val();
+			var id_trans_dir = $('#id_trans_dir').val();
+			var id_category_id = $('#id_category_id').val();
+			var id_program_id = $('#id_program_id').val();
+			var with_program_id = $('#id_program_id').prop('checked');
+			if( ! with_program_id ) id_program_id = 0;
+			var tmp_disc = $('#id_discontinuity').prop('checked');
+			var id_discontinuity = tmp_disc ? 1 : 0;
+			var id_priority = $('#id_priority').val();
+			tmp_disc = $('#id_ts_del').prop('checked');
+			var id_ts_del = tmp_disc ? 1 : 0;
+			
+			$.post('/customReservation.php', { syear: id_syear,
+							  smonth: id_smonth,
+							  sday: id_sday,
+							  shour: id_shour,
+							  smin: id_smin,
+							  ssec: id_ssec,
+							  eyear: id_eyear,
+							  emonth: id_emonth,
+							  eday: id_eday,
+							  ehour: id_ehour,
+							  emin: id_emin,
+							  esec: id_esec,
+							  channel_id: id_channel_id,
+							  record_mode: id_record_mode,
+							  title: id_title,
+							  pre_title: id_pre_title,
+							  post_title: id_post_title,
+							  description: id_description,
+							  rec_dir: id_rec_dir,
+							  trans_dir: id_trans_dir,
+							  category_id: id_category_id,
+							  program_id: id_program_id,
+							  discontinuity: id_discontinuity,
+							  priority: id_priority,
+							  ts_del: id_ts_del }, function(data) {
+				var recv = data.match(/error/i);
+				document.getElementById("id_customrec").disabled = true;
+				if( recv != null ){
+					$('#floatBox4Dialog').dialog('close');
+					alert(data);
+				}
+				else {
+					var pt = data.split( ':' );
+					var r_id = parseInt(pt[0]);
+					var tuner = pt[1];
+					var reload = parseInt(pt[3]);
+					if( reload ){
+						location.reload();
+					}else{
+						if( r_id ) {
+							$('#prgID_' + r_id).addClass('prg_rec' + pt[1]);
+							var TG = $('#prgID_' + r_id).children('.prg_dummy');
+							var pg_heigth = $('#prgID_' + r_id).height();
+							pg_heigth -= 10;
+							$('#prgID_' + r_id).height(pg_heigth);
+							TG.children('.prg_tuner').html(tuner);
+						}
+						$('#floatBox4Dialog').dialog('close');
+					}
+				}
+			});
+		},
+		F_Skip: 1,
+		chSkipShow:function() {
+			$('#float_titles').width(INISet.num_all_ch * INISet.ch_width + 60);
+			$('#tv_chs').width(INISet.num_all_ch * INISet.ch_width );
+			$('#tvtimes2').css( { left: INISet.num_all_ch * INISet.ch_width  + 30 } ).show();
+			tvtimes_scroll();
+			$('#ch_title_bar div.ch_title_skip').show();
+			$('#tv_chs div.ch_set_skip').show();
+			nowBar.INI();
+		},
+		chSkipHide:function() {
+			$('#ch_title_bar div.ch_title_skip').hide();
+			$('#tv_chs div.ch_set_skip').hide();
+			$('#float_titles').width( INISet.num_ch * INISet.ch_width + 60 );
+			$('#tv_chs').width( INISet.num_ch * INISet.ch_width );
+			$('#tvtimes2').css( { left: INISet.num_ch * INISet.ch_width  + 30 }).show();
+			var vObj = document.compatMode == 'CSS1Compat' ? document.documentElement : document.body;
+			scrollTo( 0, vObj.scrollTop );
+			tvtimes_scroll();
+			nowBar.INI();
+		},
+		toggle:function() {
+			if( this.F_Skip ) {
+				this.chSkipShow();
+				this.F_Skip = 0;
+			}
+			else {
+				this.chSkipHide();
+				this.F_Skip = 1;
+			}
+		}
+	}
+	var CTG = {
+		CN:'ctg',
+		CV:'0.1',
+		defaultCk:[],
+		INI:function(){
+			var Ck = this.CkGet()[1];
+			if(Ck) $.each(Ck.split(','), function(){ CTG.select(this); });
+		},
+		select:function(ctg){
+			if($('#category_select .ctg-hide.ctg_'+ctg).length){
+				$('#tv_chs .ctg_'+ctg).removeClass('ctg-hide');
+				$('#category_select a.ctg_'+ctg).removeClass('ctg-hide');
+			} else {
+				$('#tv_chs .ctg_'+ctg).addClass('ctg-hide');
+				$('#category_select a.ctg_'+ctg).addClass('ctg-hide');
+			}
+			this.oCk();
+		},
+		toggle:function (){
+			$('#category_select ul').toggle();
+		},
+		oCk:function(){
+			var T=$('#category_select ul li a.ctg-hide');
+			var X=[];
+			$.each(T.get(), function(){
+				$(this).attr('class').match(/ctg_([^ ]+)/);
+				var TMC=RegExp.$1;
+				X.push(TMC);
+			});
+			this.CkSet([X.join(',')]);
+		},
+		CkGet:function (){
+			var Ck = MDA.Cookie.get(this.CN);
+			if(!Ck) return this.defaultCk;
+			 Ck=Ck.replace(/^([^;]+;)/,'');
+			return Ck.split('+');
+		},
+		CkSet:function(V){
+			MDA.Cookie.set(this.CN,'ver='+this.CV+'+'+V.join('+'));
+		}
+	};
+	var nowBar = {
+		defaultID:'tableNowBas',
+		defaultIDtxt:'tableNowTxt',
+		startTime:null,
+		endTime:null,
+		INI:function(){
+			if (INISet.tableStartTime && INISet.tableStartTime && INISet.dotMin) {
+				$('#tvtable').append('<div id="' + this.defaultID + '" style="display:none; background-color:red; height:2px; width:100%;overflow:hidden;">now</div><div id="' + this.defaultIDtxt + '" style="display:none; height:12px; overflow:hidden; text-align:right;"><a style="font-size:12px;height:12px;color:white;background-color:red;">minutes</a></div>');
+				this.startTime = new Date(INISet.tableStartTime);
+				this.endTime = new Date(INISet.tableEndTime);
+				$('#' + this.defaultID).width($('#float_titles').width());
+				$('#' + this.defaultIDtxt).width($('#tvtimes').width());
+				this.ch();
+			}
+		},
+		ch:function(){
+			var now = new Date();
+			if(this.startTime){
+				var timeline = $('#' + this.defaultID);
+				var timetxt = $('#' + this.defaultIDtxt);
+				if((now >= this.startTime) && (this.endTime >= now)){
+					var new_top = (now - this.startTime) / 60000 * INISet.dotMin;
+					timeline.css({ top:new_top }).show();
+					timetxt.css({ top:new_top+2 }).show().children('a').html(('00'+now.getMinutes()).substr(-2));
+				} else {
+					timeline.hide();
+				}
+			}
+		}
+	}
+
+	MDA.SCR = {
+		CN:'scr',
+		CV:'0.1',
+		defaultCk:{ md:'',x:0,y:0 },
+		jqSel:[{ sel:'#jump-time a.jump',md:'x' },{ sel:'#jump-day a.jump',md:'xy' },{ sel:'#jump-day a.jump-today',md:'x' },{ sel:'#jump-broadcast a.jump',md:'y' }],
+		INI:function(){
+//			this.defaultCk.y = $('#float_titles').position().top;
+			$.each(this.jqSel, function(){
+				var md = this.md;
+				$(this.sel).click(function(){ MDA.SCR.oCk(md) })
+			});
+			var Ck = this.CkGet();
+//			console.log(Ck);
+			var x = (Ck.md.indexOf('x')>-1)?Ck.x:this.defaultCk.x;
+			var y = (Ck.md.indexOf('y')>-1)?Ck.y:this.defaultCk.y;
+			if (Ck.md) {
+				window.scrollBy(x, y);
+			}
+			this.CkClear();
+		},
+		channel:{
+			save:function(){},
+			load:function(){}
+		},
+		time: {
+		},
+		oCk:function(xy){
+			this.CkSet(['md=' + ((!xy)?'xy':xy),
+				'x=' + $(document ).scrollLeft(),
+				'y=' + $(document ).scrollTop()]);
+		},
+		CkGet:function (){
+			var Ck = MDA.Cookie.get(this.CN);
+			if(!Ck) return this.defaultCk;
+			Ck=Ck.replace(/^([^;]+;)/,'').split('+');
+			var ret = {};
+			$.each(Ck, function(){
+				var str = this.split('=', 2);
+				ret[str[0]] = str[1];
+			})
+			return ret;
+		},
+		CkSet:function(V){
+			MDA.Cookie.set(this.CN,'ver='+this.CV+'+'+V.join('+'));
+		},
+		CkClear:function(){
+			MDA.Cookie.del(this.CN);
+		}
+	};
+
+	function timebar_start(){
+		nowBar.ch();
+		setInterval( "nowBar.ch()", 60*1000 );
+	}
+
+	$(document).ready(function () {
+		MDA.Cookie.CookieName = 'tvProgmas_';
+		CTG.toggle();
+		tvtimes_scroll();
+
+		var true_height = $("#ch_title_bar").height() + $("#float_follows").height() + 10;
+		$("#float_titles").height(true_height);
+		$("#float_titles_dummy").height(true_height);
+
+		prg_hover();
+		var DG = $('#floatBox4Dialog');
+		DG.dialog({ title:'録画予約',width:600 });
+		DG.dialog('close');
+
+		var DG2 = $('#channelDialog');
+		DG2.dialog({ title:'チャンネル情報',width:480 });
+		DG2.dialog('close');
+
+//		PRG.toggle();
+
+		nowBar.INI();
+		var now = new Date();
+		setTimeout( "timebar_start()", (60*1000)-now%(60*1000) );
+		CTG.INI();
+		MDA.SCR.INI();	// 番組表の位置保存
+	});
+</script>
+
+{literal}
+<style type="text/css">
+<!--
+body {padding:0;}
+
+h2 {padding: 4px}
+
+#float_titles {position:absolute; background-image: url(/imgs/trancBG50.png);}
+
+#float_titles div.set.ctg_sel {background-color:#BBB;color:#3CF;}
+#float_titles .ctg_sel  a{color:#111;}
+
+#float_titles div.set {float:left;background-color:#444;padding:4px;margin:4px;}
+#float_titles div.set_box {float:left;background-color:#444;padding:1px 4px;margin:1px 4px;}
+#float_titles span.title {float:left;color:#ACF;}
+#float_titles ul {float:left;padding:0;margin:0;}
+#float_titles ul li {float:left;list-style:none;margin:0 0 0 4px;}
+#float_titles li a{padding:1px 4px;background-color:#555;color:#FFF;}
+#float_titles li.selected a{background-color:#48B;}
+#float_titles li a:hover{background-color:#28D;}
+#float_titles { z-index:100}
+#float_titles div.ch_title {width:{/literal}{$ch_set_width}{literal}px;float:left;color:#FFF;font-weight:bold;text-align:center}
+#float_titles div.ch_title div.title{padding:8px 0px;margin:0 6px 0 4px;background-image: url(/imgs/trancBG50.png);}
+
+#tvtable {line-height:1.2em;width:100%;position:relative;}
+#tvtimes,#tvtimes2 {position:absolute;	background-image: url(/imgs/trancBG70.png);}
+#tvtimes,#tvtimes2, .tvtimeDM {width:30px;text-align:center;}
+#tv_chs,#ch_title_bar {padding-left:30px;padding-right:30px;}
+.tvtime {
+	height:{/literal}{$height_per_hour}{literal}px;
+	color:#EEE;
+	text-align:center;
+	font-weight:bold;
+	font-size:120%;
+	background-image: url(/imgs/dot2.gif);
+	background-repeat: repeat-x;
+	background-position: left bottom;
+}
+#tvtable div.tvtimetop {padding:8px 0px;}
+
+/* #tvtable div.ch_set {width:{/literal}{$ch_set_width}{literal}px;float:left;background-color:#BBB;} */
+#tvtable div.ch_set {width:{/literal}{$ch_set_width}{literal}px;float:left;background-color:#888;}
+.ch_set_skip { display: none; }
+
+
+#tvtable div.ch_title, #tvtable div.prg {margin-right:2px;}
+#tvtable div.ch_title {padding:8px 0px;background-color:#333;color:#DDD;font-weight:bold;text-align:center}
+.ch_title_skip { display: none;}
+.ch_skip_color { color: red;}
+.ch_ctrl {margin:2px;}
+
+.ch_disc {display :none;}
+.ch_skip {display :none;}
+.ch_sid  {display :none;}
+.ch_name {display :none;}
+.ch_hash {display :none;}
+
+#tvtable div.prg {
+	overflow:hidden;
+	color:#444;
+	background-image: url(/imgs/dot2.gif);
+	background-image: url(/imgs/prg_bg2.png);
+	background-repeat: repeat-x;
+	background-position: left bottom;
+	-moz-border-radius: 0.6em 0.6em 0.3em 0.3em;
+	-webkit-border-radius: 0.6em;
+	-webkit-border-bottom-right-radius: 0.3em;
+	-webkit-border-bottom-left-radius: 0.3em;
+	border-radius: 0.6em 0.6em 0.3em 0.3em;
+}
+#tvtable div.prg_none {background-color:#eee;}
+#tvtable div.prg_dummy {margin:3px 6px;}
+#tvtable div.prg_title {color:#111;font-weight:bold;}
+#tvtable div.prg_subtitle {font-size:80%;}
+#tvtable div.prg_desc {font-size:80%;}
+
+#tvtable div.prg_start,#tvtable div.prg_duration,#tvtable div.prg_channel ,#tvtable div.prg_id, #tvtable div.prg_key_id, #tvtable div.prg_tuner, #tvtable div.prg_autorec, #tvtable div.prg_genre, #tvtable div.prg_sub_genre, #tvtable div.prg_keyword {display: none;}
+
+#tvtable div.ctg-hide,            #category_select a.ctg-hide        {background-color: #F8F8F8; color:#888;}
+#tvtable div.ctg-hide .prg_title, #category_select a.ctg-hide .prg_title{color:#666;}
+#tvtable div.freeze {background-color: #AAAAAA;}
+
+#tvtable div.prg_hover .prg_title {color:white;}
+#tvtable .prg_now {font-weight:bold;text-shadow:0 0 3px rgba(255,255,255,0.4);box-shadow:inset 0 0 0 3px rgba(255,255,255,0.8);}
+#tvtable .prg_now .prg_desc{color:#000;}
+#tvtable div.prg_hover {background-color: #28D;}
+#tvtable div.prg_hover .prg_subtitle, #tvtable div.prg_hover .prg_desc {
+	color:#DFF; 
+}
+#tvtable div.prg_now.prg_hover {
+	text-shadow:0 0 8px rgba(0,0,0,0.7);
+}
+
+#ch_title_bar .ch_title:hover .single_switch{display:block;}
+#ch_title_bar .single_switch{display:none;background:transparent;}
+#ch_title_bar .single_switch a {
+	display:inline-block;
+	padding:0.2em 0.4em;margin:4px 0 0 6px;
+	background:#BBB;color:#000;
+	border-radius:6px;
+}
+#ch_title_bar .single_switch a:hover {text-decoration:underline;background:#FFF}
+#ch_title_bar .single_ch a {color:#EEE;}
+#ch_title_bar .single_ch .dw {font-size:80%;}
+#ch_title_bar .nextDay .ch_title:first-child { display:none; }
+
+#jump-day .dw,   #ch_title_bar .single_ch .dw      {color:#DDD;}
+#jump-day .dw_0, #ch_title_bar .single_ch .dw.dw_0 {color:#F80;}
+#jump-day .dw_6, #ch_title_bar .single_ch .dw.dw_6 {color:#8AF;}
+
+#float_follows {position:absolute;}
+#prg_info {
+	display:none;
+	position:absolute;
+	top:0;left:0;
+	width:100%;
+	background-color:#246;
+	color:#BDF;
+	height:80px;
+	z-index:100;
+}
+#prg_info div.prg_dummy{margin:4px 20px;}
+#prg_info div.prg_title {font-weight:bold;font-size:120%;color:#FFF;}
+#prg_info span.prg_sub  {color:#FFF;}
+
+/*#tableNowBas {position:absolute;height:14px;line-height:100%;width:100%;top:190px;overflow:hidden;}*/
+#tableNowBas {position:absolute;line-height:100%;width:100%;top:190px;overflow:hidden;}
+#tableNowTxt {position:absolute;line-height:100%;width:100%;top:190px;overflow:hidden;}
+
+#floatBox4Dialog > form > div {clear:left;}
+
+#channelDialog .prg_title{font-size:120%;font-weight:bold;padding:0.4em 0;text-align:center;}
+#channelDialog .prg_rec_cfg{background:#EEE;padding:1em 2em;margin:0.4em 0;}
+#channelDialog .labelLeft {width:8em;float:left;text-align:right;}
+#channelDialog .button {padding:0.4em 1em;}
+
+-->
+</style>
+
+
+{/literal}
+
+
+</head>
+
+<body>
+{if $TRANSCODE_STREAM}
+ <script type="text/javascript">{literal}
+ $(window).ready(function () {
+	initScreensize({/literal}{if $single_ch}1{else}0{/if}{literal},INISet.num_all_ch,{/literal}{$TRANS_SCRN_ADJUST}{literal});
+ });
+ {/literal}</script>
+{/if}
+<div id="all">
+<div id="float_titles" style="width: {math equation="x + 60" x=$chs_width }px;">
+<div id="float_follows">
+<div id="top_nav" style="width:calc(100vw - 20px)">
+{include file='menu_star.tpl' menu_list=$menu_list}
+</div>
+
+<div class="set ctg_sel" id="category_select" style="margin-top: 35px;">
+ <span class="title"><a href="javascript:CTG.toggle()">強調表示</a></span>
+
+ <ul>
+   {foreach from=$cats item=cat}
+   <li><a href="javascript:CTG.select('{$cat.id}');" class="ctg_{$cat.id}">{$cat.name_jp}</a></li>
+   {/foreach}
+  </ul>
+</div>
+
+<div id="time_selects" style="margin-top: 31px;">
+ <div class="set" id="jump-broadcast" >
+ <span class="title">放送波選択</span>
+  <ul>
+   {foreach from=$types name=loop item=type }
+     <li {$type.selected}><a  class="jump" href="{$type.link}">{$type.name}</a></li>
+     <li {$type.selected}><a  class="jump" href="{$type.link2}">▲</a></li>
+{if $type.chs!=null}
+     <li><select id="frm-snlg-ch{$smarty.foreach.loop.index}">
+       {foreach from=$type.chs item=ch}
+         <option value="{$ch.channel_disc}"{$ch.selected}>{$ch.name}</option>
+       {/foreach}
+     </select></li>
+{/if}
+   {/foreach}
+  </ul><br style="clear:left;">
+ </div>
+
+{if !$single_ch}
+ <div class="set"  id="jump-time">
+ <span class="title">時間</span>
+ <ul>
+    {foreach from=$toptimes item=top}
+     <li><a class="jump" href="{$top.link}">{$top.hour}</a></li>
+    {/foreach}
+  </ul><br style="clear:left;">
+ </div>
+{/if}
+
+
+{if $single_ch}
+ <script type="text/javascript">{literal}
+ $(document).ready(function () {
+	$('#frm-snlg-ch0').change(function(){location.replace('?ch='+$(this).val()+'&time='+INISet.tableStartTime.replace(/[\/\s:]/g,'').slice(0,10));});
+	$('#frm-snlg-ch1').change(function(){location.replace('?ch='+$(this).val()+'&time='+INISet.tableStartTime.replace(/[\/\s:]/g,'').slice(0,10));});
+	$('#frm-snlg-ch2').change(function(){location.replace('?ch='+$(this).val()+'&time='+INISet.tableStartTime.replace(/[\/\s:]/g,'').slice(0,10));});
+	$('#frm-snlg-ch3').change(function(){location.replace('?ch='+$(this).val()+'&time='+INISet.tableStartTime.replace(/[\/\s:]/g,'').slice(0,10));});
+	var tmZero = $('#tvtimes>.tvtime:not(:first-child).tm_00');
+	if (tmZero.length > 0){
+		var $ch = $('#float_titles'),
+			zeroPos = tmZero.offset().top - $ch.height();
+		$(window).scroll(function(){
+			if ($ch.offset().top >= zeroPos){
+				$('#ch_title_bar').addClass('nextDay');	
+			} else {
+				$('#ch_title_bar').removeClass('nextDay');	
+			}
+			});
+		}
+ });
+ {/literal}</script>
+{else}
+ <div class="set">
+   <ul><li><a class="jump" href="javascript:PRG.toggle()">チャンネル表示</a></li></ul>
+ </div>
+{/if}
+
+ <br style="clear:left;">
+
+{if $single_ch}
+ <div class="set"  id="jump-time">
+ <span class="title">時間</span>
+ <ul>
+    {foreach from=$toptimes item=top}
+     <li><a class="jump" href="{$top.link}">{$top.hour}</a></li>
+    {/foreach}
+  </ul><br style="clear:left;">
+ </div>
+{/if}
+
+ <div class="set" id="jump-day" >
+ <span class="title">日付</span>
+  <ul>
+    {foreach from=$days item=day}
+     <li {$day.selected}><a {if $day.d eq "現在"} class="jump-today" {else} class="jump" {/if} href="{$day.link}">{$day.d}{if $day.ofweek!=null}<span class="dw dw_{$day.ofweek%7}">({$dayweeks[$day.ofweek]})</span>{/if}</a></li>
+    {/foreach}
+  </ul><br style="clear:left;">
+ </div>
+
+{if 0}
+  <div class="set_box">
+    <span class="title" style="padding:5px 2px;">視聴</span>
+    <ul>
+      <li>
+      {if $single_ch}
+        <a style="color:white;" href="{$realview_cmd}?ch={$single_ch}&sid={$single_ch_sid}&type={$single_ch_disc}&name={$single_ch_name}">開始</a>
+      {/if}
+      {if $TRANSCODE_STREAM}
+        {if $single_ch}
+          <a style="color:white;" href="{$realview_cmd}?ch={$single_ch}&sid={$single_ch_sid}&type={$single_ch_disc}&name={$single_ch_name}&trans=ON" id="trans_url_s">▼</a>
+        {/if}
+        <a style="color:white;">解像度</a>
+        <select name="trans_size" id="trans_size" onChange="chgScreensize({if $single_ch}1{else}0{/if},INISet.num_all_ch,this.selectedIndex)">
+          {foreach from=$transsize_set name=lp item=size_set}
+            <option value="{$smarty.foreach.lp.index}"{$size_set.selected}>{$size_set.width}x{$size_set.height}</option>
+          {/foreach}
+        </select>
+      {/if}
+    </ul>
+  </div>
+{/if}
+
+
+</div>
+<br style="clear:left;">
+<div id="prg_info"><div class="dummy">test</div></div>
+</div>
+
+
+<!-- チャンネル局名 -->
+<div id="ch_title_bar" style="position:absolute;bottom:0;">
+ {foreach from=$programs name=loop item=program}
+  {if $single_ch}
+   <div class="ch_title single_ch"><div class="title"><a href="{$program.link}">{if $program._day==$__nowDay}今日 {else}{if $program._day==1}{$program.start_time}月 {/if}{/if}{$program._day}日 <span class="dw dw_{$program.start_time_dw}">({$dayweeks[$program.start_time_dw]})</span></a></div></div>
+  {else}
+  <div id="ch_title_{$program.ch_hash}"  class="ch_title{if $program.skip == 1 || count($program.list) == 1 && !$program.list[0].id } ch_title_skip{/if}" ><div class="title">
+    <div class="ch_hash">{$program.ch_hash}</div>
+    <div class="ch_disc">{$program.channel_disc}</div>
+    <div class="ch_skip">{$program.skip}</div>
+    <div class="ch_sid">{$program.sid}</div>
+    <div class="ch_name">{$program.station_name}</div>
+    <div id="ch_title_str_{$program.ch_hash}" {if $program.skip == 1 }class="ch_skip_color" {/if} style="cursor: pointer;" onClick="javascript:PRG.chdialog('{$program.ch_hash}')" >{$program.station_name}</div>
+   </div>
+   <div class="ch_ctrl">
+    <a style="color:white;" href="/index.php?ch={$program.channel_disc}">単局</a>
+    {if $REALVIEW == 1 && isset($program.type)}<a style="background-color: limegreen; color: black;" href="{$realview_cmd}?ch={$program.channel}&sid={$program.sid}&type={$program.channel_disc}&name={$program.station_name}" target="_blank">{$program.type}</a>
+     {if $TRANSCODE_STREAM}<a style="color: white; background-color: royalblue;" href="{$realview_cmd}?ch={$program.channel}&sid={$program.sid}&type={$program.channel_disc}&name={$program.station_name}&trans=ON" id="trans_url_{$smarty.foreach.loop.index}" target="_blank">視聴</a>{/if}
+    {/if}
+   </div>
+  </div>
+  {/if}
+  {/foreach}
+</div>
+
+<br style="clear:left;">
+<div id="prg_info"><div class="dummy">&nbsp;</div></div>
+</div>
+
+<div id="float_titles_dummy" style="width:{math equation="x + 60" x=$chs_width}px;">&nbsp;</div>
+
+
+<div id="tvtable">
+  
+
+<div id="tvtimes">
+  {foreach from=$tvtimes name=loop item=time}
+    {if $smarty.foreach.loop.iteration == 1}
+      <div class="tvtime tm_{$time.hour}" style="text-align:left;"><a style="color:white;" href="{$pre8link}">-8<br></a><a style="color:white;" href="{$prelink}">▲<br></a>{$time.hour}</div>
+    {else}
+      <div class="tvtime tm_{$time.hour}" style="text-align:left;"><a style="color:white;" href="{$time.link}">{$time.hour}</a></div>
+    {/if}
+  {/foreach}
+</div>
+
+<div id="tv_chs" style="width: {$chs_width}px" >
+   {foreach from=$programs item=program }
+   <div id="tv_chs_{$program.ch_hash}" class="ch_set{if $program.skip == 1 || count($program.list) == 1 && !$program.list[0].id } ch_set_skip{/if}" >
+    <div class="ch_programs" >
+    {foreach from=$program.list item=item }
+      <div {if $item.id}id="prgID_{$item.id}"{/if} class="prg {if ! $item.id}prg_none {/if} ctg_{$item.genre}{if $item.rec gt 0} prg_rec{$item.tuner}{/if}{if ! $item.autorec} freeze{/if}" style="height:{if $item.rec gt 0}{if $item.height-10 gt 0}{$item.height-10}{else}0{/if}{else}{$item.height}{/if}px;">
+        <div class="prg_dummy">
+          <div class="prg_title">{$item.pre_title}{$item.title|escape}{$item.post_title}</div>
+          <div class="prg_subtitle">
+            <div style="text-align:left; float:left;">{$item.starttime}</div>
+            <div style="text-align:right;">{if $item.prios}<a style="color:white; background-color:blue; padding:1px 2px;">{$item.prios}</a>{/if}</div>
+          </div>
+          <div class="prg_desc" style="clear:left;">{$item.description|escape}</div>
+          <div class="prg_channel">{$item.channel}</div>
+          <div class="prg_start">{$item.prg_start}</div>
+          <div class="prg_duration">{$item.duration}</div>
+          <div class="prg_id">{$item.id}</div>
+          <div class="prg_tuner">{$item.tuner}</div>
+          <div class="prg_key_id">{$item.key_id}</div>
+          <div class="prg_autorec">{$item.autorec}</div>
+          <div class="prg_genre">{$item.genre}</div>
+          <div class="prg_sub_genre">{$item.sub_genre}</div>
+          <div class="prg_keyword">{$item.keyword}</div>
+        </div>
+      </div>
+    {/foreach}
+    </div>
+   </div>
+   {/foreach}
+ </div>
+
+ <div id="tvtimes2" style="top : 0px; left: {math equation="x + 30" x=$chs_width}px" >
+  {foreach from=$tvtimes name=loop item=time}
+    {if $smarty.foreach.loop.iteration == 1}
+      <div class="tvtime"><a style="color:white;" href="{$pre8link}">-8<br></a><a style="color:white;" href="{$prelink}">▲<br></a>{$time.hour}</div>
+    {else}
+      <div class="tvtime"><a style="color:white;" href="{$time.link}">{$time.hour}</a></div>
+    {/if}
+  {/foreach}
+ </div>
+</div>
+
+
+
+<div id="floatBox4Dialog">jQuery UI Dialog</div>
+<div id="channelDialog">jQuery UI Dialog</div>
+<div id="pagetop"><img src="/imgs/b_pagetop.png" alt="TOP"></div>
+{include file='menu_list.tpl' menu_list=$menu_list}
+</div>
+{literal}
+<script type="text/javascript">
+var INISet = {
+{/literal}
+	prgRecordURL : '/simpleReservation.php',		// 簡易予約
+	prgCancelURL : '/cancelReservation.php',		// 予約キャンセル
+	dotMin : {$height_per_min},
+	tableStartTime : '{$top_time}',
+	tableEndTime : '{$last_time}',
+	ch_width : {$ch_set_width},
+	num_ch : {$num_ch},
+	num_all_ch : {$num_all_ch}
+{literal}
+}
+</script>
+{/literal}
+</body>
+</html>

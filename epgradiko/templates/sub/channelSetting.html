@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+{literal}
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/css/jquery-ui.min.css" type="text/css">
+<link rel="stylesheet" href="/css/layout.css" type="text/css">
+<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript" src="/js/mdabasic.js"></script>
+<script type="text/javascript">
+var PRG = {
+	del_ch:function(type, ch_disc){
+		$.post('/sub/channelSettingCmd.php', { cmd: 'delete', type: type, ch_disc: ch_disc } ,function(data){
+			if(data.match(/^Error/i)){
+				alert(data);
+			}else{
+				$('#' + ch_disc).remove();
+			}
+		});
+	},
+	skip_ch:function(type, ch_disc, skip){
+		$.post('/sub/channelSettingCmd.php', { cmd: 'skip', type: type, ch_disc: ch_disc, skip: skip } ,function(data){
+			if(data.match(/^error/i)){
+				alert(data);
+			}
+		});
+	},
+	NC_ch:function(type, ch_disc, NC){
+		$.post('/sub/channelSettingCmd.php', { cmd: 'NC', type: type, ch_disc: ch_disc, NC: NC } ,function(data){
+			if(data.match(/^Error/i)){
+				alert(data);
+			}
+		});
+	},
+	order_ch:function(type){
+		var order = $('#channel_sort').sortable('toArray').join(',');
+		$.post('/sub/channelSettingCmd.php', { cmd: 'reorder', type: type, order: order } ,function(data){
+			alert(data);
+		});
+	}
+}
+$(function(){
+	$('#channel_sort').sortable({helper: helper1, cursor: "move", opacity: 0.5});
+});
+function helper1(e, tr) {
+	var $originals = tr.children();
+	var $helper = tr.clone();
+	$helper.children().each(function(index) {
+		$(this).width($originals.eq(index).width()+2);
+	});
+	return $helper;
+}
+</script>
+
+<style type="text/css">
+<!--
+body {padding:4px;margin:0;font-size:10pt;}
+
+table#channel_table {
+    width: auto;
+    margin: 3;
+    border-collapse: collapse;
+}
+
+table#channel_table td, table#channel_table th {
+    border: solid 1px black;
+}
+
+-->
+</style>
+{/literal}
+
+</head>
+
+<body>
+<form id="form_channel" action="/maintenance.php" method="POST">
+<input type="hidden" name="return" id="id_return" value="{$return}">
+<select name="type" onChange="submit(this.form)">
+  {foreach from=$types item=type_sel}
+    <option value="{$type_sel.id}" {if $type_sel.id == $type}selected{/if}>{$type_sel.name}</option>
+  {/foreach}
+</select>
+チャンネル一覧　<small><a href="/maintenance.php?return=channel"><input type="button" value="並べ替えを戻す" /></a></small>
+　<small><input type="button" value="並べ替えを保存" onclick="PRG.order_ch('{$type}');" /></small>
+ <div><font color="red">対象を × にすると番組表に表示されなくなり、録画もできません。</font></div>
+ <div><font color="black">番組表表示を × にすると通常は番組表に表示されなくなり、「チャンネル表示」を押したときに表示されます。録画可能です。</font></div>
+ <table id="channel_table">
+  <thread>
+   <tr bgcolor="lightblue">
+    <th align="center">識別子</th>
+    <th align="center">局名</th>
+    <th align="center">対象</th>
+    <th align="center">番組表表示</th>
+    <th align="center">番組数</th>
+    <th align="center">予約数</th>
+    <th align="center">削除</th>
+   </tr>
+  </thread>
+  <tbody id="channel_sort">
+   {foreach from=$exist_channels item=exist_channel name='channels'}
+    <tr id="{$exist_channel.channel_disc}" {if $exist_channel.pro_cnt == 0}class="freeze" {/if}>
+     <td style="cursor: pointer;">{$exist_channel.channel_disc}</td>
+     <td>{$exist_channel.name}</td>
+     <td align="center">
+      <select onChange="PRG.NC_ch('{$type}', '{$exist_channel.channel_disc}',this.selectedIndex)">
+        {if !isset($exist_channel.del)}<option value="0"{if !isset($exist_channel.NC)} selected{/if}>○</option>{/if}
+        <option value="1"{if  isset($exist_channel.NC)} selected{/if}>×</option>
+      </select>
+     </td>
+     <td align="center">
+      <select onChange="PRG.skip_ch('{$type}', '{$exist_channel.channel_disc}',this.selectedIndex)">
+        {if !isset($exist_channel.del)}<option value="0"{if !$exist_channel.skip} selected{/if}>○</option>{/if}
+        <option value="1"{if  $exist_channel.skip} selected{/if}>×</option>
+      </select>
+     </td>
+     <td align="{if is_numeric($exist_channel.pro_cnt)}right{else}center{/if}">{$exist_channel.pro_cnt}</td>
+     <td align="{if is_numeric($exist_channel.res_cnt)}right{else}center{/if}">{$exist_channel.res_cnt}</td>
+     <td align="center" width="50px">{if isset($exist_channel.del)}<input type="button" value="削除" onClick="javascript:PRG.del_ch('{$type}', '{$exist_channel.channel_disc}')">{/if} </td>
+    </tr>
+   {/foreach}
+  </tbody>
+ </table>
+</div>
+</form>
+</body>
+</html>

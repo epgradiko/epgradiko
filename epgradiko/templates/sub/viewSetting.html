@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<script language="javascript" type="text/javascript">
+	function cmd_copy( source, target ){
+		source_element = document.getElementById(source);
+		target_element = document.getElementById(target);
+		target_element.setAttribute('value', source_element.innerHTML);
+	}
+	function cmd_clear( target ){
+		target_element = document.getElementById(target);
+		target_element.setAttribute('value', '');
+	}
+	function set_cookie(){
+		var date = new Date();
+		date.setTime( date.getTime() + 365 * 60 * 60 * 24 * 1000 );
+		event.preventDefault();
+		if($("#form_view").valid()){
+			document.cookie = 'ts_urlscheme='+escape($('#ts_cmd').val())+'; path=/; expires='+date.toUTCString();
+			document.cookie = 'video_urlscheme='+escape($('#v_cmd').val())+'; path=/; expires='+date.toUTCString();
+			document.cookie = 'podcast_urlscheme='+escape($('#pcast_cmd').val())+'; path=/; expires='+date.toUTCString();
+			alert('保存しました。');
+		}
+	}
+
+$(document).ready(function(){
+	$("#form_view").validate();
+});
+</script>
+<style type="text/css">
+<!--
+{literal}
+
+body {padding:1px;margin:0;font-size:10pt;}
+.bold {font-weight:bold;}
+.small {font-size:75%;}
+.cmd_table td{ word-wrap: break-word; }
+div.setting { padding: 0px; margin-left: 20px; margin-bottom: 20px;}
+
+form label.error, label.err { color: red; }
+
+{/literal}
+-->
+</style>
+</head>
+<body>
+
+<div>
+ <form id="form_view">
+  <input type="hidden" name="return" id="id_return" value="{$return}">
+  <fieldset>
+  <legend><h2>視聴URLスキーム設定</h2></legend>
+
+  <div class="caption">
+   視聴時に使用するアプリケーション（例:vlc）を指定することができます。(
+   <a href="https://github.com/l3tnun/EPGStation/blob/master/doc/windows-url-scheme.md" target="_blank">
+    <font color="#006600">WindowsはURLスキーマの設定</font>
+   </a>が必要)<br>
+   %PROTOCOL%は、プロトコル(httpsやhttp)<br>
+   %ADDRESS%は、ソースのアドレス<br>
+   %address%は、urlエンコードしたソースのアドレス( %ADDRESS% でうまく開けないときに使用してください )<br>
+   に置き換わります。
+   <small>
+    <table class="cmd_tble" Border Cellspacing="1" style="table-layout: fixed;">
+     <tr bgcolor="lightblue"><th>連携先</th><th>URLスキーマ</th><th></th><th></th></tr>
+     <tr>
+      <td>Windows(vlc)</td>
+      <td id="v_Windows">cvlc://%PROTOCOL%://%ADDRESS%</td>
+      <td><input type="button" value="TSにコピー" onclick="cmd_copy('v_Windows','ts_cmd');"/></td>
+      <td><input type="button" value="videoにコピー" onclick="cmd_copy('v_Windows','v_cmd');"/></td>
+     </tr>
+     <tr>
+      <td>ios(vlc)</td>
+      <td id="v_ios">vlc-x-callback://x-callback-url/stream?url=%PROTOCOL%%3A%2F%2F%address%</td>
+      <td><input type="button" value="TSにコピー" onclick="cmd_copy('v_ios','ts_cmd');"/></td>
+      <td><input type="button" value="videoにコピー" onclick="cmd_copy('v_ios','v_cmd');"/></td>
+     </tr>
+     <tr>
+      <td>android(vlc)</td>
+      <td id="v_android">intent://%ADDRESS%#Intent;package=org.videolan.vlc;type=video;scheme=%PROTOCOL%;end</td>
+      <td><input type="button" value="TSにコピー" onclick="cmd_copy('v_android','ts_cmd');"/></td>
+      <td><input type="button" value="videoにコピー" onclick="cmd_copy('v_android','v_cmd');"/></td>
+     </tr>
+    </table>
+   </small>
+  </div>
+  <h3>TSストリーム再生</h3>
+  <div class="caption">
+   　再生プラットフォーム、使用アプリケーションに応じ、設定してください。<br>
+   　（未入力の場合、asxファイルのダウンロードになります）
+  </div>
+  <div class="setting">
+   <input type="text" id="ts_cmd" name="ts_urlscheme" value="{$ts_urls}" size="40" />
+   <input type="button" value="クリア" onclick="cmd_clear('ts_cmd');"/>
+  </div>
+
+  <h3>videoストリーム再生</h3>
+  <div class="caption">
+   　再生プラットフォーム、使用アプリケーションに応じ、設定してください。<br>
+   　（未入力の場合、ブラウザ内の再生になります）
+  </div>
+  <div class="setting">
+   <input type="text" id="v_cmd" name="video_urlscheme" value="{$video_urls}" size="40" />
+   <input type="button" value="クリア" onclick="cmd_clear('v_cmd');"/>
+  </div>
+ </fieldset>
+
+ <fieldset>
+  <legend><h2>Podcast連携URLスキーム設定</h2></legend>
+  <div class="caption">
+   録画一覧より表示中の録画ファイルをPodcastとしてiTunesなどに連携することができます。
+   <small>
+    <table class="cmd_table" Border Cellspacing="1">
+     <tr bgcolor="lightblue"><th>連携先</th><th>URLスキーマ</th><th></th></tr>
+     <tr>
+      <td>iTunes, Podcast(ios)</td>
+      <td id="v_pcast">pcast://%ADDRESS%</td>
+      <td><input type="button" value="Podcstにコピー" onclick="cmd_copy('v_pcast','pcast_cmd');"/></td>
+     </tr>
+    </table>
+   </small>
+  </div>
+  <h3>Podcst連携</h3>
+  <div class="caption">
+   　再生プラットフォーム、使用アプリケーションに応じ、設定してください。<br>
+   　（未入力の場合、Podcast連携なしになります）<br>
+  </div>
+  <div class="setting">
+   <input type="text" id="pcast_cmd" name="podcast_urlscheme" value="{$podcast_urls}" size="40" />
+   <input type="button" value="クリア" onclick="cmd_clear('pcast_cmd');" />
+  </div>
+  </fieldset>
+ <input type="submit" value="保存" onclick="set_cookie()" />
+</form>
+</div>
+</body>
+</html>

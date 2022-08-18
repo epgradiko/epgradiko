@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tv SYSTEM "xmltv.dtd">
+<tv generator-info-name="epgradiko">
+{foreach from=$channels item=ch}
+  <channel id="{$ch.channel}_{$ch.sid}"> 
+    <display-name lang="ja_JP">{$ch.name}</display-name>
+    {if isset($ch.logo)}<icon src="{$ch.logo}"/>{/if}
+  </channel>
+  {foreach from=$programs[$ch.channel_disc] item=prog}
+  <programme start="{$prog.starttime}" stop="{$prog.endtime}" channel="{$ch.channel}_{$ch.sid}">
+    <title lang="ja_JP">{$prog.title}</title>
+    <desc lang="ja_JP">{$prog.desc}</desc>
+    <category lang="ja_JP">{$prog.category_jp}</category>
+    <category lang="en">{$prog.category_en}</category>
+  </programme>
+  {/foreach}
+{/foreach}
+</tv>

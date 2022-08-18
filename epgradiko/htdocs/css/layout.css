@@ -1,0 +1,104 @@
+/* 共通CSS */
+body {padding:4px;margin:0;font-size:10pt;}
+a {text-decoration:none;}
+/*
+.bold {font-weight:bold;}
+.small {font-size:75%;}
+*/
+
+table#reservation_table {
+    border: 1px #BBB solid;
+    border-collapse: collapse;
+    border-spacing: 0;
+/*
+    margin-left: -4px;
+    margin-right: -4px;
+*/
+    width: 100%;
+}
+
+table#reservation_table tr {
+    margin: 0;
+}
+
+table#reservation_table th {
+    padding: 3px;
+    border: #E3E3E3 solid;
+    border-width: 0 0 1px 1px;
+    background: #BBB;
+    font-weight: bold;
+    line-height: 120%;
+    text-align: center;
+}
+.rec_date       { width: 4em; }
+.rec_datetime   { width: 6em; }
+.rec_start_end  { width: 8.5em; }
+.rec_duratation { width: 4em; }
+.type           { width: 2em; padding-right:0; padding-left:0; }
+.station        { width: 6em; }
+.rec_mode       { width: 3em; }
+.recd_mode      { width: 5em; }
+.sell_button    { width: 2em; padding-right:0; padding-left:0; }
+
+table#reservation_table td {
+    padding: 5px;
+    border: 1px #BBB solid;
+    border-width: 0 0 1px 1px;
+}
+
+/* ジャンル設定 */
+table#reservation_table tr.ctg_1,  #tvtable div.ctg_1,  #category_select a.ctg_1  {background-color: #FFFFD8;}	/* NEWS */
+table#reservation_table tr.ctg_2,  #tvtable div.ctg_2,  #category_select a.ctg_2  {background-color: #D8FFFF;}	/* SPORTS */
+table#reservation_table tr.ctg_3,  #tvtable div.ctg_3,  #category_select a.ctg_3  {background-color: #F2D8FF;}	/* INFORMATION */
+table#reservation_table tr.ctg_4,  #tvtable div.ctg_4,  #category_select a.ctg_4  {background-color: #D8FFD8;}	/* DRAMA */
+table#reservation_table tr.ctg_5,  #tvtable div.ctg_5,  #category_select a.ctg_5  {background-color: #D8D8FF;}	/* MUSIC */
+table#reservation_table tr.ctg_6,  #tvtable div.ctg_6,  #category_select a.ctg_6  {background-color: #FFD2EB;}	/* VARIETY */
+table#reservation_table tr.ctg_7,  #tvtable div.ctg_7,  #category_select a.ctg_7  {background-color: #FFD8D8;}	/* CINEMA */
+table#reservation_table tr.ctg_8,  #tvtable div.ctg_8,  #category_select a.ctg_8  {background-color: #FFE4C8;}	/* ANIME */
+table#reservation_table tr.ctg_9,  #tvtable div.ctg_9,  #category_select a.ctg_9  {background-color: #FFFFFF;}	/* DOCUMENTARY */
+table#reservation_table tr.ctg_10, #tvtable div.ctg_10, #category_select a.ctg_10 {background-color: #FFFFFF;}	/* STAGE */
+table#reservation_table tr.ctg_11, #tvtable div.ctg_11, #category_select a.ctg_11 {background-color: #FFFFFF;}	/* HOBBY */
+table#reservation_table tr.ctg_12, #tvtable div.ctg_12, #category_select a.ctg_12 {background-color: #FFFFFF;}	/* WELFARE */
+table#reservation_table tr.ctg_13, #tvtable div.ctg_13, #category_select a.ctg_13 {background-color: #FFFFFF;}	/* RESERVE1 */
+table#reservation_table tr.ctg_14, #tvtable div.ctg_14, #category_select a.ctg_14 {background-color: #FFFFFF;}	/* RESERVE2 */
+table#reservation_table tr.ctg_15, #tvtable div.ctg_15, #category_select a.ctg_15 {background-color: #FFFFFF;}	/* EXPAND */
+table#reservation_table tr.ctg_16, #tvtable div.ctg_16, #category_select a.ctg_16 {background-color: #FFFFFF;}	/* ETC */
+table#reservation_table tr.ctg_aa, #category_select a.ctg_aa {background-color: #E4F4F4;}	/*  */
+table#reservation_table tr.freeze {background-color: #CCCCCC;}	/* 無効化 */
+
+/* programTable.php用 */
+table#reservation_table tr.prg_rec      {background-color: #F55;color:#FEE;}
+table#reservation_table tr.prg_rec_oth  {background-color: #F88;}
+
+/* チューナー設定 */
+table#reservation_table td.tuner0, #tvtable div.prg_rec0 {border: solid thick red;}
+table#reservation_table td.tuner1, #tvtable div.prg_rec1 {border: solid thick green;}
+table#reservation_table td.tuner2, #tvtable div.prg_rec2 {border: solid thick blue;}
+table#reservation_table td.tuner3, #tvtable div.prg_rec3 {border: solid thick yellow;}
+
+table#reservation_table td.tuner0 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner1 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner2 {padding-left:0; padding-right:0;}
+table#reservation_table td.tuner3 {padding-left:0; padding-right:0;}
+
+#floatBox4Dialog .prg_title{font-size:110%; font-weight:bold; padding:0.4em 0; text-align:center;}
+#floatBox4Dialog .prg_rec_cfg{background:#EEE; padding:1em 2em; margin:0.4em 0;}
+#floatBox4Dialog .labelLeft {width:8.4em; float:left; text-align:right;}
+#floatBox4Dialog .labelLeft2 {width:6.0em; float:left; text-align:right;}
+#floatBox4Dialog .button {padding:0.4em 1em;}
+
+
+/*==========pagetop==========*/
+#pagetop{ position:fixed; right:30px; bottom:50px;}
+#pagetop img{ cursor:pointer;}
+#pagetop{ display:none;}
+
+#naver{
+	width:100%;
+	padding:1px;
+	border-bottom:2px #999 ridge;
+	background-color:white;
+	position:fixed;
+	top:0px;
+	left:0px;
+}

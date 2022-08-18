@@ -1,0 +1,1007 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>{$sitetitle}</title>
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+{literal}
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/css/jquery-ui.min.css" type="text/css">
+<link rel="stylesheet" href="/css/layout.css" type="text/css">
+<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript" src="/js/mdabasic.js"></script>
+<script type="text/javascript" src="/js/genre.js"></script>
+<script type="text/javascript">
+	var PRG = {
+		tgl_autorec:function(no,p_id){
+			var resid     = $('#resid_' + no);
+			var autorec_f = parseInt(resid.children('.autorec').html());
+			$.get('/toggleAutorec.php', { program_id: p_id, bef_auto: autorec_f }, function() {
+				var minar = 1;
+				var elem = document.getElementById('tgl_auto_' + no);
+				if( autorec_f ){
+					elem.value='自動許可';
+					do{
+						resid.addClass('freeze');
+						resid.children('.autorec').html('0');
+						resid = $('#resid_' + no + '_' + minar++);
+					}while( resid.is('*') );
+				}else{
+					elem.value='自動禁止';
+					do{
+						resid.removeClass('freeze');
+						resid.children('.autorec').html('1');
+						resid = $('#resid_' + no + '_' + minar++);
+					}while( resid.is('*') );
+				}
+			});
+		},
+		tgl_button:function(no,p_id,a_id){
+			var resid     = $('#resid_' + no);
+			var r_id = parseInt(resid.children('.rev_id').html());
+			if( r_id > 0 ){
+				$.get('/cancelReservationForm.php', { reserve_id: r_id, autorec: a_id }, function(data) {
+					var recv = data.match(/error/i);
+					if( recv != null ){
+						alert(data);
+					}else{
+						var str = data;
+						str += '<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.cancelrec(\'' + no + '\')" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">予約キャンセル</a></div>';
+						$('#floatBox4Dialog').html(str);
+						$('#floatBox4Dialog').dialog('option', 'title', '予約削除');
+						$('#floatBox4Dialog').dialog('open', 'center');
+					}
+				});
+			}else{
+				$.get(INISet.prgRecordURL, { program_id: p_id } ,function(data){
+					var recv = data.match(/error/i);
+					if( recv != null ){
+						alert(data);
+					}else{
+						var pt     = data.split( ':' );
+						var p_id   = parseInt(pt[0]);
+						var r_id   = parseInt(pt[2]);
+						if( p_id ) {
+							resid.removeClass('freeze');
+							resid.addClass('prg_rec_oth');
+							resid.children('.rev_id').html(r_id);
+							resid.children('.tgl_btn').children('input').val('削除');
+						}
+					}
+				});
+			}
+		},
+		cancelrec:function(no) {
+			var id_reserve_id = $('#id_reserve_id').val();
+			var tmp_disc = $('#id_autorec').prop('checked');
+			var id_autorec = tmp_disc ? 1 : 0;
+			var str = "<div>予約キャンセル中</div>";
+
+			$('#floatBox4Dialog').html(str);
+			$.get('/cancelReservation.php', { reserve_id: id_reserve_id,
+							autorec: id_autorec }, function(data) {
+				if(data.match(/^error/i)){
+					$('#floatBox4Dialog').dialog('close');
+					alert(data);
+				}else{
+					var pt   = no.split( '_' );
+					var p_id = parseInt(pt[0]);
+					var resid = $('#resid_' + no);
+					var aid = $('#resid_' + p_id);
+					var excl = parseInt(aid.children('.excl').html()) - 1;
+					resid.children('.excl').html(excl);
+					if( no != p_id ){
+						aid.removeClass('resvd_on');
+						resid.hide();
+					}else{
+						if( excl <= 0 ){
+							resid.children('.rev_id').html('0');
+							resid.children('.tgl_btn').children('input').val('録画');
+						}
+					}
+					if( excl <= 0 ){
+						aid.removeClass('prg_rec');
+						aid.removeClass('prg_rec_oth');
+					}
+					var elem = document.getElementById('tgl_auto_' + p_id);
+					if( id_autorec ){
+						elem.value='自動許可';
+						aid.children('.autoid').children('input').val('自動許可');
+						aid.addClass('freeze');
+						aid.children('.autorec').html('0');
+					}else{
+						elem.value='自動禁止';
+						aid.children('.autoid').children('input').val('自動禁止');
+						aid.removeClass('freeze');
+						aid.children('.autorec').html('1');
+					}
+					$('#floatBox4Dialog').dialog('close');
+				}
+			});
+		},
+		customform:function(no,pro_id,key_id) {
+			$('#floatBox4Dialog').dialog('close');
+			$.get('/reservationform.php', { program_id: pro_id, keyword_id: key_id }, function(data) {
+				if(data.match(/^error/i)){
+					alert(data);
+				}
+				else {
+					var str = data;
+					str += '<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.customrec(\'' + no + '\')" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">予約する</a></div>';
+					$('#floatBox4Dialog').html(str);
+					$('#floatBox4Dialog').dialog('option', 'title', '詳細予約');
+					$('#floatBox4Dialog').dialog('open', 'center');
+				}
+			});
+		},
+		customrec:function(no) {
+			var id_syear = $('#id_syear').val();
+			var id_smonth = $('#id_smonth').val();
+			var id_sday = $('#id_sday').val();
+			var id_shour = $('#id_shour').val();
+			var id_smin = $('#id_smin').val();
+			var id_ssec = $('#id_ssec').val();
+			var id_eyear = $('#id_eyear').val();
+			var id_emonth = $('#id_emonth').val();
+			var id_eday = $('#id_eday').val();
+			var id_ehour = $('#id_ehour').val();
+			var id_emin = $('#id_emin').val();
+			var id_esec = $('#id_esec').val();
+			var id_channel_id = $('#id_channel_id').val();
+			var id_record_mode = $('#id_record_mode').val();
+			var id_title = $('#id_title').val();
+			var id_pre_title = $('#id_pre_title').val();
+			var id_post_title = $('#id_post_title').val();
+			var id_description = $('#id_description').val();
+			var id_rec_dir = $('#id_rec_dir').val();
+			var id_trans_dir = $('#id_trans_dir').val();
+			var id_category_id = $('#id_category_id ').val();
+			var id_program_id = $('#id_program_id').val();
+			var with_program_id = $('#id_program_id').prop('checked');
+			
+			if( ! with_program_id ) id_program_id = 0;
+			var tmp_disc = $('#id_discontinuity').prop('checked');
+			var id_discontinuity = tmp_disc ? 1 : 0;
+			var id_priority = $('#id_priority').val();
+			tmp_disc = $('#id_ts_del').prop('checked');
+			var id_ts_del = tmp_disc ? 1 : 0;
+			$.post('/customReservation.php', { syear: id_syear,
+							  smonth: id_smonth,
+							  sday: id_sday,
+							  shour: id_shour,
+							  smin: id_smin,
+							  ssec: id_ssec,
+							  eyear: id_eyear,
+							  emonth: id_emonth,
+							  eday: id_eday,
+							  ehour: id_ehour,
+							  emin: id_emin,
+							  esec: id_esec,
+							  channel_id: id_channel_id,
+							  record_mode: id_record_mode,
+							  title: id_title,
+							  pre_title: id_pre_title,
+							  post_title: id_post_title,
+							  description: id_description,
+							  rec_dir: id_rec_dir,
+							  trans_dir: id_trans_dir,
+							  category_id: id_category_id,
+							  program_id: id_program_id,
+							  discontinuity: id_discontinuity,
+							  priority: id_priority,
+							  ts_del: id_ts_del }, function(data) {
+				var recv = data.match(/error/i);
+				if( recv != null ){
+					$('#floatBox4Dialog').dialog('close');
+					alert(data);
+				}
+				else {
+					var pt     = data.split( ':' );
+					var p_id   = parseInt(pt[0]);
+//					var tuner  = pt[1];
+					var r_id   = parseInt(pt[2]);
+//					var reload = parseInt(pt[3]);
+//					if( reload ){
+//						location.reload();
+//					}else{
+						if( p_id ) {
+							$('#resid_' + no).removeClass('freeze');
+							$('#resid_' + no).addClass('prg_rec_oth');
+							$('#resid_' + no).children('.rev_id').html(r_id);
+						}
+						$('#floatBox4Dialog').dialog('close');
+//					}
+				}
+			});
+		},
+		delkey:function(id){
+			$.get(INISet.prgDelKeyURL, { keyword_id: id } ,function(data){
+				if(data.match(/^error/i)){
+					alert(data);
+				}else{
+					var ref = document.referrer;
+					var key = '/keywordTable.php';
+
+					if( ref.indexOf(key) > -1 )
+						location.href = key;
+					else
+					if( ref.indexOf('/programTable.php') > -1 )
+						location.href = key;
+					else
+						location.href = ref;
+//						history.back();
+				}
+			});
+		},
+		inskey:function(){
+			document.parForm.keyword_id.value = '';
+			document.parForm.submit();
+		},
+		editdialog:function(id) {
+			var str;
+			str  = '<div class="prg_title">予約ID:' + id + '</div>';
+			str += '<input type="hidden" name="reserve_id" id="id_reserve_id" value="' + id +  '">';
+			str += '<div><span class="labelLeft" style="width:6em;">タイトル</span><input name="title" id="id_title" value="'+ $('#tid_' + id ).html() + '"></div>';
+			str += '<div><span class="labelLeft" style="width:6em;">概要</span><textarea name="description" id="id_description" cols="40" rows="5" >' + $('#did_' + id ).html().trim() + '</textarea></div>';
+			str += '<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.edit()" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">変更する</a></div>';
+
+			$('#floatBox4Dialog').html(str);
+			$('#floatBox4Dialog').dialog('option', 'title', '情報変更');
+			$('#floatBox4Dialog').dialog('open','center');
+		},
+		edit:function() {
+			var id_reserve_id = $('#id_reserve_id').val();
+			var id_title = $('#id_title').val();
+			var id_pre_title = $('#id_pre_title').val();
+			var id_post_title = $('#id_post_title').val();
+			var id_description = $('#id_description').val();
+
+			$.post('/changeReservation.php', { reserve_id: id_reserve_id,
+							  title: id_title,
+							  description: id_description }, function( data ) {
+					if(data.match(/^error/i)){
+					alert(data);
+					$('#floatBox4Dialog').dialog('close');
+
+				}
+				else {
+					$('#tid_' + id_reserve_id ).html( id_title );
+					$('#did_' + id_reserve_id ).html( id_description );
+					$('#floatBox4Dialog').dialog('close');
+				}
+			});
+		}
+	}
+
+	function disp_diag_msg(msg){
+		$('#floatBox4Dialog').dialog('option', 'title', '概要');
+		$('#floatBox4Dialog').html(msg);
+		$('#floatBox4Dialog').dialog('open','left');
+	}
+
+	function change_subGenre(genre)
+	{
+		genre--;
+		len = document.myForm.sub_genre.options.length;
+		for (i=len-1; i>=0; i--)
+			document.myForm.sub_genre.options[i] = null;
+		document.myForm.sub_genre.options[0] = new Option( "すべて", genre!=14 ? 16 : 18 );
+		document.myForm.sub_genre.options[0].selected = true;
+		if(  genre>=0 && genre<16 ){
+			len = sub_genre_tbl[genre].length;
+			for( i=0,ii=1; i<len; i++ ){
+				if( sub_genre_tbl[genre][i] != "" )
+					document.myForm.sub_genre.options[ii++] = new Option( sub_genre_tbl[genre][i], i );
+			}
+			if( genre != 14 ){
+				document.myForm.sub_genre.options[ii] = new Option( "その他", 15 );
+			}else
+				return 18;
+		}
+		return 16;
+	}
+
+	function selected_subGenre(genre,sb_number)
+	{
+		if( genre != 15 ){
+			switch( sb_number ){
+				case 16:
+					document.myForm.sub_genre.options[0].selected = true;
+					break;
+				case 15:
+					document.myForm.sub_genre.options[document.myForm.sub_genre.options.length-1].selected = true;
+					break;
+				default:
+					document.myForm.sub_genre.options[sb_number+1].selected = true;
+					break;
+			}
+		}else{
+			switch( sb_number ){
+				case 18:
+					document.myForm.sub_genre.options[0].selected = true;
+					break;
+				default:
+					len = sub_genre_tbl[genre-1].length + 1;
+					for( i=1; i<len; i++ ){
+						if( document.myForm.sub_genre.options[i].value == sb_number ){
+							document.myForm.sub_genre.options[i].selected = true;
+							break;
+						}
+					}
+					break;
+			}
+		}
+	}
+
+	var $mode;
+
+	function write_cookie(){
+		var expire = new Date();
+		expire.setTime( expire.getTime() + 365 * 24 * 3600 * 1000 );
+		document.cookie = 'programTable_mode=' + $mode + '; expires=' + expire.toUTCString();		// cookie書き込み
+	}
+
+	function init_mode(){
+/*		var cookieName = 'programTable_mode=';
+		var allcookies = document.cookie;
+		var position   = allcookies.indexOf( cookieName );
+
+		if( position != -1 ){
+			// cookie読み込み
+			var startIndex = position + cookieName.length;
+			var endIndex   = allcookies.indexOf( ';', startIndex );
+
+			if( endIndex == -1 )
+				endIndex = allcookies.length;
+			$mode = parseInt( decodeURIComponent( allcookies.substring( startIndex, endIndex ) ) );
+		}else */
+			$mode = 1;		// 無難なクリックモード
+		$('#programTable_mode').val($mode);
+		mode_chage();
+	}
+
+	function mode_chage(){
+		var new_mode = parseInt($('#programTable_mode').val());
+		if( new_mode == 0 ){
+			$('.resvd').removeClass('resvd_lock');
+			$('.resvd_child').addClass('resvd_on');
+			$('.resvd_child').removeClass('resvd_child');
+		}else{
+			if( $mode == 0 ){
+				$('.resvd_on').addClass('resvd_child');
+				$('.resvd_on').removeClass('resvd_on');
+			}else
+			if( $mode == 2 )
+				$('.resvd').removeClass('resvd_lock');
+		}
+		$mode = new_mode;
+		write_cookie();
+	}
+
+	function rev_open(my){
+		var idname  = '#' + my.attr('id') + '_';
+		var minar   = 1;
+		var childid = idname + minar;
+		while( $(childid).is('*') ){
+			if( $(childid).hasClass('resvd_child') ){
+				$(childid).removeClass('resvd_child');
+				$(childid).addClass('resvd_on');
+			}
+			childid = idname + ++minar;
+		}
+	}
+
+	function rev_close(my){
+		var idname  = '#' + my.attr('id') + '_';
+		var minar   = 1;
+		var childid = idname + minar;
+		while( $(childid).is('*') ){
+			if( $(childid).hasClass('resvd_on') ){
+				$(childid).addClass('resvd_child');
+				$(childid).removeClass('resvd_on');
+			}
+			childid = idname + ++minar;
+		}
+	}
+
+	$(function(){
+		$('.resvd').click(
+			function (event) {
+				if( $mode == 0 )
+					return;
+				else{
+					var target = $(event.target);
+					if( target.is('a') )	// link
+						return;
+					if( target.is('input') )	// button
+						return;
+					if( $mode == 1 ){
+						var idname  = '#' + $(this).attr('id') + '_';
+						var minar   = 1;
+						var childid = idname + minar;
+						if( $(childid).is('*') ){
+							if( $(childid).hasClass('resvd_on') ){
+								do{
+									$(childid).addClass('resvd_child');
+									$(childid).removeClass('resvd_on');
+									childid = idname + ++minar;
+								}while( $(childid).is('*') );
+							}else{
+								do{
+									$(childid).removeClass('resvd_child');
+									$(childid).addClass('resvd_on');
+									childid = idname + ++minar;
+								}while( $(childid).is('*') );
+							}
+						}
+					}else
+					if( $mode == 2 ){
+						if( $(this).hasClass('resvd_lock') ){
+							$(this).removeClass('resvd_lock');
+							rev_close($(this));
+						}else{
+							$(this).addClass('resvd_lock');
+						}
+					}
+				}
+			}
+		);
+
+		$('tr[id]').mouseover(
+			function (event) {
+				if( $mode == 2 ){
+					// 前のTR要素取得
+					var preTarget = $(event.relatedTarget);
+					if( !preTarget.is('th') ){
+						if( !preTarget.is('tr') )
+							preTarget = preTarget.parents('tr');
+
+						// 前TR要素の予約非表示
+						if( preTarget.is('tr') ){
+							var pre_id     = preTarget.attr('id');
+							if( typeof pre_id !== 'undefined' ){
+								var pt        = pre_id.split('_');
+								var preParent = $('#resid_' + pt[1]);
+								var pt        = $(this).attr('id').split('_');
+								var this_id = $('#resid_' + pt[1]).attr('id');
+								if( this_id === preParent.attr('id') ){
+									return;
+								}else
+									if( preTarget.hasClass('resvd') ){
+										if( !preTarget.hasClass('resvd_lock') )
+											rev_close(preTarget);
+									}else{
+										if( preTarget.hasClass('resvd_on') ){
+											if( !preParent.hasClass('resvd_lock') && preParent.children('.excl').html()==='1' )
+												rev_close(preParent);
+										}
+									}
+							}
+						}
+					}
+
+					// 現TR要素の予約表示
+					if( $(this).hasClass('resvd') && !$(this).hasClass('resvd_lock') )
+						rev_open($(this));
+				}
+			}
+		);
+
+		$('tr[id]').mouseout(
+			function (event) {
+				if( $mode == 2 ){
+					var preTarget = $(event.relatedTarget);
+					if( !preTarget.is('th') ){
+						if( !preTarget.is('tr') )
+							preTarget = preTarget.parents('tr');
+						if( preTarget.is('tr') )
+							return;
+					}
+					var pt        = $(this).attr('id').split('_');
+					var preParent = $('#resid_' + pt[1]);
+					if( preParent.hasClass('resvd') ){
+						if( !preParent.hasClass('resvd_lock') )
+							rev_close(preParent);
+					}
+				}
+			}
+		);
+	});
+
+var pre_click = 7;
+var pre_stats;
+
+	function check_shiftclick( num, event ){
+		if( pre_click != num ){
+			if( pre_click!=7 && event.shiftKey ){
+				var	start,end;
+				if( pre_click < num ){
+					start = pre_click;
+					end   = num;
+				}else{
+					start = num;
+					end   = pre_click;
+				}
+				for( ; start<=end; start++ )
+					document.getElementsByName("week"+start)[0].checked = pre_stats;
+			}
+			pre_click = num;
+		}
+		pre_stats = document.getElementsByName("week"+num)[0].checked;
+	}
+
+	function setFormInput(val){
+		var  formElement = document.parForm.k_filename;
+		var  temp        = formElement.value;
+		try{
+			formElement.setRangeText( val, formElement.selectionStart, formElement.selectionEnd, 'end' );
+		}catch(e){}
+		//HTML5非対応対策
+		if( temp === formElement.value )
+			formElement.value += val;
+		formElement.focus();
+	}
+
+	$(document).ready(function () {
+		var DG = $('#floatBox4Dialog');
+		DG.dialog({title:'録画予約',width:600});
+		DG.dialog('close');
+		init_mode();
+		change_subGenre({/literal}{$k_category}{literal});
+		selected_subGenre({/literal}{$k_category},{$k_sub_genre}{literal});
+	});
+
+	function radio_change( one, other )  {
+		if(document.getElementById(one).checked) {
+			document.getElementById(other).checked = false;
+		}
+	}
+
+	function mark_change( mark, exmark, mark_btn, exmark_btn)  {
+		if(document.getElementById(mark).checked) {
+			document.getElementById(mark_btn).style.backgroundColor = "skyblue"; 
+			document.getElementById(exmark).checked = false;
+			document.getElementById(exmark_btn).style.backgroundColor = ""; 
+		} else {
+			document.getElementById(mark_btn).style.backgroundColor = "";
+		}
+	}
+
+	function show_keyword_set()  {
+		document.getElementById('id_keyword_set').style.display = 'inline';
+		document.getElementById('id_show_btn').style.display = "none";
+	}
+
+	function hide_keyword_set()  {
+		document.getElementById('id_keyword_set').style.display = 'none';
+		document.getElementById('id_show_btn').style.display = "inline";
+	}
+
+</script>
+
+<style type="text/css">
+<!--
+input.example1 {
+  width: 100%;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+table#reservation_table {
+    border: 2px gray solid;
+    border-spacing: 1px;
+}
+
+table#reservation_table th {
+    border: 1px gray solid;
+    white-space: nowrap;
+}
+
+table#reservation_table td {
+    border: 1px gray solid;
+    text-align: center;
+}
+
+table#reservation_table td.rev_id, table#reservation_table td.autorec, table#reservation_table td.excl {display: none;}
+table#reservation_table tr.resvd_child {display: none;}
+
+table#extra_strings th {
+	text-align: center;
+	background: #BBB;
+}
+table#extra_strings td {
+	white-space:	pre;
+	padding-left:	2px;
+	padding-right:	2px;
+}
+table#extra_strings th.label, td.label {
+	width: max-content;
+	width: -moz-max-content;
+}
+table#extra_strings th.desc, td.desc {}
+table#extra_strings td.subcmd {background: #DDD;}
+
+table#extra_strings.list {display: none;}
+
+.mark_checkbox {display:none}
+.mark_class {line-height: 10pt; display: inline-block; border: 1px solid; border-radius: 2px;}
+.toggle_class {line-height: 12pt; display: inline-block; border: 1px solid; border-radius: 2px; background-color: lightyellow;}
+
+-->
+</style>
+{/literal}
+
+</head>
+
+<body>
+
+<div id="all">
+{include file='menu_star.tpl'}
+<form style="text-align:right; float:left;">
+{if 0}
+<b> 操作モード</b>
+{/if}
+<select id="programTable_mode" onChange="mode_chage()" style="display: none;">
+<option value="0">full open</option>
+<option value="1">click mode</option>
+<option value="2">hover mode</option>
+</select>
+</form>
+
+<div id="nav_margin" style="margin-top:30px;">
+<fieldset>
+<legend><b>キーワード</b>{if $keyword_id}{if $norec}({$kw_name}){else}<a href="/recordedTable.php?key={$keyword_id}" title="キーワードで絞り込んで録画済一覧にジャンプ">({$kw_name})</a>{/if}{/if}</legend>
+<form name="myForm" method="post" action="/programTable.php{if $norec}?norec{/if}">
+<input type="hidden" name="do_search" value="1">
+<input type="hidden" name="keyword_id" value="{$keyword_id}">
+<input type="hidden" name="kw_enable" value="{$kw_enable}">
+<input type="hidden" name="sft_start" value="{$sft_start}">
+<input type="hidden" name="sft_end" value="{$sft_end}">
+<input type="hidden" name="discontinuity" value="{$discontinuity}">
+<input type="hidden" name="priority" value="{$priority}">
+<input type="hidden" name="overlap" value="{$overlap}">
+<input type="hidden" name="autorec_mode" value="{$autorec_mode}">
+<input type="hidden" name="directory" value="{$directory}">
+<input type="hidden" name="filename" value="{$filename}">
+<input type="hidden" name="rest_alert" value="{$rest_alert}">
+<input type="hidden" name="criterion_enab" value="{$criterion_enab}">
+<input type="hidden" name="smart_repeat" value="{$smart_repeat}">
+<input type="hidden" name="split_time" value="{$split_time}">
+<input type="hidden" name="choose_marks" value="{$choose_marks}">
+<input type="hidden" name="choose_exmarks" value="{$choose_exmarks}">
+<input type="hidden" name="keyword_id" value="{$keyword_id}">
+<input type="hidden" name="kw_name" value="{$kw_name}">
+<input type="hidden" name="sort_order" value="{$sort_order}">
+ <b>絞込ワード</b>( 
+ <input type="checkbox" id="ena_title" name="ena_title" value="1" {if $ena_title}checked="checked"{/if}><label for="ena_title">タイトル</label>
+ <input type="checkbox" id="ena_desc" name="ena_desc" value="1" {if $ena_desc}checked="checked"{/if}><label for="ena_desc">概要</label> )　
+ 検索(<input type="checkbox" id="use_regexp" name="use_regexp" value="1" {if $use_regexp}checked="checked"{/if}
+ onchange="radio_change('use_regexp', 'collate_ci')"><label for="use_regexp">正規表現</label>
+ <input type="checkbox" id="collate_ci" name="collate_ci" value="1" {if $collate_ci}checked="checked"{/if}
+ onchange="radio_change('collate_ci', 'use_regexp')"><label for="collate_ci">全角半角区別しない</label> )　
+ 番組記号(<small>{$choose_mark}</small> )
+ <input type="text" name="search" value="{$search|escape}" class="example1" title="通常検索時のワイルドカードは'%'・半角スペースは'_'です。"><br>
+ <b>除外ワード</b>(
+ <input type="checkbox" id="ena_title_ex" name="ena_title_ex" value="1" {if $ena_title_ex}checked="checked"{/if}><label for="ena_title_ex">タイトル</label>
+ <input type="checkbox" id="ena_desc_ex" name="ena_desc_ex" value="1" {if $ena_desc_ex}checked="checked"{/if}><label for="ena_desc_ex">概要</label> )　
+ 検索(<input type="checkbox" id="use_regexp_ex" name="use_regexp_ex" value="1" {if $use_regexp_ex}checked="checked"{/if}
+ onchange="radio_change('use_regexp_ex', 'collate_ci_ex')"><label for="use_regexp_ex">正規表現</label>
+ <input type="checkbox" id="collate_ci_ex" name="collate_ci_ex" value="1" {if $collate_ci_ex}checked="checked"{/if}
+ onchange="radio_change('collate_ci_ex', 'use_regexp_ex')"><label for="collate_ci_ex">全角半角区別しない</label> )　
+ 番組記号(<small>{$choose_exmark}</small> )
+ <input type="text" name="search_ex" value="{$search_ex|escape}" class="example1" title="通常検索時のワイルドカードは'%'・半角スペースは'_'です。"><br>
+<b>放送種別:</b>(
+ <input type="checkbox" id="free" name="free" value="1" {if $free}checked="checked"{/if}><label for="free">無料のみ</label>
+  {foreach from=$types item=type}
+    <label><input type="checkbox" name="type{$type.value}" value="1" {$type.checked}>{$type.name}</label> 
+  {/foreach}
+)　<b>放送局:</b><select name="station">
+  {foreach from=$stations item=st}
+    <option value="{$st.id}" {$st.selected}>{$st.name}</option>
+  {/foreach}
+  </select>
+<br><b>ジャンル:</b>
+<select name="category_id" onChange="$k_sub_genre=change_subGenre(this.selectedIndex)">
+  {foreach from=$cats item=cat}
+  <option value="{$cat.id}" {$cat.selected}>{$cat.name}</option>
+  {/foreach}
+  </select>
+<b>サブジャンル</b><select name="sub_genre">
+  <option value={if $k_category != 15}"16"{else}"18"{/if}>すべて</option>
+  </select>
+
+<br><b>時間帯:</b><select name="prgtime">
+  {foreach from=$prgtimes item=prgt}
+  <option value="{$prgt.value}" {$prgt.selected}>{$prgt.name}</option>
+  {/foreach}
+  </select>
+から <select name="period">
+  {foreach from=$periods item=peri}
+  <option value="{$peri.value}" {$peri.selected}>{$peri.name}</option>
+  {/foreach}
+  </select>
+
+　<span title="シフトクリックで範囲操作が行なえます"><b>曜日:</b>(
+  {foreach from=$weekofdays item=week}
+    <label><input type="checkbox" name="week{$week.value}" value="1" onClick="check_shiftclick({$week.value},event)" {$week.checked}>{$week.name}</label> 
+  {/foreach}
+)</span>
+<br><b>長さ:</b>
+<input type="text" name="duration_from" value="{$duration_from}" size="3" maxlength="4" pattern="^[0-9]+$" placeholder="なし" title="半角数字を入力してください">分 ～ 
+<input type="text" name="duration_to" value="{$duration_to}" size="3" maxlength="4" pattern="^[0-9]+$" placeholder="なし" title="半角数字を入力してください">分
+　<input type="submit" value="絞り込む">
+　({$prg_cnt}件ヒット)　
+  <input type="hidden" name="isfirst" value="$isfirst">
+</form>
+</fieldset>
+{literal}
+<script type="text/javascript">
+	$('form[name=myForm]').change(function(e){
+		if( document.parForm ) {
+			document.getElementById('id_keyword_set').style.display = 'none';
+			document.getElementById('id_show_btn').style.display = "none";
+		}
+	});
+</script>
+{/literal}
+
+{if $do_keyword}<input type="checkbox" id="id_show_keyword" onchange="show_keyword_set()" class="mark_checkbox">
+<label for="id_show_keyword" id="id_show_btn" class="toggle_class"{if !$isfirst && $keyword_id} style="display: none;"{/if}><b>　自動予約設定　</b></label>{/if}
+</div>
+
+{if $do_keyword}
+{if $k_category != 15 || $k_sub_genre>=63 }
+{if $do_keyword || $prg_cnt < 300}
+<div id="id_keyword_set"{if $isfirst || !$keyword_id} style="display: none;"{/if}>
+<form method="post" name="parForm" action="/keywordTable.php">
+<fieldset>
+<legend><b>自動予約設定</b><input type="checkbox" id="id_hide_keyword" onchange="hide_keyword_set()" class="mark_checkbox"><label for="id_hide_keyword" id="id_hide_btn" class="toggle_class"><b>　隠す　</b></label></legend>
+  <input type="hidden" name="add_keyword" value="{$do_keyword}">
+  <input type="hidden" name="keyword_id" value="{$keyword_id}">
+  <input type="hidden" name="k_use_regexp" value="{$use_regexp}">
+  <input type="hidden" name="k_use_regexp_ex" value="{$use_regexp_ex}">
+  <input type="hidden" name="k_ena_title" value="{$ena_title}">
+  <input type="hidden" name="k_ena_title_ex" value="{$ena_title_ex}">
+  <input type="hidden" name="k_ena_desc" value="{$ena_desc}">
+  <input type="hidden" name="k_ena_desc_ex" value="{$ena_desc_ex}">
+  <input type="hidden" name="k_collate_ci" value="{$collate_ci}">
+  <input type="hidden" name="k_collate_ci_ex" value="{$collate_ci_ex}">
+  <input type="hidden" name="k_search_marks" value="{$search_marks}">
+  <input type="hidden" name="k_search_exmarks" value="{$search_exmarks}">
+  <input type="hidden" name="k_search" value="{$search}">
+  <input type="hidden" name="k_search_ex" value="{$search_ex}">
+  <input type="hidden" name="k_free" value="{$free}">
+  <input type="hidden" name="k_typeGR" value="{$k_typeGR}">
+  <input type="hidden" name="k_typeBS" value="{$k_typeBS}">
+  <input type="hidden" name="k_typeCS" value="{$k_typeCS}">
+  <input type="hidden" name="k_typeEX" value="{$k_typeEX}">
+  <input type="hidden" name="k_category" value="{$k_category}">
+  <input type="hidden" name="k_station" value="{$k_station}">
+  <input type="hidden" name="k_weekofday" value="{$weekofday}">
+  <input type="hidden" name="k_prgtime" value="{$prgtime}">
+  <input type="hidden" name="k_period" value="{$period}">
+  <input type="hidden" name="k_duration_from" value="{$duration_from}">
+  <input type="hidden" name="k_duration_to" value="{$duration_to}">
+  <input type="hidden" name="k_sub_genre" value="{$k_sub_genre}">
+  <input type="hidden" name="k_first_genre" value="{$first_genre}">
+  <input type="hidden" name="k_criterion_dura" value="{$criterion_dura}">
+  <input type="hidden" name="k_sft_start" value="{$sft_start}">
+  <input type="hidden" name="k_sft_end" value="{$sft_end}">
+  <input type="hidden" name="k_split_time" value="{$split_time}">
+  <label><input type="checkbox" name="k_kw_enable" value="1" {if $kw_enable}checked="checked"{/if}><b>有効</b></label>
+&nbsp;<b>表示順</b><input type="text" name="sort_order" value="{$sort_order}" size="5" maxlength="5" pattern="^[0-9]+$" placeholder="なし" title="半角数字を入力してください">
+  <b>名前</b><input type="text" name="kw_name" value="{if !$kw_name}{$search|escape}{else}{$kw_name|escape}{/if}" size="80" class="required" list="example">
+<!--  <label><input type="checkbox" name="k_overlap" value="1" {if $overlap}checked="checked"{/if}><b>多重予約許可</b></label>　-->
+<!--  <label><input type="checkbox" name="k_smart_repeat" value="1" {if $smart_repeat}checked="checked"{/if} disabled><b>リピート予約</b></label>　-->
+  <br>
+<!--  <label><input type="checkbox" name="k_rest_alert" value="1" {if $rest_alert}checked="checked"{/if}><b>予約なし警告</b></label>　-->
+<!--  <label><input type="checkbox" name="k_criterion_enab" value="1" {if $criterion_enab}checked="checked"{/if}><b>録画短縮時警告</b></label>-->
+<!--  <b>開始時刻シフト</b><input type="text" name="k_sft_start" value="{$sft_start}" size="8" class="required digits"><b>分　</b>
+  <b>終了時刻シフト</b><input type="text" name="k_sft_end" value="{$sft_end}" size="8" title="冒頭に@を付けると録画時間指定になります。
+このとき負数の場合、開始時刻シフトは無視され末尾基準となります。" class="required digits"><b>分　</b> -->
+<!--  <label><input type="checkbox" name="k_discontinuity" value="1" {if $discontinuity }checked="checked"{/if}><b>隣接禁止</b></label>　-->
+  <b>録画モード</b><select name="autorec_mode" >
+  {foreach from=$autorec_modes item=mode name=recmode }
+     <option value="{$smarty.foreach.recmode.index}" {$mode.selected} >{$mode.name}</option>
+  {/foreach}
+   </select>　
+  <b>優先度</b><input type="number" name="k_priority" value="{$priority}" style="width: 4em;" size="2" class="required digits" title="数値が大きい方が優先されます">　
+<!--  <b>分割</b><input type="text" name="k_split_time" value="{$split_time}" size="8" class="required digits" title="数値(分)で分割予約されます"><b>分</b> -->
+  <br><b>保存ディレクトリ </b>{$spool|escape}<input type="text" name="k_directory" value="{$directory|escape}" size="80" class="required" list="example">
+<!-- HTML5以降 -->
+<datalist id="example">
+  {$dir_collection}
+</datalist>
+  <br><b>録画ファイル名の形式 </b>(初期値[{$defaultname|escape}])<input type="text" name="k_filename" value="{$filename|escape}" size="80" class="required" onClick="$('.list').removeClass('list');" title="クリックすると下に特殊文字列一覧が表示されます。 
+一覧の『特殊文字列』をクリックするとその『特殊文字列』がここに入力されます。">
+<table id="extra_strings" class="list" cellspacing="1" border="1">
+ <tr><th colspan="4">番組タイトル関連</th><th colspan="2">チャンネル関連</th><th colspan="4">日時関連</th></tr>
+ <tr><th class="label">特殊文字列</th><th class="desc">置換後の内容</th><th class="label">特殊文字列</th><th class="desc">置換後の内容</th><th class="label">特殊文字列</th><th class="desc">置換後の内容</th><th class="label">特殊文字列</th><th class="desc">置換後の内容</th><th class="label">特殊文字列</th><th class="desc">置換後の内容</th></tr>
+<tr>
+ <td class="label" onClick="setFormInput('%TITLE%')">%TITLE%</td><td class="desc">番組タイトル</td>
+ <td class="label" onClick="setFormInput('%PROCESS()%')" title="%PROCESS(TARGET[,OPERATE1[,OPERATEn]])%	
+	TARGET				取得対象を選択	
+		TITLE			タイトル	
+		DESC			概要	
+	OPERATE				TARGETに各種加工を行なう。加工の順番・回数に制限無し	
+		$CUT$,A			文字列Aを削除 文字列Aは複数指定も可能	
+		$REPLACE$,A,B	文字列Aを文字列Bに置換	
+		$SPRIT$,A,n		文字列Aで分割した第n区画を取得する(n=0-nn)	
+		$LIMIT$,n		取得byte数を制限する。負数の場合は後方から数える。">%PROCESS(A,B1)%</td><td class="desc" title="加工されたタイトルまたは概要を取得">対象の加工取得</td>
+ <td class="label" onClick="setFormInput('%TYPE%')">%TYPE%</td><td class="desc" title="ex.GR BS CS EX">放送波識別</td>
+ <td class="label" onClick="setFormInput('%YEAR%')">%YEAR%</td><td class="desc">開始年</td>
+ <td class="label" onClick="setFormInput('%ST%')">%ST%</td><td class="desc" title="ex.200907201830">開始日時</td>
+</tr>
+
+<tr>
+ <td class="label" onClick="setFormInput('%TITLE()%')" rowspan="2">%TITLE(n1,A,n2)%<br>(n1=n.A,n2=0-n)</td><td class="desc" rowspan="2" title="一部省略する場合はカンマをつけない事(ex:%DESC(n1,A)%)	
+	n1	取得byte数 負数の場合は後方基準とする。
+		0の場合は指定領域の全体が対象となる。	
+	A	区切り文字列(省略可、その場合はn2も省略すること)	
+	n2	文字列Aで区切られた区画の対象位置(省略可 その場合は先頭区画を対象とする)
+		総数を超える場合は最後尾が対象となる。">番組タイトル部分取得</td>
+ <th colspan="2" title="">以下は%PROCESS()%用</td>
+ <td class="label" onClick="setFormInput('%CH%')">%CH%</td><td class="desc" title="ex.18 BS15_0 CS14">物理チャンネル</td>
+ <td class="label" onClick="setFormInput('%MONTH%')">%MONTH%</td><td class="desc">開始月</td>
+ <td class="label" onClick="setFormInput('%ET%')">%ET%</td><td class="desc" title="ex.200907201830">終了日時</td>
+</tr>
+
+<tr>
+
+ <td class="label subcmd" onClick="setFormInput('$TITLE$,')">$TITLE$</td><td class="desc subcmd" title="">番組タイトル</td>
+ <td class="label" onClick="setFormInput('%CH2%')">%CH2%</td><td class="desc" title="地デジ:放送波識別+物理チャンネル+サービスID・BS/CS:放送波識別+サービスID 
+ex.GR18_3097 BS_101 CS_333">チャンネル番号2 </td>
+ <td class="label" onClick="setFormInput('%DAY%')">%DAY%</td><td class="desc">開始日</td>
+ <td class="label" onClick="setFormInput('%DATE()%')">%DATE(A)%</td><td class="desc" title="文字列Aを書式としてPHP関数date()に渡す 
+%DATE(y-m-d H:i:s)%とすれば'15-10-31 19:00:00'に変換される">開始日時(任意指定)</td>
+</tr>
+
+<tr>
+ <td class="label" onClick="setFormInput('%DESC%')">%DESC%</td><td class="desc">番組概要</td>
+ <td class="label subcmd" onClick="setFormInput('$DESC$,')">$DESC$</td><td class="desc subcmd" title="">番組概要</td>
+ <td class="label" onClick="setFormInput('%CH3%')">%CH3%</td><td class="desc" title="地デジ:物理チャンネル・BS/CS:サービスID 
+ex.18 101 333">チャンネル番号3</td>
+ <td class="label" onClick="setFormInput('%HOUR%')">%HOUR%</td><td class="desc">開始時</td>
+ <td class="label" onClick="setFormInput('%DURATION%')">%DURATION%</td><td class="desc">録画時間（秒）</td>
+</tr>
+
+<tr>
+ <td class="label" onClick="setFormInput('%DESC()%')" rowspan="2">%DESC(n1,A,n2)%<br>(n1=nn.A,n2=0-nn)</td><td class="desc" rowspan="2" title="一部省略する場合はカンマをつけない事(ex:%DESC(n1,A)%)	
+	n1	取得byte数 負数の場合は後方基準とする。
+		0の場合は指定領域の全体が対象となる。 
+	A	区切り文字列(省略可、その場合はn2も省略すること) 
+	n2	文字列Aで区切られた区画の対象位置(省略可 その場合は先頭区画を対象とする)
+		総数を超える場合は最後尾が対象となる。">番組概要部分取得</td>
+ <td class="label subcmd" onClick="setFormInput('$CUT$,')">$CUT$,A</td><td class="desc subcmd" title="文字列Aを削除 文字列Aは複数指定も可能">文字列削除</td>
+ <td class="label" onClick="setFormInput('%CHNAME%')">%CHNAME%</td><td class="desc">チャンネル名</td>
+ <td class="label" onClick="setFormInput('%MIN%')">%MIN%</td><td class="desc">開始分</td>
+ <td class="label" onClick="setFormInput('%DURAHMS%')">%DURAHMS%</td><td class="desc">録画時間（時:分:秒）</td>
+</tr>
+
+<tr>
+
+ <td class="label subcmd" onClick="setFormInput('$REPLACE$,,')">$REPLACE$,A,B</td><td class="desc subcmd" title="文字列Aを文字列Bに置換">文字列置換</td>
+ <td class="label" onClick="setFormInput('%SID%')">%SID%</td><td class="desc">サービスID</td>
+ <td class="label" onClick="setFormInput('%SEC%')">%SEC%</td><td class="desc">開始秒</td>
+ <th colspan="2" title="文字列操作は、文字列操作以外の特殊文字列を置換した後に処理が行なわれます。">文字列操作</th>
+</tr>
+
+<tr>
+<!-- <td colspan="2" rowspan="2"></td>-->
+ <td class="label subcmd" onClick="setFormInput('%TITLEn%')" title="(n=1-9)">%TITLEn%(n=1-9)</td><td class="desc subcmd" title="1枠の複数タイトルから選択変換 '/'でセパレートされているものとする 
+番組タイトルが『タイトル1/タイトル2』の場合、『%TITLE2%』を指定すると『タイトル2』が出力される">番組タイトル選択</td>
+ <td class="label subcmd" onClick="setFormInput('$SPRIT$,,')">$SPRIT$,A,n</td><td class="desc subcmd" title="文字列Aで分割した第n区画を取得する(n=0-nn)">文字列分割</td>
+ <td colspan="2" rowspan="2"></td>
+ <td class="label" onClick="setFormInput('%DOW%')">%DOW%</td><td class="desc">曜日（Sun-Mon）</td>
+ <td class="label" onClick="setFormInput('%REPLACE(,)%')">%REPLACE(A,B)%</td><td class="desc" title="ファイル名全体から文字列Aを文字列Bに置換 
+文字列は、CSVフォーマットで記述">文字列置換</td>
+</tr>
+
+<tr>
+ <td class="label subcmd" onClick="setFormInput('%TL_SBn%')" title="(n=1-nn)">%TL_SBn%(n=1-nn)</td><td class="desc subcmd" title="1枠の複数サブタイトルから選別変換 
+番組タイトルが『タイトル #01「サブタイトル1」#02「サブタイトル2」』の場合、
+『%TL_SB1%』を指定すると『タイトル #01「サブタイトル1」』が出力される">タイトル+サブタイ選択</td>
+ <td class="label subcmd" onClick="setFormInput('$LIMIT$,')">$LIMIT$,n</td><td class="desc subcmd" title="取得byte数を制限する。負数の場合は後方から数える。">取得制限</td>
+ <td class="label" onClick="setFormInput('%DOWJ%')">%DOWJ%</td><td class="desc">曜日（日-土）</td>
+ <td class="label" onClick="setFormInput('%CUT()%')">%CUT(A)%</td><td class="desc" title="ファイル名全体から文字列Aを削除 
+文字列Aは、CSVフォーマットで記述(複数指定も可能)">文字列削除</td>
+</tr>
+
+<!--
+ <td class="label" onClick="setFormInput('%TITLEn%')" rowspan="2">%TITLEn%<br>(n=1-9)</td><td class="desc" rowspan="2" title="1枠の複数タイトルから選択変換 '/'でセパレートされているものとする 
+番組タイトルが『タイトル1/タイトル2』の場合、『%TITLE2%』を指定すると『タイトル2』が出力される">番組タイトル選択</td>
+ <td class="label" onClick="setFormInput('%TL_SBn%')" rowspan="2">%TL_SBn%<br>(n=1-nn)</td><td class="desc" rowspan="2" title="1枠の複数サブタイトルから選別変換 
+番組タイトルが『タイトル #01「サブタイトル1」#02「サブタイトル2」』の場合、
+『%TL_SB1%』を指定すると『タイトル #01「サブタイトル1」』が出力される">番組タイトル+<br>話数サブタイトル選択</td>
+ <td class="label" onClick="setFormInput('%%[YmdHisD]*%%')" title="">%%[YmdHisD]*%%</td><td class="desc">開始日時('%%'に挟まれた部分をそのまま書式としてPHP関数date()に渡す 非変換部分に'%%'がある場合は誤変換に注意・対策はしない)</td>
+-->
+</table>
+{$trans_set}
+{if $keyword_id}
+　<input type="submit" value="キーワード更新">
+　<input type="button" value="削除" onClick="javascript:PRG.delkey('{$keyword_id}')">
+{/if}
+{if !$keyword_id}
+　<input type="button" value="キーワード登録" onClick="javascript:PRG.inskey()">
+{/if}
+{if $keyword_id}
+　<input type="button" value="一覧に戻る" onClick="location.href='/keywordTable.php'">
+　<input type="button" value="別キーワードとして登録" onClick="javascript:PRG.inskey()">
+{/if}
+</fieldset>
+  </form>
+</div>
+{/if}
+{/if}
+{/if}
+
+{if count($programs)}
+<table id="reservation_table">
+ <tr style="position: -webkit-sticky; position: sticky; top: 28px; z-index: 1;">
+  <th style="width:1.5em;">No</th>
+  <th style="width: 160px;">タイトル</th>
+  <th class="rec_start_end">録画日時<br>(録画時間)<br>放送局</th>
+  <th style="width: 100px;">ジャンル</th>
+  <th style="width: 80px;">放送情報</th>
+  <th style="">概要</th>
+  <th colspan="2" style="padding:0; width: 80px;">予約情報</th>
+ </tr>
+{foreach from=$programs item=program}
+ <tr id="resid_{$program.no}" class="ctg_{$program.cat}{if $program.rec && !$program.rev_id}{if $program.key_id==$keyword_id} prg_rec{else} prg_rec_oth{/if}{/if}{if !$program.autorec} freeze{/if}{if $program.resvd} {$program.resvd}{/if}"
+     onMouseover="this.style.border='2px solid blue'" onMouseout="this.style.border=''">
+  <td>{if $program.keyword != ""}{$program.no}{/if}</td>
+  <td style="text-align: left;"><a{if $program.keyword != ""} href="{$program.keyword}" title="番組検索にジャンプ"{/if} id="tid_{$program.rev_id}">{$program.title|escape}</a></td>
+  <td style="white-space: nowrap;"><a{if $program.keyword != ""} href="/index.php?type={$program.type}&length=8&time={$program.prg_top}" title="EPG番組表へジャンプ"{/if}>{$program.date}</a><br>
+      <a{if $program.keyword != ""} href="/revchartTable.php?length=8&time={$program.prg_top}" title="予約遷移一覧へジャンプ"{/if}>{$program.starttime}{$program.endtime}<br>{$program.duration}{if $program.keyword != ""}<br>{$program.station_name}{/if}</a></td>
+  <td style="text-align: center;">{$program.genres}</td>
+  <td style="text-align: center;">{if $program.rev_id}{$program.rev_info}{else}{$program.mark}<br>{$program.video_info}<br>{$program.audio_info}{/if}</td>
+  {if $program.rev_id}
+  <td><table style="border: 0px; cellpadding: 0px; cellspacing: 0px;">
+      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;">{$program.mark}</td></tr>
+      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;{if $program.description|count_characters != $program.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|count_characters} cursor:pointer" onclick="disp_diag_msg('{$program.description|escape:'javascript'}');{/if}" id="did_{$program.rev_id}">{$program.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|escape}</td></tr>
+  </table></td>
+  {else}
+  <td id="did_{$program.rev_id}" style="text-align: left;{if $program.description|count_characters != $program.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|count_characters} cursor:pointer" onclick="disp_diag_msg('{$program.description|escape:'javascript'}');{/if}">{$program.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|escape}</td>
+  {/if}
+<td><table style="border: none;"><tr style="border: none;">
+  <td class="autoid" style="padding: 0px 0; white-space: nowrap; border: none">{if $program.excl}{if $program.excl>1}*<br>{/if}{/if}
+    {if $program.rev_id}予約ID:<br>{$program.rev_id}<br>{/if}
+    {if !$program.rev_id}<input id="tgl_auto_{$program.no}" type="button" value={if $program.autorec}"自動禁止"{else}"自動許可"{/if} onClick="javascript:PRG.tgl_autorec('{$program.no}','{$program.id}')" style="padding:0;"><br>{/if}
+</td></tr><tr style="border: none;">
+  <td class="sell_button tgl_btn" style="padding: 0; white-space: nowrap; border: none;">
+    <input type="button" value={if $program.rev_id}"削除"{else}"簡易"{/if} onClick="javascript:PRG.tgl_button('{$program.no}','{$program.id}','{$program.key_id}')" style="padding:0;">
+    {if !$program.rev_id}<input type="button" value="詳細" onClick="javascript:PRG.customform('{$program.no}','{$program.id}','0')" style="padding:0;">
+    {if $keyword_id}<br>{/if}{/if}{if $program.rev_id}<input type="button" value="変更" onClick="javascript:PRG.editdialog('{$program.rev_id}')" title="自動予約設定が反映されます" style="padding:0;">{/if}</td>
+</tr></table>
+  <td class="rev_id">{$program.rev_id}</td>
+  <td class="autorec">{$program.autorec}</td>
+  <td class="excl">{$program.excl}</td>
+ </tr>
+{/foreach}
+</table>
+{else}
+  該当する番組はありません
+{/if}
+{if $prg_cnt >= 300}<div>表示最大300件まで</div>{/if}
+{include file='menu_list.tpl' menu_list=$menu_list}
+</div>
+
+<div id="floatBox4Dialog">jQuery UI Dialog</div>
+<div id="pagetop" style="right:140px;"><img src="/imgs/b_pagetop.png" alt="TOP"></div>
+
+{literal}
+<script type="text/javascript">
+var INISet = {
+	prgRecordURL : '/simpleReservation.php',			// 簡易予約
+	prgCancelURL : '/cancelReservation.php',		// 予約キャンセル
+	prgDelKeyURL : '/deleteKeyword.php'		// キーワード削除
+}
+</script>
+{/literal}
+</body>
+</html>

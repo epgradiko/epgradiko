@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0">
+  <channel>
+    <title>{$site_title}</title>
+    <language>jp</language>
+    <image>
+      {if $site_image_url}<url>{$site_image_url}</url>{/if}
+      <title>{$site_title}</title>
+    </image>
+    <itunes:category text="録画">
+      <itunes:category text="TV録画"/>
+    </itunes:category>
+{foreach from=$records item=rec}
+    <item>
+      <title>{$rec.title}</title>
+      <itunes:author>{$rec.author}</itunes:author>
+      <itunes:summary>{$rec.description}</itunes:summary>
+      <enclosure url="{$rec.url}" type="{$rec.type}"/>
+      <guid>{$rec.guid}</guid>
+      {if isset($rec.thumb)}<itunes:image href="{$rec.thumb}" />{/if}
+      <pubDate>{$rec.pubdate}</pubDate>
+      <itunes:category>{$rec.category}</itunes:category>
+      <itunes:duration>{$rec.duration}</itunes:duration>
+    </item>
+{/foreach}
+  </channel>
+</rss>

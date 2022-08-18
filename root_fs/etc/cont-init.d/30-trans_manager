@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Restart transcode job
+
+/var/www/localhost/bin/trans_manager.php

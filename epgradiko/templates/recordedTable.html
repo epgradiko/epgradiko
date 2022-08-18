@@ -1,0 +1,454 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>{$sitetitle}</title>
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/css/jquery-ui.min.css" type="text/css">
+<link rel="stylesheet" href="/css/layout.css" type="text/css">
+<script type="text/javascript" src="/js/transcode.js"></script>
+<script type="text/javascript" src="/js/common.js"></script>
+<script type="text/javascript">
+<!--
+	var PRG = {
+		
+		dialog:function(id, title){
+			var str = '<div class="prg_title">' + title + 'を削除します</div>';
+			str += '<form><div style="text-align:center;">録画ファイルも削除する<input type="checkbox" id="delete_file" name="delete_file" value="{$delete_select}" {if $delete_select == 1}checked>{/if}</div></form>';
+			str +='<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.rec(' + id + ')" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">この録画を本当に削除する</a></div>';
+			$('#floatBox4Dialog').html(str);
+			$('#floatBox4Dialog').dialog('option', 'title', '録画削除');
+			$('#floatBox4Dialog').dialog('open', 'center');
+		},
+		rec:function(id){
+			var df = 0;
+
+			if( $('#delete_file').prop('checked') ) {
+				df = 1;
+			}
+			$('#floatBox4Dialog').dialog('close');
+			
+			$.get(INISet.prgCancelURL, { reserve_id: id, delete_file: df } ,function(data){
+				
+				if(data.match(/^error/i)){
+					alert(data);
+				}
+				else {
+					$('#resid_' + id ).hide();
+				}
+			});
+		},
+		editdialog:function(id) {
+			var str;
+			str  = '<div class="prg_title">予約ID:' + id + '</div>';
+			str += '<input type="hidden" name="reserve_id" id="id_reserve_id" value="' + id +  '">';
+			str += '<div><span class="labelLeft">タイトル</span><input name="title" id="id_title" size="30" value="'+ $('#tid_' + id ).html() + '"></div>';
+			str += '<div><span class="labelLeft">概要</span><textarea name="description" id="id_description" cols="30" rows="5" >' + $('#did_' + id ).html().trim() + '</textarea></div>';
+			str += '<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.edit()" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">変更する</a></div>';
+			
+			$('#floatBox4Dialog').html(str);
+			$('#floatBox4Dialog').dialog('option', 'title', '情報変更');
+			$('#floatBox4Dialog').dialog('open','center');
+		},
+		edit:function() {
+			var id_reserve_id = $('#id_reserve_id').val();
+			var id_title = $('#id_title').val();
+			var id_pre_title = $('#id_pre_title').val();
+			var id_post_title = $('#id_post_title').val();
+			var id_description = $('#id_description').val();
+
+			$.post('/changeReservation.php', { reserve_id: id_reserve_id,
+							  title: id_title,
+							  description: id_description }, function( data ) {
+				if(data.match(/^error/i)){
+					alert(data);
+					$('#floatBox4Dialog').dialog('close');
+
+				}
+				else {
+					$('#tid_' + id_reserve_id ).html( id_title );
+					$('#did_' + id_reserve_id ).html( id_description );
+					$('#floatBox4Dialog').dialog('close');
+				}
+			});
+		},
+		downdialog:function(id,dura){
+			var str;
+//			str  = '<div class="prg_title" style="text-align:left;"><span class="labelLeft" style="width: 5em;">予約ID: </span>' + id + '</div>';
+			str  = '<div class="prg_title" style="text-align:left;"><span class="labelLeft" style="width: 5em;">タイトル: </span><a>' + $('#tid_' + id ).html() + '</a></div>';
+			str += '<div class="prg_title" style="text-align:left;"><span class="labelLeft" style="width: 5em;">全長時間: </span><a>' + dura + '</a></div>';
+			str += '<div class="prg_title">開始<input name="start" id="id_start" size="10"  value="00:00:00">';
+			str += ' ～ 終了</span><input name="end" id="id_end" size="10"  value="' + dura + '" title="冒頭に@を付けると全長時間指定になります"></div>';
+			str += '<div style="text-align:center;">単純に数値を入力した場合は分指定となります。<br>タイムレコード解析はしていませんので正常に区切れないときがあります。</div>';
+			str += '<input type="hidden" name="reserve_id" id="id_reserve_id" value="' + id + '">';
+			str += '<input type="hidden" name="duratation" id="id_duratation" value="' + dura + '">';
+			str += '<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.download()" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">ダウンロード開始</a></div>';
+
+			$('#floatBox4Dialog').html(str);
+			$('#floatBox4Dialog').dialog('option', 'title', 'ダウンロード');
+			$('#floatBox4Dialog').dialog('open','center');
+		},
+		download:function() {
+			$('#floatBox4Dialog').dialog('close');
+
+			var id_reserve_id = $('#id_reserve_id').val();
+			var pt            = $('#id_duratation').val().split( ':' );
+			var id_duratation = parseInt(pt[0]) * 60*60 + parseInt(pt[1]) * 60 + parseInt(pt[2]);
+
+			var id_start      = this.timeParse( $('#id_start').val() );
+			if( isNaN( id_start ) || id_start<0 ){
+				alert( '開始時間指定が不正です。' );
+				return;
+			}
+
+			var id_end  = $('#id_end').val();
+			var at_mark = id_end.indexOf( '@' );
+			if( at_mark !== -1 ){
+				if( at_mark === 0 ){
+					id_end = this.timeParse( id_end.substr(1) );
+					if( isNaN( id_end ) || id_end<=0 ){
+						alert( '終了時間指定が不正です。' );
+						return;
+					}
+					id_end += id_start;
+				}else{
+					alert( '終了時間指定が不正です。' );
+					return;
+				}
+			}else{
+				id_end = this.timeParse( id_end );
+				if( isNaN( id_end ) || id_end<=0 ){
+					alert( '終了時間指定が不正です。' );
+					return;
+				}
+			}
+			if( id_end <= id_start ){
+				alert( '開始時間指定が終了時間指定を超えています。' );
+				return;
+			}
+			if( id_end > id_duratation ){
+				alert( '開始または終了の時間指定が不正です。' );
+				return;
+			}
+
+			location.href = '/sendstream.php?download&reserve_id=' + id_reserve_id + '&start=' + id_start + '&end=' + id_end;
+		},
+		timeParse:function(data){
+			var ret;
+			if( data.indexOf( ':' ) !== -1 ){
+				var pt = data.split( ':' );
+				if( pt.length <= 3 ){
+					ret = 0;
+					for(i=0; i<pt.length; i++ )
+						ret = ret * 60 + parseInt(pt[i]);
+				}else
+					return NaN;
+			}else
+				ret = Math.floor( parseFloat(data) * 60 );
+			return ret;
+		},
+		select_deldialog:function(){
+			var str = '<div class="prg_title">チェックした録画情報を削除します</div>';
+			str += '<div style="text-align:center;">録画ファイルも削除する<input type="checkbox" id="delete_records" name="delete_records" value="{$delete_select}" {if $delete_select == 1}checked{/if}></div>';
+			str +='<div style="margin:2em 0 1em 0;text-align:center;"><a href="javascript:PRG.select_del()" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">削除する</a></div>';
+			$('#floatBox4Dialog').html(str);
+			$('#floatBox4Dialog').dialog('option', 'title', 'チェック削除');
+			$('#floatBox4Dialog').dialog('open', 'center');
+			return false;
+		},
+		select_del:function(){
+			document.recorded.do_delete.value = '1';
+			if( $('#delete_records').prop('checked') ) {
+				document.recorded.delrec.value = '1';
+			} else {
+				document.recorded.delrec.value = '';
+			}
+			$('#floatBox4Dialog').dialog('close');
+			document.recorded.submit();
+		}
+	}
+
+	function syncChbox(src){
+		var src_chkd = src.checked;
+		var target   = document.getElementsByName(src.name);
+		var end      = target.length;
+		for( var start=0; start<end; start++ )
+			target[start].checked = src_chkd;
+	}
+
+	function disp_plog(plog_file){
+		$.get('/get_file.php?plog='+plog_file, function(data){
+			$('#floatBox4Dialog').dialog('option', 'title', 'ログ詳細');
+			$('#floatBox4Dialog').html('<pre>' + data + '</pre>');
+			$('#floatBox4Dialog').dialog('open','center');
+		})
+	}
+
+	function disp_diag_msg(msg){
+		$('#floatBox4Dialog').dialog('option', 'title', '概要');
+		$('#floatBox4Dialog').html(msg);
+		$('#floatBox4Dialog').dialog('open','left');
+	}
+
+
+var pre_click = 0;
+var pre_stats;
+
+	function getCkbox( targetTr ){
+		var Tds   = targetTr.cells;
+		var TdLen = Tds.length - 1;
+		console.log( Tds[TdLen].firstElementChild);		//チェックが必要になったら以下を再利用
+		return Tds[TdLen].firstElementChild;		//チェックが必要になったら以下を再利用
+//	var tr_id = targetTr.getAttribute("id").substr(6);
+//	document.getElementsByName("del"+tr_id)[0].checked = targetTr.style.display==="none" ? false : pre_stats;
+	}
+
+	function allchecklabelclick(){
+		document.recorded.allcheck.checked = !document.recorded.allcheck.checked;
+	}
+
+	function allcheckclick(){
+		var trCollect = document.getElementById("reservation_table").rows;
+		var i;
+		for( i=0; i<trCollect.length; i++){
+			document.recorded.elements['del[]'][i].checked = document.recorded.allcheck.checked;
+		}
+		return;
+	}
+	
+	function check_shiftclick( num, event ){
+		var trCollect = document.getElementById("reservation_table").rows;
+		var targetTr;
+		if( pre_click != num ){
+			if( pre_click!=0 && event.shiftKey ){
+				var	start,end;
+				if( pre_click < num ){
+					start = pre_click;
+					end   = num;
+				}else{
+					start = num;
+					end   = pre_click;
+				}
+				for( ; start<=end; start++ ){
+					document.recorded.elements['del[]'][start - 1].checked = pre_stats;
+				}
+			}
+			pre_click = num;
+		}
+		pre_stats = document.recorded.elements['del[]'][num - 1].checked;
+		return;
+	}
+
+$(function(){
+  // 初期状態のボタンは無効
+  $("#delchkbtn").attr("disabled", true);
+    // チェックボックスの状態が変わったら（クリックされたら）
+    $("input[type='checkbox']").change(function () {
+        // チェックされているチェックボックスの数
+        if ($(".del:checked").length > 0) {
+          // ボタン有効
+          $("#delchkbtn").attr("disabled", false);
+        } else {
+          // ボタン無効
+          $("#delchkbtn").attr("disabled", true);
+        }
+    });
+});
+{literal}
+	$(document).ready(function () {
+		var DG = $('#floatBox4Dialog');
+		DG.dialog({title:'',width:500});
+		DG.dialog('close');
+	});
+
+        function show_keyword_set()  {
+                document.getElementById('id_keyword_set').style.display = 'inline';
+                document.getElementById('id_show_btn').style.display = "none";
+        }
+
+        function hide_keyword_set()  {
+                document.getElementById('id_keyword_set').style.display = 'none';
+                document.getElementById('id_show_btn').style.display = "inline";
+        }
+
+-->
+</script>
+
+<style type="text/css">
+<!--
+input.example1 {
+  width: 100%;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+a img {border:none; }
+
+table#reservation_table {
+    border: 2px gray solid;
+    border-spacing: 1px;
+}
+/*
+table#reservation_table tr {
+    border: 1px gray solid;
+}
+*/
+table#reservation_table th {
+    border: 1px gray solid;
+    white-space: nowrap;
+}
+
+table#reservation_table td {
+    border: 1px gray solid;
+    text-align: center;
+}
+
+#floatBox4Dialog > form > div {clear:left;}
+
+select.autokeys option{white-space:pre;}
+
+.mark_checkbox {display:none}
+.mark_class {line-height: 10pt; display: inline-block; border: 1px solid; border-radius: 2px;}
+.toggle_class {line-height: 12pt; display: inline-block; border: 1px solid; border-radius: 2px; background-color: lightyellow;}
+-->
+</style>
+{/literal}
+
+</head>
+
+<body>
+<div id="all">
+{include file='menu_star.tpl'}
+
+<div id="nav_margin" style="margin-top:35px;">
+<fieldset>
+<legend><b>絞り込み</b></legend>
+<form method="post" name="select" action="/recordedTable.php" >
+{if $key_id!==false}
+  <input type="hidden" name="key" value="{$key_id}">
+{/if}
+<input type="hidden" name="order" value="{$order}">
+<b>検索語句</b><input type="text" name="search" value="{$search|escape}" class="example1" title="ワイルドカードは'%'・半角スペースは'_'です。 NOT検索は語彙冒頭に'-'を付加してください。"><br>
+<b>放送局</b><select name="station">
+  {foreach from=$stations item=st}
+    <option value="{$st.id}" {$st.selected}>{$st.name}{if $st.count}({$st.count}){/if}</option>
+  {/foreach}
+  </select>
+<b>ジャンル</b><select name="category_id">
+  {foreach from=$cats item=cat}
+    <option value="{$cat.id}" {$cat.selected}>{$cat.name}{if $cat.count}({$cat.count}){/if}</option>
+  {/foreach}
+  </select>
+<input type="submit" value="絞り込む">
+<b>自動キーワード</b>
+<select class="autokeys" onChange="popJump(this)">
+<option value="/recordedTable.php">指定なし</option>
+{foreach from=$keys item=record}
+  <option value="/recordedTable.php?key={$record.id}"{$record.selected}>{$record.name|truncate:40:'...':true:true}</option>
+{/foreach}
+</select>
+<input type="button" value="クリア" onClick="location.href='/recordedTable.php'">
+</form>
+</fieldset>
+</div>
+{if isset($podcast)}
+<input type="checkbox" id="id_show_keyword" onchange="show_keyword_set()" class="mark_checkbox">
+<label for="id_show_keyword" id="id_show_btn" class="toggle_class"><b>　Podcast連携　</b></label>
+
+<div id="id_keyword_set" style="display: none;">
+<form method="post" name="parForm" action="">
+<fieldset>
+<legend><b>Podcast連携</b>
+<input type="checkbox" id="id_hide_keyword" onchange="hide_keyword_set()" class="mark_checkbox">
+<label for="id_hide_keyword" id="id_hide_btn" class="toggle_class"><b>　隠す　</b></label>
+</legend>
+{if 0}<b>Podcastタイトル</b><input type="text" value="{$title}" class="example1">{/if}<input type="button" value="Podcast連携" onClick="location.href='{$podcast}'"><br><small>{$podcast}</small>
+</fieldset>
+  </form>
+</div>
+{/if}
+
+{if count($records)}
+<form method="post" name="recorded" action="/recordedTable.php" onSubmit="">
+{if $pager != ''}<div style="text-align: left;float:left">{$pager}</div>{/if}
+<div>
+<input type="hidden" name="do_delete" value="">
+<input type="hidden" name="search" value="{$search}">
+<input type="hidden" name="station" value="{$station}">
+<input type="hidden" name="category_id" value="{$category_id}">
+<input type="hidden" name="full_mode" value="{$full_mode}">
+<input type="hidden" name="order" value="{$order}">
+<input type="hidden" name="delrec" value="">
+{if $key_id!==false}
+  <input type="hidden" name="key" value="{$key_id}">
+{/if}
+<table id="reservation_table">
+ <tr style="position: -webkit-sticky; position: sticky; top: 28px; z-index: 1;">
+  <th class="sell_button" style="width:1.5em;">No</th>
+  <th style="width: 160px;">タイトル<a href="{$pager_option}order=title+ASC">▲</a><a href="{$pager_option}order=title+DESC">▼</a></th>
+  <th class="rec_datetime" style="width: 140px;">録画日時<a href="{$pager_option}order=starttime+ASC">▲</a><a href="{$pager_option}order=starttime+DESC">▼</a>
+                       <br>(録画時間)
+                       <br>放送局<a href="{$pager_option}order=channel_id+ASC">▲</a><a href="{$pager_option}order=channel_id+DESC">▼</a></th>
+  <th class="recd_mode" style="width: 100px;">録画ファイル</th>
+  {if $TRANSCODE_STREAM}<th class="view_mode" style="width: 80px;">視聴ファイル</th>{/if}
+  <th>概要</th>
+  <th class="sell_button" style="width: 80px;">
+   <input type="checkbox" name="allcheck" id="allcheck" value="1" onClick="allcheckclick()" title="全てのチェックボックス"><label for="allcheck">全チェック</label>
+   <br><input type="button" id="delchkbtn" value="チェック削除" onClick="javascript:PRG.select_deldialog()" style="padding:0;"></th>
+ </tr>
+
+{foreach from=$records name=loop item=rec }
+ <tr id="resid_{$rec.id}" class="ctg_{$rec.cat}" onMouseover="this.style.border='2px solid blue'" onMouseout="this.style.border=''">
+  <td style="margin: 0;padding: 0;">{$smarty.foreach.loop.iteration}</td>
+  <td style="font-size: 1.2em; text-align: left;text-shadow: -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white, 1px 1px 0px white; position:relative;">
+    {if $use_thumbs == 1}<a href="{$rec.video}">{$rec.thumb}</a>{/if}
+    <b><a id="tid_{$rec.id}" {if $rec.keyword != ""}href="{$rec.keyword}" title="番組検索にジャンプ"{/if}
+    style="line-height:19px; position: absolute; top: 0; left:0; z-index: 0;">{$rec.title}</a></b></td>
+  <td style="white-space: nowrap;">{$rec.starttime}{$rec.endtime}<br>({$rec.duration})<br>{$rec.station_name}</td>
+  {if $TRANSCODE_STREAM}<td style="white-space: nowrap;">{$rec.file_set}{if isset($rec.packetlog)}{$rec.packetlog}{/if}</td>{/if}
+  <td style="white-space: pre;">{$rec.view_set}{if isset($rec.ffmpeglog)}{$rec.ffmpeglog}{/if}</td>
+  <td><table style="border: 0px; cellpadding: 0px; cellspacing: 0px;">
+      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;">{$rec.mark}</td></tr>
+      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;{if $rec.description|count_characters != $rec.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|count_characters} cursor:pointer" onclick="disp_diag_msg('{$rec.description|escape:'javascript'}');{/if}" id="did_{$rec.id}">{$rec.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|escape}</td></tr>
+  </table></td>
+  <td style="white-space: nowrap;">
+   {if $rec.key_id }<a href="/programTable.php?keyword_id={$rec.key_id}" title="キーワード編集にジャンプ">自動</a>{else}手動{/if}<br>
+<input type="checkbox" class="del" name="del[]" id="del{$rec.id}" value="{$rec.id}" onClick="check_shiftclick({$smarty.foreach.loop.iteration},event)"
+    title="Check削除用シフトクリックで範囲操作が行なえます">
+    <label for="del{$rec.id}" onClick="check_shiftclick({$smarty.foreach.loop.iteration},event)">
+
+予約ID:<br>{$rec.id}<br></label>
+    <input type="button" value="変更" onClick="javascript:PRG.editdialog('{$rec.id}')" style="padding:0;">
+    <input type="button" value="削除" onClick="javascript:PRG.dialog('{$rec.id}','{$rec.title|escape}')" style="padding:0;">
+</td>
+ </tr>
+{/foreach}
+</table>
+{if $pager != ''}<div style="text-align: left;float:left">{$pager}</div>{/if}
+</form>
+
+{else}
+  現在、録画済データはありません
+{/if}
+
+{include file='menu_list.tpl' menu_list=$menu_list}
+</div>
+
+<div id="floatBox4Dialog">jQuery UI Dialog</div>
+<div id="pagetop" style="right:110px;"><img src="/imgs/b_pagetop.png" alt="TOP"></div>
+
+{literal}
+<script type="text/javascript">
+var INISet = {
+	prgCancelURL : '/cancelReservation.php'		// 予約キャンセル
+}
+</script>
+{/literal}
+</body>
+</html>
