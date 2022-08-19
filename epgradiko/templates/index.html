@@ -943,7 +943,7 @@ h2 {padding: 4px}
         <div class="prg_dummy">
           <div class="prg_title">{$item.pre_title}{$item.title|escape}{$item.post_title}</div>
           <div class="prg_subtitle">
-            <div style="text-align:left; float:left;">{$item.starttime}</div>
+            <div style="text-align:left; float:left;">{if $item.starttime}{$item.starttime}({if $item.duration>=3600}{math equation="x / 3600" x=$item.duration format="%d"}h{/if}{$item.duration|date_format:"%Mm"}{if $item.duration%60}{$item.duration|date_format:"%Ss"}{/if}){/if}</div>
             <div style="text-align:right;">{if $item.prios}<a style="color:white; background-color:blue; padding:1px 2px;">{$item.prios}</a>{/if}</div>
           </div>
           <div class="prg_desc" style="clear:left;">{$item.description|escape}</div>
