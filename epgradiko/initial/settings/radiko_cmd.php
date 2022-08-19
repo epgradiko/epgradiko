@@ -2,6 +2,6 @@
 // radiko録音コマンド
 // %SID%にradikoの放送局IDがセットされます。音声データは標準出力に出力されるようにしてください
 
-define('RADIKO_CMD',	'/usr/bin/curl -sf http://radio:9000/station/%SID%/stream');
+define('RADIKO_CMD',	'/usr/local/bin/radi.sh -t radiko -s %SID% -d 1440 -o /dev/stdout');
 
 ?>
