@@ -740,8 +740,8 @@ function storeProgram( $type, $xmlfile ) {
 						if(!isset($event_sch[$ev_cnt]['title'])||$event_sch[$ev_cnt]['title']!=$event_pf[$pf_cnt]['title']){
 						if(isset($event_sch[$ev_cnt]['title'])&&$event_sch[$ev_cnt]['title']!=$event_pf[$pf_cnt]['title']){
 							reclog('番組繰り上がり:$old_title='.$event_sch[$ev_cnt]['title'].' new='.$event_pf[$pf_cnt]['title']);
-							if($event_sch[$ev_cnt]['pre_title']!=$event_pf[$pf_cnt]['pre_title'])reclog('番組繰り上がり:$old_pre='.$event_sch[$ev_cnt]['pre_title'].' new='.$event_pf[$pf_cnt]['pre_title']);
-							if($event_sch[$ev_cnt]['post_title']!=$event_pf[$pf_cnt]['post_title'])reclog('番組繰り上がり:$old_post='.$event_sch[$ev_cnt]['post_title'].' new='.$event_pf[$pf_cnt]['post_title']);
+							if($event_sch[$ev_cnt]['pre_title']!=$event_pf[$pf_cnt]['pre_title'])reclog('番組繰り上がり:$old_pre='.$event_sch[$ev_cnt]['pre_title'].' new='.$event_pf[$pf_cnt]['pre_title'],EPGREC_DEBUG);
+							if($event_sch[$ev_cnt]['post_title']!=$event_pf[$pf_cnt]['post_title'])reclog('番組繰り上がり:$old_post='.$event_sch[$ev_cnt]['post_title'].' new='.$event_pf[$pf_cnt]['post_title'],EPGREC_DEBUG);
 						}
 							$event_sch[$ev_cnt]['title']        = $event_pf[$pf_cnt]['title'];
 							$event_sch[$ev_cnt]['pre_title']  = regular_mark($event_pf[$pf_cnt]['mark'],'pre');
@@ -773,8 +773,8 @@ function storeProgram( $type, $xmlfile ) {
 							if(!isset($event_sch[$ev_sft]['title'])||$event_sch[$ev_sft]['title']!=$event_sch[$ev_sft-1]['title']){
 							if(isset($event_sch[$ev_sft]['title'])&&$event_sch[$ev_sft]['title']!=$event_sch[$ev_sft-1]['title']){
 								reclog('番組挿入4:$old_title='.$event_sch[$ev_sft]['title'].' new='.$event_sch[$ev_sft-1]['title']);
-								if($event_sch[$ev_sft]['pre_title']!=$event_sch[$ev_sft-1]['pre_title'])reclog('番組挿入4:$old_pre='.$event_sch[$ev_sft]['pre_title'].' new='.$event_sch[$ev_sft-1]['pre_title']);
-								if($event_sch[$ev_sft]['post_title']!=$event_sch[$ev_sft-1]['post_title'])reclog('番組挿入4:$old_post='.$event_sch[$ev_sft]['post_title'].' new='.$event_sch[$ev_sft-1]['post_title']);
+								if($event_sch[$ev_sft]['pre_title']!=$event_sch[$ev_sft-1]['pre_title'])reclog('番組挿入4:$old_pre='.$event_sch[$ev_sft]['pre_title'].' new='.$event_sch[$ev_sft-1]['pre_title'],EPGREC_DEBUG);
+								if($event_sch[$ev_sft]['post_title']!=$event_sch[$ev_sft-1]['post_title'])reclog('番組挿入4:$old_post='.$event_sch[$ev_sft]['post_title'].' new='.$event_sch[$ev_sft-1]['post_title'],EPGREC_DEBUG);
 							}
 								$event_sch[$ev_sft]['title']        = $event_sch[$ev_sft-1]['title'];
 								$event_sch[$ev_sft]['pre_title']  = regular_mark($event_sch[$ev_sft-1]['mark'],'pre');
@@ -801,8 +801,8 @@ function storeProgram( $type, $xmlfile ) {
 						if(!isset($event_sch[$ev_cnt]['title'])||$event_sch[$ev_sft]['title']!=$event_pf[$pf_cnt]['title']){
 						if(isset($event_sch[$ev_cnt]['title'])&&$event_sch[$ev_sft]['title']!=$event_pf[$pf_cnt]['title']){
 							reclog('番組挿入5:$old_title='.$event_sch[$ev_cnt]['title'].' new='.$event_pf[$pf_cnt]['title']);
-							if($event_sch[$ev_cnt]['pre_title']!=$event_pf[$pf_cnt]['pre_title'])reclog('番組挿入5:$old_pre='.$event_sch[$ev_cnt]['pre_title'].' new='.$event_pf[$pf_cnt]['pre_title']);
-							if($event_sch[$ev_cnt]['post_title']!=$event_pf[$pf_cnt]['post_title'])reclog('番組挿入5:$old_post='.$event_sch[$ev_cnt]['post_title'].' new='.$event_pf[$pf_cnt]['post_title']);
+							if($event_sch[$ev_cnt]['pre_title']!=$event_pf[$pf_cnt]['pre_title'])reclog('番組挿入5:$old_pre='.$event_sch[$ev_cnt]['pre_title'].' new='.$event_pf[$pf_cnt]['pre_title'],EPGREC_DEBUG);
+							if($event_sch[$ev_cnt]['post_title']!=$event_pf[$pf_cnt]['post_title'])reclog('番組挿入5:$old_post='.$event_sch[$ev_cnt]['post_title'].' new='.$event_pf[$pf_cnt]['post_title'],EPGREC_DEBUG);
 						}
 							$event_sch[$ev_cnt]['title']        = $event_pf[$pf_cnt]['title'];
 							$event_sch[$ev_cnt]['pre_title']  = regular_mark($event_pf[$pf_cnt]['mark'],'pre');
@@ -944,8 +944,8 @@ BORDER_CHK_THR:;
 							if(!isset($event_sch[$ev_cnt]['title'])||$event_sch[$ev_cnt]['title']!=$event_pf[$pf_cnt]['title']){
 							if(isset($event_sch[$ev_cnt]['title'])&&$event_sch[$ev_cnt]['title']!=$event_pf[$pf_cnt]['title']){
 								reclog('番組繰り上がり2:$old_title='.$event_sch[$ev_cnt]['title'].' new='.$event_pf[$pf_cnt]['title']);
-								if($event_sch[$ev_cnt]['pre_title']!=$event_pf[$pf_cnt]['pre_title'])reclog('番組繰り上がり2:$old_pre='.$event_sch[$ev_cnt]['pre_title'].' new='.$event_pf[$pf_cnt]['pre_title']);
-								if($event_sch[$ev_cnt]['post_title']!=$event_pf[$pf_cnt]['post_title'])reclog('番組繰り上がり2:$old_post='.$event_sch[$ev_cnt]['post_title'].' new='.$event_pf[$pf_cnt]['post_title']);
+								if($event_sch[$ev_cnt]['pre_title']!=$event_pf[$pf_cnt]['pre_title'])reclog('番組繰り上がり2:$old_pre='.$event_sch[$ev_cnt]['pre_title'].' new='.$event_pf[$pf_cnt]['pre_title'],EPGREC_DEBUG);
+								if($event_sch[$ev_cnt]['post_title']!=$event_pf[$pf_cnt]['post_title'])reclog('番組繰り上がり2:$old_post='.$event_sch[$ev_cnt]['post_title'].' new='.$event_pf[$pf_cnt]['post_title'],EPGREC_DEBUG);
 							}
 								$event_sch[$ev_cnt]['title']        = $event_pf[$pf_cnt]['title'];
 								$event_sch[$ev_cnt]['pre_title']  = regular_mark($event_pf[$pf_cnt]['mark'],'pre');
@@ -991,8 +991,8 @@ BORDER_CHK_THR:;
 								if(!isset($event_sch[$ev_sft]['title'])||$event_sch[$ev_sft]['title']!=$event_sch[$ev_sft-1]['title']){
 								if(isset($event_sch[$ev_sft]['title'])&&$event_sch[$ev_sft]['title']!=$event_sch[$ev_sft-1]['title']){
 									reclog('番組挿入6:$old_title='.$event_sch[$ev_sft]['title'].' new='.$event_sch[$ev_sft-1]['title']);
-									if($event_sch[$ev_sft]['pre_title']!=$event_sch[$ev_sft-1]['pre_title'])reclog('番組挿入6:$old_pre='.$event_sch[$ev_sft]['pre_title'].' new='.$event_sch[$ev_sft-1]['pre_title']);
-									if($event_sch[$ev_sft]['post_title']!=$event_sch[$ev_sft-1]['post_title'])reclog('番組挿入6:$old_post='.$event_sch[$ev_sft]['post_title'].' new='.$event_sch[$ev_sft-1]['post_title']);
+									if($event_sch[$ev_sft]['pre_title']!=$event_sch[$ev_sft-1]['pre_title'])reclog('番組挿入6:$old_pre='.$event_sch[$ev_sft]['pre_title'].' new='.$event_sch[$ev_sft-1]['pre_title'],EPGREC_DEBUG);
+									if($event_sch[$ev_sft]['post_title']!=$event_sch[$ev_sft-1]['post_title'])reclog('番組挿入6:$old_post='.$event_sch[$ev_sft]['post_title'].' new='.$event_sch[$ev_sft-1]['post_title'],EPGREC_DEBUG);
 								}
 									$event_sch[$ev_sft]['title']        = $event_sch[$ev_sft-1]['title'];
 									$event_sch[$ev_sft]['pre_title']  = regular_mark($event_sch[$ev_sft-1]['mark'],'pre');
@@ -1019,8 +1019,8 @@ BORDER_CHK_THR:;
 							if(!isset($event_sch[$ev_cnt]['title'])||$event_sch[$ev_cnt]['title']!=$event_pf[$pf_cnt]['title']){
 							if(isset($event_sch[$ev_cnt]['title'])&&$event_sch[$ev_cnt]['title']!=$event_pf[$pf_cnt]['title']){
 								reclog('番組挿入7:$old_title='.$event_sch[$ev_cnt]['title'].' new='.$event_pf[$pf_cnt]['title']);
-								if($event_sch[$ev_cnt]['pre_title']!=$event_pf[$pf_cnt]['pre_title'])reclog('番組挿入7:$old_pre='.$event_sch[$ev_cnt]['pre_title'].' new='.$event_pf[$pf_cnt]['pre_title']);
-								if($event_sch[$ev_cnt]['post_title']!=$event_pf[$pf_cnt]['post_title'])reclog('番組挿入7:$old_post='.$event_sch[$ev_cnt]['post_title'].' new='.$event_pf[$pf_cnt]['post_title']);
+								if($event_sch[$ev_cnt]['pre_title']!=$event_pf[$pf_cnt]['pre_title'])reclog('番組挿入7:$old_pre='.$event_sch[$ev_cnt]['pre_title'].' new='.$event_pf[$pf_cnt]['pre_title'],EPGREC_DEBUG);
+								if($event_sch[$ev_cnt]['post_title']!=$event_pf[$pf_cnt]['post_title'])reclog('番組挿入7:$old_post='.$event_sch[$ev_cnt]['post_title'].' new='.$event_pf[$pf_cnt]['post_title'],EPGREC_DEBUG);
 							}
 								$event_sch[$ev_cnt]['title']        = $event_pf[$pf_cnt]['title'];
 								$event_sch[$ev_cnt]['pre_title']  = regular_mark($event_pf[$pf_cnt]['mark'],'pre');
@@ -1206,6 +1206,7 @@ NEXT_SUB:;
 										reclog('rewrite_eid='.$rewrite_eid.' eid='.$eid.' $rec[eid]='.$rec['eid'], EPGREC_DEBUG);
 										if( $rewrite_eid!==$eid && (int)$rec['eid']===$eid ){
 											//録画中番組の予約DB更新($rec[]の方は以降に要素を使わないので放置)
+										reclog('endtime='.$endtime.' reserve_id='.$reserve->id, EPGREC_DEBUG);
 											$wrt_set = array();
 											$wrt_set['starttime']    = $starttime;
 											$wrt_set['endtime']      = $endtime;
