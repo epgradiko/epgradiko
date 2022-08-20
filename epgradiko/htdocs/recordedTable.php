@@ -409,7 +409,7 @@ try{
 						}else{
 							if( time() > $end_time ){ //録画中
 								$bg_color = 'orange';
-								$add_fileset = '<br>extdend rec..';
+								$add_fileset = '<br>extend rec..';
 							}else{
 								$bg_color = 'greenyellow';
 								$add_fileset = '<br>recording..';
