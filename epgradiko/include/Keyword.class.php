@@ -281,8 +281,7 @@ class Keyword extends DBRecord {
 						$this->keyword_ex, $this->use_regexp_ex, $this->collate_ci_ex, $this->ena_title_ex, $this->ena_desc_ex, $this->search_exmarks,
 						$this->free, $this->typeGR, $this->typeBS, $this->typeCS, $this->typeEX, $this->category_id, $this->channel_id, $this->weekofdays,
 						$this->prgtime, $this->period, $this->duration_from, $this->duration_to, $this->sub_genre, $this->first_genre );
-		}
-		catch( Exception $e ){
+		}catch( Exception $e ){
 			throw $e;
 		}
 		return $recs;
@@ -335,8 +334,12 @@ class Keyword extends DBRecord {
 			usleep( 100 );
 	}
 
-	public function reservation( $wave_type, $shm_id=false, $sem_key=false ){
+//	public function reservation( $wave_type, $shm_id=false, $sem_key=false ){
+	public function reservation( $wave_type ){
 		if( $this->__id == 0 ) return;
+
+		$sem_key	= sem_get_surely( SEM_KW_START );
+		$shm_id		= shmop_open_surely();
 
 		if( $shm_id !== false )
 			$this->keyid_acquire( $shm_id, $sem_key );	// keyword_id占有
@@ -394,6 +397,7 @@ class Keyword extends DBRecord {
 			}
 		}
 		$this->keyid_release();	// keyword_id開放
+		shmop_close( $shm_id );
 	}
 
 	// キーワード編集対応にて下の関数より分離

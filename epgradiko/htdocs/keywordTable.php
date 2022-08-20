@@ -96,9 +96,9 @@ if( isset($_POST['add_keyword']) ) {
 //			$rec->directory       = word_chk( $_POST['k_directory'] );
 			$rec->directory       = word_chk_DQ( $_POST['k_directory'] );
 			$rec->sort_order      = (int)$_POST['sort_order'];
-			$sem_key              = sem_get_surely( SEM_KW_START );
-			$shm_id               = shmop_open_surely();
-			$rec->keyid_acquire( $shm_id, $sem_key );	// keyword_id占有
+//			$sem_key              = sem_get_surely( SEM_KW_START );
+//			$shm_id               = shmop_open_surely();
+//			$rec->keyid_acquire( $shm_id, $sem_key );	// keyword_id占有
 			$rec->update();
 			if( $keyword_id )
 				$rec->rev_delete();
@@ -160,11 +160,10 @@ if( isset($_POST['add_keyword']) ) {
 						}
 					}
 				}
-				$rec->keyid_release();	// keyword_id開放
+//				$rec->keyid_release();	// keyword_id開放
 			}
-			shmop_close( $shm_id );
-		}
-		catch( Exception $e ) {
+//			shmop_close( $shm_id );
+		}catch( Exception $e ) {
 			exit( $e->getMessage() );
 		}
 	}

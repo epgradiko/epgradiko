@@ -485,14 +485,15 @@ foreach($map as $station => $channel) {
 }
 // 自動キーワ－ド再予約
 // 残りのEPG処理に時間がかかる場合に直近番組が始まってしまい再予約に失敗する対策
-$shm_id = shmop_open_surely();
+//$shm_id = shmop_open_surely();
 if( $key_cnt ){
-	$sem_key = sem_get_surely( SEM_KW_START );
+//	$sem_key = sem_get_surely( SEM_KW_START );
 	$result  = array_unique( $key_stk, SORT_NUMERIC );	// keyword IDの重複解消
 	foreach( $result as $keyword_id ){
 		$rec = new Keyword( 'id', $keyword_id );
-		$rec->reservation( 'EX', $shm_id, $sem_key );
+//		$rec->reservation( 'EX', $shm_id, $sem_key );
+		$rec->reservation( 'EX' );
 	}
 }
-shmop_close( $shm_id );
+//shmop_close( $shm_id );
 ?>

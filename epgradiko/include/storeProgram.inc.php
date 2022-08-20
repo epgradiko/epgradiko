@@ -44,8 +44,8 @@ function doKeywordReservation( $wave_type = '*' ) {
 	// キーワードを優先度で降順ソート
 	$arr = Keyword::createKeywords( 'ORDER BY priority DESC, id ASC' );
 	// keyword_id占有
-	$shm_id  = shmop_open_surely();
-	$sem_key = sem_get_surely( SEM_KW_START );
+//	$shm_id  = shmop_open_surely();
+//	$sem_key = sem_get_surely( SEM_KW_START );
 	if( count( $arr ) ){
 		//キーワード予約
 		foreach( $arr as $val ) {
@@ -68,7 +68,8 @@ function doKeywordReservation( $wave_type = '*' ) {
 //						break;
 				}
 //				try {
-					$val->reservation( $wave_type, $shm_id, $sem_key );
+//					$val->reservation( $wave_type, $shm_id, $sem_key );
+					$val->reservation( $wave_type );
 //				}
 //				catch( Exception $e ) {
 					// 無視
@@ -76,13 +77,13 @@ function doKeywordReservation( $wave_type = '*' ) {
 			}
 		}
 	}
-	shmop_close( $shm_id );
+//	shmop_close( $shm_id );
 }
 
 function storeProgram( $type, $xmlfile ) {
 	global $BS_CHANNEL_MAP, $GR_CHANNEL_MAP, $CS_CHANNEL_MAP, $EX_CHANNEL_MAP;
 	global $settings;
-	global $shm_id;
+//	global $shm_id;
 
 	$ed_tm_sft = (int)$settings->former_time + (int)$settings->rec_switch_time;
 	$key_stk = array();
@@ -1634,11 +1635,12 @@ NEXT_SUB:;
 //	doKeywordReservation( $type, $shm_id );
 
 	if( $key_cnt ){
-		$sem_key = sem_get_surely( SEM_KW_START );
+//		$sem_key = sem_get_surely( SEM_KW_START );
 		$result  = array_unique( $key_stk, SORT_NUMERIC );		// keyword IDの重複解消
 		foreach( $result as $keyword_id ){
 			$rec = new Keyword( 'id', $keyword_id );
-			$rec->reservation( $type, $shm_id, $sem_key );
+//			$rec->reservation( $type, $shm_id, $sem_key );
+			$rec->reservation( $type );
 		}
 	}
 
