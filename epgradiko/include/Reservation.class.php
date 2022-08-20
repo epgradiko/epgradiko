@@ -793,23 +793,23 @@ ob_start();
 				try {
 					$tuner_0 = DBRecord::countRecords( RESERVE_TBL, 'WHERE complete=0 AND '.$type_str.
 											' AND channel=\''.$crec->channel.'\''.
-											' AND starttime<=\''.$end_str.'\''.
-											' AND endtime>=\''.$stt_str.'\''
+											' AND starttime<\''.$end_str.'\''.
+											' AND endtime>\''.$stt_str.'\''
 					);
 					if( $tuner_0 == 0 ) $tuner = 0;
 					else{
 						$tuner_no = DBRecord::createRecords( RESERVE_TBL, 'WHERE complete=0 AND '.$type_str.
 											' AND channel=\''.$crec->channel.'\''.
-											' AND starttime<=\''.$end_str.'\''.
-											' AND endtime>=\''.$stt_str.'\''.
+											' AND starttime<\''.$end_str.'\''.
+											' AND endtime>\''.$stt_str.'\''.
 											' ORDER BY tuner'
 						);		//チューナー番号取得
 						$tuner = $tuner_no[0]->tuner;
 					}
 					$sub_tuner_0 = DBRecord::countRecords( RESERVE_TBL, 'WHERE complete=0 AND '.$type_str.
 											' AND tuner='.$tuner.
-											' AND starttime<=\''.$end_str.'\''.
-											' AND endtime>=\''.$stt_str.'\''.
+											' AND starttime<\''.$end_str.'\''.
+											' AND endtime>\''.$stt_str.'\''.
 											' AND sub_tuner=0'
 					);
 					if( $sub_tuner_0 == 0 ) $sub_tuner = 0;
@@ -822,8 +822,8 @@ ob_start();
 											' (SELECT sub_tuner FROM '.$settings->tbl_prefix.RESERVE_TBL.
 											' WHERE complete=0 AND '.$type_str.
 											' AND tuner='.$tuner.
-											' AND starttime<=\''.$end_str.'\''.
-											' AND endtime>=\''.$stt_str.'\')'.
+											' AND starttime<\''.$end_str.'\''.
+											' AND endtime>\''.$stt_str.'\')'.
 											' ORDER BY sub_tuner'
 						);		//チューナー空き番１つ前番号取得
 						$sub_tuner = $sub_tuner_no[0]->sub_tuner + 1;
