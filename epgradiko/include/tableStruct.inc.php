@@ -18,6 +18,9 @@ define( "RESERVE_STRUCT",
 	"free_CA_mode integer not null default '0',".			// 無料放送フラグ
 	"category_id integer not null default '0',".			// ジャンル
 	"sub_genre integer not null default '16',".			// サブジャンル
+	"video_type integer not null default '0',".			// 映像仕様
+	"audio_type integer not null default '0',".			// 音声仕様
+	"multi_type integer not null default '0',".			// 副音声(?)
 	"starttime datetime not null default '1970-01-01 00:00:00',".	// 開始時刻
 	"endtime datetime not null default '1970-01-01 00:00:00',".	// 終了時刻
 	"shortened boolean not null default '0',".			// 隣接短縮フラグ
