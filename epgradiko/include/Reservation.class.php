@@ -1464,7 +1464,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			}
 			if( $settings->use_plogs == 1 ) {
 				$map_analyze = $settings->ffmpeg.' -ss 5 -i '.$spool_path.'/'.$add_dir.$filename.
-						' 2>&1 | grep -e "Audio" -e "Video" -e "Subtitle" | grep -o -e 0:[0-9] | sed -e "s/0:/-map 0:/" | sed -e ":a" -e "N" -e \'$!ba\' -e "s/\n/ /g" >'.
+						' 2>&1 | grep -e "Audio" -e "Video" -e "Subtitle" | grep -o -e 0:[0-9]* | sed -e "s/0:/-map 0:/" | sed -e ":a" -e "N" -e \'$!ba\' -e "s/\n/ /g" >'.
 						INSTALL_PATH.$settings->plogs.'/'.$filename.'.mapinfo';
 				$map_analyze_wait = $settings->former_time + 10; //適当
 				fwrite($pipes[0], '('.$settings->sleep.' '.$map_analyze_wait.' && '.$map_analyze.") &\n" );
