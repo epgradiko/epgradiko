@@ -474,7 +474,7 @@ try{
 							break;
 						case 3:
 							$element = '<a style="background-color: red; color: white;"'.
-								( file_exists( $tran_unit['path'] ) ? ' href="'.$arr['asf'].'&trans_id='.$tran_unit['id'].'"' : '' ).' title="変換失敗"> '.$tran_unit['name'].' </a>';
+								( file_exists( $tran_unit['path'] ) ? ' href="'.$arr['asf'].'&trans_id='.$tran_unit['id'].'" target="_blank"' : '' ).' title="変換失敗"> '.$tran_unit['name'].' </a>';
 							break;
 					}
 					if( $element !== '' ){

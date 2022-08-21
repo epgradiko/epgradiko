@@ -25,7 +25,7 @@ $TRANS_MODE = array(
 				"-c:a libfdk_aac -ac 2 -ar 48000 -b:a 128k -async 1 ".
 				"-c:s mov_text -metadata:s:s:0 language=jpn ".
 				"-metadata title=%TITLE% -metadata description=%DESC% ".
-				"-movflags faststart %TRANS%",
+				"%MAPINFO% -movflags faststart %TRANS%",
 		'succode' => TRUE,			// トランスコード成功終了値(シェルスクリプト使用時などで終了値を受け取れない場合は FALSEにする・TRUEの場合は TRANS_SUCCESS_CODEを使用)
 		'tm_rate' => 10.0,			// 変換時間効率倍数(ジョブ制御用)
 	),
@@ -39,7 +39,7 @@ $TRANS_MODE = array(
 				"-c:a libfdk_aac -ac 2 -ar 48000 -b:a 128k -async 1 ".
 				"-c:s mov_text -metadata:s:s:0 language=jpn ".
 				"-metadata title=%TITLE% -metadata description=%DESC% ".
-				"-movflags faststart %TRANS%",
+				"%MAPINFO% -movflags faststart %TRANS%",
 		'succode' => TRUE,
 		'tm_rate' => 4.0,
 	),

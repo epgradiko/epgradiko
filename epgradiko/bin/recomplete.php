@@ -142,21 +142,24 @@ try{
 		if( filesize( $ts_path ) ) {
 			$rec_success = TRUE;
 			if( !$rrec->program_id ){
+				$rrec->endtime = toDatetime( $get_time );
 				if( $get_time < toTimestamp($rrec->endtime) ){
 					$rec_success = FALSE;
 					reclog( $rev_id.' 手動中断] '.$rev_ds, EPGREC_WARN );
 					$rrec->autorec = $rrec->autorec * -1 - 1;
-					$rrec->endtime = toDatetime( $get_time );
 				}
 			}else{
 				$ps = search_scoutcmd( $rrec->id );
 				if( $ps !== FALSE ){
 					$stop_stk  = killtree( (int)$ps->pid, FALSE, posix_getpid());
 				}
+				if( $get_time < toTimestamp($rrec->endtime) ){
+					reclog( $rev_id.' 短縮終了] '.$rev_ds, EPGREC_WARN );
+					$rrec->endtime = toDatetime( $get_time );
+				}
 			}
 			if( $rec_success ){
 				$rrec->complete = '1';
-				$rrec->endtime = $endtime;
 				$rrec->update();
 				// トランスコードJOB追加
 				$trans_obj = new DBRecord( TRANSEXPAND_TBL );

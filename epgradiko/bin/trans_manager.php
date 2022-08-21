@@ -89,16 +89,23 @@ while(1){
 			}
 			// 
 			$tran_start['ts'] = $reserve[0]['path'];
-			$ts_replace_str = '\''.$tran_start['ts'].'\'';
+			$ts_replace_str = '\''.INSTALL_PATH.$settings->spool.'/'.$tran_start['ts'].'\'';
 			if($settings->plogs) $ts_replace_str .= ' -progress /tmp/trans_'.$tran_start['id'];
+			$explode_text = explode('/', $reserve[0]['path']);
+			if( file_exists(INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.mapinfo' ) ) {
+				$mapinfo = substr(file_get_contents( INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.mapinfo' ), 0, -1);
+			}else{
+				$mapinfo = '';
+			}
 			$trans      = array('%FFMPEG%'		=> $settings->ffmpeg,
 						'%TS%'		=> $ts_replace_str,
 						'%TRANS%'	=> '"'.$tran_start['path'].'"',
 						'%TITLE%'	=> '"'.normalize($reserve[0]['title']).'"',
 						'%DESC%'	=> '"'.normalize($reserve[0]['description']).'"',
+						'%MAPINFO%'	=> $mapinfo,
 			);
 			if( $RECORD_MODE[$tran_start['mode']]['command'] === '' ){
-				$cmd_set               = strtr( TRANS_CMD, $trans );
+				$cmd_set               = strtr( TRANSTREAM_CMD['ts'], $trans );
 				$tran_start['succode'] = TRANS_SUCCESS_CODE;
 			}else{
 				$cmd_set               = strtr( $RECORD_MODE[$tran_start['mode']]['command'], $trans );

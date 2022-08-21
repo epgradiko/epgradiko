@@ -1459,8 +1459,15 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			}
 			if( $settings->use_thumbs == 1 ) {
 				$gen_thumbnail = defined( 'GEN_THUMBNAIL' ) ? GEN_THUMBNAIL : INSTALL_PATH.'/bin/gen-thumbnail.sh';
-				$gen_thumbnail_wait = $settings->former_time + 5; //適当
+				$gen_thumbnail_wait = $settings->former_time + 10; //適当
 				fwrite($pipes[0], '('.$settings->sleep.' '.$gen_thumbnail_wait.' && '.$gen_thumbnail.") &\n" );
+			}
+			if( $settings->use_plogs == 1 ) {
+				$map_analyze = $settings->ffmpeg.' -ss 5 -i '.$spool_path.'/'.$add_dir.$filename.
+						' 2>&1 | grep -e "Audio" -e "Video" -e "Subtitle" | grep -o -e 0:[0-9] | sed -e "s/0:/-map 0:/" | sed -e ":a" -e "N" -e \'$!ba\' -e "s/\n/ /g" >'.
+						INSTALL_PATH.$settings->plogs.'/'.$filename.'.mapinfo';
+				$map_analyze_wait = $settings->former_time + 10; //適当
+				fwrite($pipes[0], '('.$settings->sleep.' '.$map_analyze_wait.' && '.$map_analyze.") &\n" );
 			}
 
 			if( $program_id and isset($record_cmd[$crec_->type]['program_rec']) ){
@@ -1613,6 +1620,9 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				//詳細ログ削除
 				$packetDetailLog =INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.pdl';
 				if( file_exists( $packetDetailLog ) ) @unlink( $packetDetailLog );
+				//音声情報ログ削除
+				$mapinfoLog =INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.mapinfo';
+				if( file_exists( $mapinfoLog ) ) @unlink( $mapinfoLog );
 			}
 		}
 		catch( Exception $e ) {

@@ -29,7 +29,7 @@ if( isset( $_GET['trans_id'] ) ){
 	$trans_id = $_GET['trans_id'];
 	if( $trans_id != 0 && DBRecord::countRecords( TRANSCODE_TBL, 'WHERE id='.$trans_id) ){
 		$transcode = new DBRecord( TRANSCODE_TBL, 'id', $trans_id );
-		if( ($transcode->status !=2) || !file_exists($transcode->path) ){
+		if( ($transcode->status == 0) || !file_exists($transcode->path) ){
 			reclog( 'sendstream.php::変換済みtrans_id='.$trans_id.'なし', EPGREC_WARN );
 			unset($trans_id);
 		}else $temp_reserve_id = $transcode->rec_id;
