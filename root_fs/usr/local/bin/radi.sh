@@ -419,7 +419,7 @@ if [ "${type}" = "radiko" ]; then
       -fflags +discardcorrupt \
       -headers "X-Radiko-Authtoken: ${radiko_authtoken}" \
       -i "${playlist_uri}" \
-      -f mp4 \
+      -f adts \
       -acodec copy \
       -vn \
       -bsf:a aac_adtstoasc \
