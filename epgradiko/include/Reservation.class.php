@@ -915,8 +915,9 @@ ob_start();
 			$prg = new DBRecord( PROGRAM_TBL, 'id', $program_id );
 			$resolution = (int)(($prg->video_type & 0xF0) >> 4 );
 			$aspect     = (int)$prg->video_type & 0x0F;
+			$video_type = (int)$prg->video_type;
 			$audio_type = (int)$prg->audio_type;
-			$bilingual  = (int)$prg->multi_type;
+			$multi_type = (int)$prg->multi_type;
 			$eid        = (int)$prg->eid;
 			$sub_genre  = (int)$prg->sub_genre;
 			$image_url  = $prg->image_url;
@@ -925,13 +926,27 @@ ob_start();
 			$prg->key_id = 0;	// 自動予約禁止解除
 			$prg->update();
 		}else{
-			$resolution = 0;
-			$aspect     = 0;
-			$audio_type = 0;
-			$bilingual  = 0;
-			$eid        = 0;
-			$sub_genre  = 16;
-			$image_url  = "";
+			$programs = DBRecord::createRecords( PROGRAM_TBL, 'WHERE channel_id='.$channel_id.
+								' AND starttime<=\''.toDatetime( $start_time ).'\' AND endtime>=\''.toDatetime( $start_time ).'\'' );
+			if( count( $programs ) ){
+				$resolution = (int)(($programs[0]->video_type & 0xF0) >> 4 );
+				$aspect     = (int)$programs[0]->video_type & 0x0F;
+				$video_type = (int)$programs[0]->video_type;
+				$audio_type = (int)$programs[0]->audio_type;
+				$multi_type = (int)$programs[0]->multi_type;
+				$eid        = (int)$programs[0]->eid;
+				$sub_genre  = (int)$programs[0]->sub_genre;
+				$image_url  = $programs[0]->image_url;
+			}else{
+				$resolution = 0;
+				$aspect     = 0;
+				$video_type = 0;
+				$audio_type = 0;
+				$multi_type = 0;
+				$eid        = 0;
+				$sub_genre  = 16;
+				$image_url  = "";
+			}
 		}
 		if( !$shortened )
 			$duration += $settings->extra_time;			//重複による短縮がされてないものは糊代を付ける
@@ -1413,6 +1428,9 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			$rrec->endtime       = toDatetime( $end_time );
 			$rrec->path          = $add_dir.$filename;
 			$rrec->autorec       = $autorec;
+			$rrec->video_type    = $video_type;
+			$rrec->audio_type    = $audio_type;
+			$rrec->multi_type    = $multi_type;
 			$rrec->mode          = $mode;
 			$rrec->tuner         = $tuner;
 			$rrec->sub_tuner     = $sub_tuner;
@@ -1464,8 +1482,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			}
 			if( $settings->use_plogs == 1 ) {
 				$map_analyze = $settings->ffmpeg.' -ss 5 -i '.$spool_path.'/'.$add_dir.$filename.
-						' 2>&1 | grep -e "Audio" -e "Video" -e "Subtitle" | grep -o -e 0:[0-9]* | sed -e "s/0:/-map 0:/" | sed -e ":a" -e "N" -e \'$!ba\' -e "s/\n/ /g" >'.
-						INSTALL_PATH.$settings->plogs.'/'.$filename.'.mapinfo';
+						' 2>&1|grep -e "Audio" -e "Subtitle" -e "Video" >'.INSTALL_PATH.$settings->plogs.'/'.$filename.'.mapinfo';
 				$map_analyze_wait = $settings->former_time + 10; //適当
 				fwrite($pipes[0], '('.$settings->sleep.' '.$map_analyze_wait.' && '.$map_analyze.") &\n" );
 			}
@@ -1620,7 +1637,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				//詳細ログ削除
 				$packetDetailLog =INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.pdl';
 				if( file_exists( $packetDetailLog ) ) @unlink( $packetDetailLog );
-				//音声情報ログ削除
+				//マップ情報ログ削除
 				$mapinfoLog =INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.mapinfo';
 				if( file_exists( $mapinfoLog ) ) @unlink( $mapinfoLog );
 			}

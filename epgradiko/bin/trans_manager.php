@@ -93,7 +93,17 @@ while(1){
 			if($settings->plogs) $ts_replace_str .= ' -progress /tmp/trans_'.$tran_start['id'];
 			$explode_text = explode('/', $reserve[0]['path']);
 			if( file_exists(INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.mapinfo' ) ) {
-				$mapinfo = substr(file_get_contents( INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.mapinfo' ), 0, -1);
+				if( $reserve[0]['audio_type'] == 2 && $reserve[0]['multi_type'] == 1 ){
+					$grep_parm = ' -e "Video" -e "Subtitle" ';
+				}else{
+					$grep_parm = ' -e "Audio" -e "Video" -e "Subtitle" ';
+				}
+				$mapinfo = substr(@shell_exec('grep'.$grep_parm.INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.mapinfo'.
+						'| grep -o -e 0:[0-9]* | sed -e "s/0:/-map 0:/" | sed -e ":a" -e "N" -e \'$!ba\' -e "s/\n/ /g"'), 0, -1);
+				if( $reserve[0]['audio_type'] == 2 && $reserve[0]['multi_type'] == 1 ){
+					$mapinfo = '-filter_complex channelsplit[FL][FR] '.
+						' -map [FL] -map [FR] '.$mapinfo;
+				}
 			}else{
 				$mapinfo = '';
 			}
