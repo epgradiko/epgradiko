@@ -447,7 +447,25 @@ try{
 //										'" style="color: white; background-color: royalblue;">■</a>';
 //				}
 			}else{
-				$arr['file_set'] = '';
+				if( time() > $start_time && time() < $end_time ){ //延長？失敗？
+					if( !search_recps($r['id']) ){ //録画コマンド実行なし→失敗
+						$wrt_set = array();
+						$wrt_set['complete'] = 2;
+						$rev_obj->force_update( $r['id'], $wrt_set );
+						reclog('予約ID:'.$r['id'].' 録画開始時間超過 録画ジョブなしのためエラー', EPGREC_ERROR);
+						$bg_color = 'red';
+						$arr['file_set'] = '<br>not run';
+					}else{
+						$wrt_set = array();
+						$wrt_set['complete'] = 2;
+						$rev_obj->force_update( $r['id'], $wrt_set );
+						reclog('予約ID:'.$r['id'].' 録画開始時間超過 録画ファイルなしのためエラー', EPGREC_ERROR);
+						$bg_color = 'red';
+						$arr['file_set'] = '<br>not recording';
+					}
+				}else{
+					$arr['file_set'] = '';
+				}
 			}
 			if( $act_trans ){
 				$tran_ex = $trans_obj->fetch_array( 'rec_id', $arr['id'] );

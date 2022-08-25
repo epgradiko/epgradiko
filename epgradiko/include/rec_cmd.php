@@ -28,7 +28,8 @@ if( file_exists(INSTALL_PATH.'/settings/config.xml') ){
 		'version'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/version',
 	);
 	$record_cmd['GR'] = array(
-		'suffix'	=>	'.ts',
+		'type'		=>	'video',
+		'suffix'	=>	'_HD_.ts',
 		'epg_rec'	=>	array(
 			'command'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/channels/%TYPE%/%CHANNEL%/stream?decode=0'
 					   .' -H "x-mirakurun-priority:%PRIORITY%"',	// コマンドフルパス(%TYPE%,%CHANNEL%,%PRIORITYのみ変換)
@@ -53,7 +54,8 @@ if( file_exists(INSTALL_PATH.'/settings/config.xml') ){
 	$record_cmd['BS'] = $record_cmd['GR'];
 	$record_cmd['CS'] = $record_cmd['BS'];
 	$record_cmd['EX'] = array(
-		'suffix'	=>	'.aac',
+		'type'		=>	'audio',
+		'suffix'	=>	'_HD.aac',
 		'service_rec'	=>	array(
 			'command'	=> RADIKO_CMD,
 		),

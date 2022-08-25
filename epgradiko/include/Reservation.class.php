@@ -1475,12 +1475,12 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				fwrite($pipes[0], "echo 'temp' > './".$add_dir."/tmp' & sync &\n" );	// HDD spin-up
 				fwrite($pipes[0], $settings->sleep.' '.$sleep_time."\n" );
 			}
-			if( $settings->use_thumbs == 1 ) {
+			if( $settings->use_thumbs == 1 ){
 				$gen_thumbnail = defined( 'GEN_THUMBNAIL' ) ? GEN_THUMBNAIL : INSTALL_PATH.'/bin/gen-thumbnail.sh';
 				$gen_thumbnail_wait = $settings->former_time + 10; //適当
-				fwrite($pipes[0], '('.$settings->sleep.' '.$gen_thumbnail_wait.' && '.$gen_thumbnail.") &\n" );
+				fwrite($pipes[0], '('.$settings->sleep.' '.$gen_thumbnail_wait.' && '.$gen_thumbnail.' '.$rrec->id.") &\n" );
 			}
-			if( $settings->use_plogs == 1 ) {
+			if( $settings->use_plogs == 1 && $record_cmd[$crec_->type]['type'] == 'video' ){
 				$map_analyze = $settings->ffmpeg.' -ss 5 -i '.$spool_path.'/'.$add_dir.$filename.
 						' 2>&1|grep -e "Audio" -e "Subtitle" -e "Video" >'.INSTALL_PATH.$settings->plogs.'/'.$filename.'.mapinfo';
 				$map_analyze_wait = $settings->former_time + 10; //適当
@@ -1494,7 +1494,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 					$priority,		 	// 優先順位
 					$add_dir.$filename,		// 出力先
 				);
-			} else {
+			}else{
 //				$rrec->program_id  = 0;
 				if( isset($record_cmd[$crec_->type]['service_rec']) ){
 					$cmd_ts = build_service_rec_cmd(
@@ -1518,7 +1518,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			fwrite($pipes[0], $cmd_ts."\n" );
 			fwrite($pipes[0], COMPLETE_CMD.' '.$rrec->id."\n" );
 			if( $settings->use_thumbs == 1 ) {
-				fwrite($pipes[0], $gen_thumbnail."\n" );
+				fwrite($pipes[0], $gen_thumbnail.' '.$rrec->id."\n" );
 			}
 			fwrite($pipes[0], 'rm /tmp/tuner_'.$rrec->id."\n" );		//ATジョブのPID保存ファイルを削除
 			fclose($pipes[0]);

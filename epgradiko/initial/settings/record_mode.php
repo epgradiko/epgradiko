@@ -10,8 +10,8 @@ $RECORD_MODE = array(
 // 'array'の前の数値は、$RECORD_MODEにマージする際に振り直されるのでこの変数内で重複しないようにするだけでよい。
 $TRANS_MODE = array(
 	5 => array(
+		'type'	  => 'video',			// 
 		'name'	  => 'X264-HD',			// モードの表示名
-		'format'  => 'mp4',			// ストリーミングmime
 		'tsuffix' => '-HD.mp4',			// トラコン拡張子('suffix'と'tsuffix'は同じ文字数にする事(ファイル名生成が手抜きなので自動キーワードの場合は問題でるかも))
 							// トランスコードコマンド
 							// %FFMPEG% システム設定のFFMPEGコマンドに置換
@@ -30,8 +30,8 @@ $TRANS_MODE = array(
 		'tm_rate' => 10.0,			// 変換時間効率倍数(ジョブ制御用)
 	),
 	7 => array(
+		'type'	  => 'video',			// 
 		'name'	  => 'X264-SD',
-		'format'  => 'mp4',			// ストリーミングmime
 		'tsuffix' => '-SD.mp4',
 		'command' => "%FFMPEG% -y -loglevel quiet -fix_sub_duration -i %TS% -ignore_unknown ".
 				"-vf 'yadif=0:-1' -f mp4 ".
@@ -44,8 +44,8 @@ $TRANS_MODE = array(
 		'tm_rate' => 4.0,
 	),
 	9 => array(
+		'type'	  => 'audio',			// 
 		'name'	  => 'RADIO',
-		'format'  => 'aac',			// ストリーミングmime
 		'tsuffix' => '-RD.m4a',
 		'command' => "%FFMPEG% -y -loglevel quiet -i %TS% -vn ".
 				"-f mp4 ".

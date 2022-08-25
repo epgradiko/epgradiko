@@ -205,7 +205,7 @@ try{
 					}
 				}
 				// tspackchk
-				if( $record_cmd[$rrec->type]['suffix'] == '.ts' ){
+				if( $record_cmd[$rrec->type]['type'] == 'video' ){
 					if( $settings->use_plogs ) {
 						$explode_text = explode('/', $filename);
 						$log_tspacketchk = $settings->tspacketchk." -S -l 0 -s 3 '".$ts_path."'".
