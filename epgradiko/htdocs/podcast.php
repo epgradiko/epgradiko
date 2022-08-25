@@ -72,7 +72,7 @@ foreach( $reserves as $reserve ) {
     $arr['author'] = ""; //$ch->name;
     $arr['subtitle'] = "";
     $arr['description'] = htmlspecialchars($reserve->description);
-    $arr['thumb'] = $host."/get_file.php?thumb=".$reserve->path.".jpg";
+    $arr['thumb'] = $host."/get_file.php?thumb=".$reserve->id.".jpg";
     $trans_set = get_lightest_trans( $reserve->id );
     if( $trans_set[0] == 0 ) continue;
     $arr['url'] = $host."/recorded/trans_id/".$trans_set[0].".".$trans_set[2];

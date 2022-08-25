@@ -370,8 +370,7 @@ try{
 			$mark_bracketR      = str_replace(']', '</span>', $mark_bracketL);
 			$arr['mark']        = $mark_bracketR; // $p->mark;
 			$arr['description'] = $r['description'];
-			$explode_text       = explode( '/', $r['path'] );
-			$thumb_file = end($explode_text).'.jpg';
+			$thumb_file = $r['id'].'.jpg';
 			if( file_exists(INSTALL_PATH.$settings->thumbs.'/'.$thumb_file) ){
 				$arr['thumb'] = '<img src="/get_file.php?thumb='.$thumb_file.'" width="192px" height="auto"/>';
 				$trans_set = get_lightest_trans($r['id']);
@@ -380,14 +379,14 @@ try{
 				$arr['thumb'] = '';
 			$arr['packetlog'] = '';
 			$arr['packetdlog'] = '';
-			if( file_exists(INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.log' ) ) {
-				$packetlog = file_get_contents( INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.log' );
+			if( file_exists(INSTALL_PATH.$settings->plogs.'/'.$r['id'].'.log' ) ) {
+				$packetlog = file_get_contents( INSTALL_PATH.$settings->plogs.'/'.$r['id'].'.log' );
 				if( $packetlog === '' ) {
 					$arr['packetlog'] = '<br><br>ts checking..';
 				}else{
 					$arr['packetlog'] = '<pre';
-					if( file_exists(INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.pdl' ) ) {
-						$arr['packetlog'] .= ' onClick="disp_plog(\''.end($explode_text).
+					if( file_exists(INSTALL_PATH.$settings->plogs.'/'.$r['id'].'.pdl' ) ) {
+						$arr['packetlog'] .= ' onClick="disp_plog(\''.$r['id'].
 									'.pdl\')" title="クリックで詳細ログ" style="cursor: pointer;"';
 					}
 					$arr['packetlog'] .= '>'.$packetlog.'</pre>';

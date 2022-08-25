@@ -207,10 +207,9 @@ try{
 				// tspackchk
 				if( $record_cmd[$rrec->type]['type'] == 'video' ){
 					if( $settings->use_plogs ) {
-						$explode_text = explode('/', $filename);
 						$log_tspacketchk = $settings->tspacketchk." -S -l 0 -s 3 '".$ts_path."'".
-									" 1>'".INSTALL_PATH.$settings->plogs."/".end($explode_text).".pdl'".
-									" 2>'".INSTALL_PATH.$settings->plogs."/".end($explode_text).".log' &";
+									" 1>'".INSTALL_PATH.$settings->plogs."/".$rrec->id.".pdl'".
+									" 2>'".INSTALL_PATH.$settings->plogs."/".$rrec->id.".log' &";
 						@exec($log_tspacketchk);
 					}
 				}

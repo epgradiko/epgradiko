@@ -1369,8 +1369,8 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			$fl_len     = strlen( $filename );
 //			$fl_len_lmt = 255 - strlen( $RECORD_MODE[$mode]['suffix'] );
 			$fl_len_lmt = 255 - strlen( $record_cmd[$crec_->type]['suffix'] );
-			if( (boolean)$settings->use_thumbs )
-				$fl_len_lmt -= 4;		// サムネール '.jpg'
+//			if( (boolean)$settings->use_thumbs )
+//				$fl_len_lmt -= 4;		// サムネール '.jpg'
 			if( $fl_len > $fl_len_lmt ){
 				$longname = $filename;
 				$filename = mb_strncpy( $filename, $fl_len_lmt );
@@ -1407,7 +1407,6 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			}
 //			$filename  = $tmp_name.$RECORD_MODE[$mode]['suffix'];
 			$filename  = $tmp_name.$record_cmd[$crec_->type]['suffix'];
-			$thumbname = $filename.'.jpg';
 
 			// ファイル名生成終了
 
@@ -1449,7 +1448,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			$cmdline = $settings->at.' '.date('H:i m/d/Y', $at_start);
 			$env = array(
 						  'OUTPUT'     => $spool_path.'/'.$add_dir.$filename,
-						  'THUMB'      => INSTALL_PATH.$settings->thumbs.'/'.$thumbname,
+						  'THUMB'      => INSTALL_PATH.$settings->thumbs.'/'.$rrec->id.'.jpg',
 						  'FORMER'     => $settings->former_time,
 						  'FFMPEG'     => $settings->ffmpeg,
 						  'IMAGE_URL'  => $image_url,
@@ -1478,11 +1477,11 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			if( $settings->use_thumbs == 1 ){
 				$gen_thumbnail = defined( 'GEN_THUMBNAIL' ) ? GEN_THUMBNAIL : INSTALL_PATH.'/bin/gen-thumbnail.sh';
 				$gen_thumbnail_wait = $settings->former_time + 10; //適当
-				fwrite($pipes[0], '('.$settings->sleep.' '.$gen_thumbnail_wait.' && '.$gen_thumbnail.' '.$rrec->id.") &\n" );
+				fwrite($pipes[0], '('.$settings->sleep.' '.$gen_thumbnail_wait.' && '.$gen_thumbnail.") &\n" );
 			}
 			if( $settings->use_plogs == 1 && $record_cmd[$crec_->type]['type'] == 'video' ){
 				$map_analyze = $settings->ffmpeg.' -ss 5 -i '.$spool_path.'/'.$add_dir.$filename.
-						' 2>&1|grep -e "Audio" -e "Subtitle" -e "Video" >'.INSTALL_PATH.$settings->plogs.'/'.$filename.'.mapinfo';
+						' 2>&1|grep -e "Audio" -e "Subtitle" -e "Video" >'.INSTALL_PATH.$settings->plogs.'/'.$rrec->id.'.mapinfo';
 				$map_analyze_wait = $settings->former_time + 10; //適当
 				fwrite($pipes[0], '('.$settings->sleep.' '.$map_analyze_wait.' && '.$map_analyze.") &\n" );
 			}
@@ -1518,12 +1517,14 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			fwrite($pipes[0], $cmd_ts."\n" );
 			fwrite($pipes[0], COMPLETE_CMD.' '.$rrec->id."\n" );
 			if( $settings->use_thumbs == 1 ) {
-				fwrite($pipes[0], $gen_thumbnail.' '.$rrec->id."\n" );
+				fwrite($pipes[0], $gen_thumbnail."\n" );
 			}
 			fwrite($pipes[0], 'rm /tmp/tuner_'.$rrec->id."\n" );		//ATジョブのPID保存ファイルを削除
 			fclose($pipes[0]);
 			// 標準エラーを取る
 			$rstring = stream_get_contents( $pipes[2] );
+reclog('at add std='.stream_get_contents($pipes[1]),EPGREC_DEBUG);
+reclog('at add err='.$rstring,EPGREC_DEBUG);
 			
 			fclose( $pipes[2] );
 	 		fclose( $pipes[1] );
@@ -1627,18 +1628,17 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				reclog( '[予約ID:'.$reserve['id'].' 削除] '.$reserve['channel_disc'].'(T'.$reserve['tuner'].'-'.$reserve['channel'].') '.$reserve['starttime'].
 					' 『'.$reserve['title'].'』' );
 				$reserve_obj->force_delete( $reserve['id'] );
-				$explode_text = explode( '/', $reserve['path'] );
 				// サムネイル削除
-				$thumbs = INSTALL_PATH.$settings->thumbs.'/'.end($explode_text).'.jpg';
+				$thumbs = INSTALL_PATH.$settings->thumbs.'/'.$reserve['id'].'.jpg';
 				if( file_exists( $thumbs ) ) @unlink( $thumbs );
 				//ログ削除
-				$packetLog =INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.log';
+				$packetLog =INSTALL_PATH.$settings->plogs.'/'.$reserve['id'].'.log';
 				if( file_exists( $packetLog ) ) @unlink( $packetLog );
 				//詳細ログ削除
-				$packetDetailLog =INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.pdl';
+				$packetDetailLog =INSTALL_PATH.$settings->plogs.'/'.$reserve['id'].'.pdl';
 				if( file_exists( $packetDetailLog ) ) @unlink( $packetDetailLog );
 				//マップ情報ログ削除
-				$mapinfoLog =INSTALL_PATH.$settings->plogs.'/'.end($explode_text).'.mapinfo';
+				$mapinfoLog =INSTALL_PATH.$settings->plogs.'/'.$reserve['id'].'.mapinfo';
 				if( file_exists( $mapinfoLog ) ) @unlink( $mapinfoLog );
 			}
 		}

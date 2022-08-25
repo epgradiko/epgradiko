@@ -62,19 +62,19 @@ function exit_shephewrd(){
 	// 残留AT削除
 	$res_obj = new DBRecord( RESERVE_TBL );
 	$rvs     = $res_obj->fetch_array( null, null, 'complete=0 AND endtime<subtime(now(),'.sprintf( '"00:00:%02d"', (int)$settings->extra_time+3 ).')' );
-	foreach( $rvs as $r ){
-		switch( at_clean( $r ) ){
-			case 0:
-				// 予約終了化
-				$wrt_set['complete'] = 1;
-				$res_obj->force_update( $r['id'], $wrt_set );
-				continue 2;
-			case 1:	// トランスコード中
-				continue 2;
-			case 2:	// 別ユーザーでAT登録
-				break;
-		}
-	}
+//	foreach( $rvs as $r ){
+//		switch( at_clean( $r ) ){
+//			case 0:
+//				// 予約終了化
+//				$wrt_set['complete'] = 1;
+//				$res_obj->force_update( $r['id'], $wrt_set );
+//				continue 2;
+//			case 1:	// トランスコード中
+//				continue 2;
+//			case 2:	// 別ユーザーでAT登録
+//				break;
+//		}
+//	}
 
 	$ps_output = shell_exec( PS_CMD.' 2>/dev/null' );
 	$rarr      = explode( "\n", $ps_output );

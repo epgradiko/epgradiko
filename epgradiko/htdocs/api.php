@@ -351,8 +351,7 @@ function get_thumbnails_id( $thumbnailId ) {
 	 			]
 	 		];
 		} else {
-			$explode_text = explode( '/', $reserve[0]->path );
-			$thumbs = INSTALL_PATH.$settings->thumbs.'/'.end($explode_text).'.jpg';
+			$thumbs = INSTALL_PATH.$settings->thumbs.'/'.$reserve[0]->id.'.jpg';
 			if( !file_exists($thumbs) ) {
 				return ['content_type' => 'err',
 					'content' => [
