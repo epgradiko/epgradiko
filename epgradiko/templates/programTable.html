@@ -957,7 +957,7 @@ ex.18 101 333">チャンネル番号3</td>
   <td>{if $program.keyword != ""}{$program.no}{/if}</td>
   <td style="text-align: left;"><a{if $program.keyword != ""} href="{$program.keyword}" title="番組検索にジャンプ"{/if} id="tid_{$program.rev_id}">{$program.title|escape}</a></td>
   <td style="white-space: nowrap;"><a{if $program.keyword != ""} href="/index.php?type={$program.type}&length=8&time={$program.prg_top}" title="EPG番組表へジャンプ"{/if}>{$program.date}</a><br>
-      <a{if $program.keyword != ""} href="/revchartTable.php?length=8&time={$program.prg_top}" title="予約遷移一覧へジャンプ"{/if}>{$program.starttime}{$program.endtime}<br>{$program.duration}{if $program.keyword != ""}<br>{$program.station_name}{/if}</a></td>
+      <a{if $program.keyword != ""} href="/revchartTable.php?length=8&time={$program.prg_top}" title="予約遷移表へジャンプ"{/if}>{$program.starttime}{$program.endtime}<br>{$program.duration}{if $program.keyword != ""}<br>{$program.station_name}{/if}</a></td>
   <td style="text-align: center;">{$program.genres}</td>
   <td style="text-align: center;">{if $program.rev_id}{$program.rev_info}{else}{$program.mark}<br>{$program.video_info}<br>{$program.audio_info}{/if}</td>
   {if $program.rev_id}

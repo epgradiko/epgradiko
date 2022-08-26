@@ -166,7 +166,7 @@ table#reservation_table td {
   <td style="text-align: center;">{$smarty.foreach.loop.iteration}</td>
   <td style="text-align: left"><a {if $reserve.keyword != ""}href="{$reserve.keyword}" title="番組検索にジャンプ"{/if} id="tid_{$reserve.id}">{$reserve.title|escape}</a></td>
   <td style="text-align: center;white-space: nowrap;"><a href="/index.php?type={$reserve.type}&length=8&time={$reserve.prg_top}" title="EPG番組表へジャンプ">{$reserve.date}</a>
-  <br><a href="/revchartTable.php?length=8&time={$reserve.prg_top}" title="予約遷移一覧へジャンプ">{$reserve.starttime}{$reserve.endtime}<br>({$reserve.duration})
+  <br><a href="/revchartTable.php?length=8&time={$reserve.prg_top}" title="予約遷移表へジャンプ">{$reserve.starttime}{$reserve.endtime}<br>({$reserve.duration})
   <br>{$reserve.channel_name}</td>
   <td class="" style="border-collapse:separate; text-align:center;">{$reserve.source}</td>
   <td style="text-align: center; white-space: pre;">{$reserve.mode}{$reserve.trans_mode}</td>

@@ -349,7 +349,7 @@ $smarty->assign( 'single_tuner', $single_tuner!==FALSE ? TRUE : FALSE );
 $smarty->assign( 'dayweeks', array('日','月','火','水','木','金','土') );
 $smarty->assign( '__nowDay', date('d', $now_time) );
 
-$sitetitle = '予約遷移一覧 '.date( 'Y', $top_time ) . '年' . date( 'm', $top_time ) . '月' . date( 'd', $top_time ) . '日'. date( 'H', $top_time ) .
+$sitetitle = '予約遷移表 '.date( 'Y', $top_time ) . '年' . date( 'm', $top_time ) . '月' . date( 'd', $top_time ) . '日'. date( 'H', $top_time ) .
               '時～';
 
 $smarty->assign('sitetitle', $sitetitle );
