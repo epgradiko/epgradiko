@@ -14,41 +14,15 @@ include_once( INSTALL_PATH . '/include/epg_const.php' );
 include_once( INSTALL_PATH . '/include/radiko_const.php' );
 include_once( INSTALL_PATH . '/include/etclib.php' );
 
-function optimize_table( $table ){
-	global $dbh, $settings;
-	reclog( 'radiko放送局更新::'.$settings->tbl_prefix.$table.'最適化開始', EPGREC_DEBUG );
-	if( mysqli_query( $dbh, 'ALTER TABLE '.$settings->tbl_prefix.$table.' ENGINE InnoDB' )) {
-		reclog( 'radiko放送局更新::'.$settings->tbl_prefix.$table.'最適化終了', EPGREC_DEBUG );
-	}else{
-		reclog( 'radiko放送局更新::'.$settings->tbl_prefix.$table.'最適化失敗('.mysqli_error($dbh).')', EPGREC_ERROR );
-	}
-}
 run_user_regulate();
 new single_Program('radikoStation');
 
 $settings = Settings::factory();
 libxml_use_internal_errors(true);
 
-//全然関係ないけど、テーブル最適化
-$dbh = mysqli_connect( $settings->db_host, $settings->db_user, $settings->db_pass, $settings->db_name );
-optimize_table(RESERVE_TBL);
-optimize_table(PROGRAM_TBL);
-optimize_table(CHANNEL_TBL);
-optimize_table(CATEGORY_TBL);
-optimize_table(KEYWORD_TBL);
-optimize_table(TRANSCODE_TBL);
-optimize_table(TRANSEXPAND_TBL);
-
 if($settings->ex_tuners == 0) exit();
 
 reclog( 'radiko放送局更新::開始' );
-// radikoProgram.php station-id any
-if( isset($argv[1]) ){
-	//	single station mode
-	$single_mode = TRUE;
-}else{
-	$single_mode = FALSE;
-}
 
 // Get radiko Area ID
 $radiko_area_chk_url = "https://radiko.jp/area";

@@ -2,11 +2,17 @@
 <?php
 $script_path = dirname( __FILE__ );
 chdir( $script_path );
-include_once('config.php');
-include_once( INSTALL_PATH . '/DBRecord.class.php' );
-include_once( INSTALL_PATH . '/Settings.class.php' );
+include_once('../config.php');
+include_once( INSTALL_PATH . '/include/DBRecord.class.php' );
+include_once( INSTALL_PATH . '/include/Reservation.class.php' );
+include_once( INSTALL_PATH . '/include/Settings.class.php' );
+include_once( INSTALL_PATH . '/include/reclib.php' );
+include_once( INSTALL_PATH . '/include/etclib.php' );
 run_user_regulate();
+new single_Program('del_everyday');
 $settings = Settings::factory();
+
+if( $argc == 1 ) exit();
 $del_date = date('Y-m-d', strtotime("- ".$argv[1]." days"));
 
 $rev_obj = new DBRecord( RESERVE_TBL );
@@ -16,7 +22,6 @@ $del_list = $rev_obj->fetch_array( null, null, 'complete=1 and endtime < date("'
 
 foreach( $del_list as $rec ){
 	$transcodes = $trans_obj->fetch_array( null, null, 'rec_id='.$rec['id'].' ORDER BY status' );
-	$explode_text = explode( '/', $rec['path'] );
 	foreach( $transcodes as $transcode ){
 		if( $transcode['status'] == 1){
 			killtree( $rarr, (int)$transcode['pid'] );
