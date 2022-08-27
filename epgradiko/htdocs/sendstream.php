@@ -232,7 +232,6 @@ if( $input_mode == 'pipe' ){
 	$fp = $ts_pipes[1];
 }
 if( $input_mode == 'file' ){
-	reclog('sendstream.php::ext='.$ext.' play file='.$send_file, EPGREC_DEBUG);
 	$fp = @fopen( $send_file, 'rb' );
 	if( !$fp ){
 		header( 'HTTP/1.1 404 Not Found');
@@ -277,8 +276,10 @@ if( $input_mode == 'file' ){
 		if( $start > $size ) $start = 0;
 		if( $end > $size - 1 ) $end = $size - 1;
 		$size = $end - $start + 1;
+		reclog('sendstream.php::download file='.$send_file.'('.$start.' - '.$end.')', EPGREC_DEBUG);
+	}else{
+		reclog('sendstream.php::play file='.$send_file.'('.$start.' - '.$end.')', EPGREC_DEBUG);
 	}
-
 	header( 'Accept-Ranges: bytes' );
 	header( 'Content-Length:'.($end - $start + 1) );
 	header( 'Last-Modified: '.gmdate("D, d M Y H:i:s", filemtime($send_file)).' GMT' );
@@ -286,7 +287,7 @@ if( $input_mode == 'file' ){
 //	header( "Content-Transfer-Encoding: binary\n");
 //	header( 'Connection: close' );
 }else{
-	reclog('sendstream.php::ext='.$ext.' pipe_cmd='.$pipe_cmd, EPGREC_DEBUG);
+	reclog('sendstream.php::stream='.$pipe_cmd, EPGREC_DEBUG);
 	header( 'HTTP/1.1 200 OK' );
 }
 if( isset($_GET['download']) && $input_mode == 'file' ){

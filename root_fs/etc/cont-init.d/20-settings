@@ -8,3 +8,7 @@ cp -npr /var/www/localhost/initial/settings/*	/var/www/localhost/settings/
 
 # initial config file
 cp -np /var/www/localhost/initial/config.php	/var/www/localhost/
+
+# daily tasks
+ln -s /var/www/localhost/bin/optimizeTable.php	/var/www/localhost/settings/daily_tasks/00_optimizeTable.php
+ln -s /var/www/localhost/bin/radikoStation.php	/var/www/localhost/settings/daily_tasks/10_radikoStation.php
