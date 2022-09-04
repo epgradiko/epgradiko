@@ -41,46 +41,49 @@ try{
 	$rrec = new DBRecord( RESERVE_TBL, 'id' , $reserve_id );
 	$rev_id = '[予約ID:'.$rrec->id;
 	$rev_ds = $rrec->channel_disc.'(T'.$rrec->tuner.'-'.$rrec->channel.') '.$rrec->starttime.' 『'.$rrec->title.'』';
-	$ts_path = INSTALL_PATH .$settings->spool . '/'. $rrec->path;
+//	$ts_path = INSTALL_PATH .$settings->spool . '/'. $rrec->path;
+	$explode_text = explode('.', $record_cmd[$rrec->type]['suffix']);
+	$ext = end($explode_text);
+	$ts_path = INSTALL_PATH .$settings->spool . '/'. $rrec->id.'.'.$ext;
 	$explode_text = explode( '/', $rrec->path);
 	$curl_err = 0;
 	$filename = $rrec->path;
-
 	$autorec    = (int)$rrec->autorec;
 	$program_id = (int)$rrec->program_id;
 	$get_time   = time();
-	if( $autorec>=0 && $program_id>0 && storage_free_space( $ts_path )>TS_STREAM_RATE ){
-		// PID付き手動予約も制限付きで対応
-		$prg = new DBRecord( PROGRAM_TBL, 'id', $program_id );
-		if($autorec ){
-			$keyword     = new DBRecord( KEYWORD_TBL, 'id', $autorec );
-			$restart_lmt = toTimestamp( $prg->starttime ) + REC_RETRY_LIMIT + (int)$keyword->sft_start;
-			$starttime   = $prg->starttime;
-			$endtime     = $prg->endtime;
-		}else{
-			$restart_lmt = toTimestamp( $prg->starttime ) + REC_RETRY_LIMIT;
-			$starttime   = $rrec->starttime;
-			$endtime     = $rrec->shortened ? toDatetime(toTimestamp($rrec->endtime)+(int)$settings->former_time+(int)$settings->rec_switch_time) : $rrec->endtime;
-		}
-		if( $restart_lmt < toTimestamp( $rrec->endtime ) ){
-			if( $restart_lmt > $get_time ){
-				// 録画開始に失敗 再予約 --> 時間予約にフォールバック
-				$pre_id        = $rrec->id;
-				$channel_id    = $rrec->channel_id;
-				$title         = $rrec->title;
-				$pre_title     = $rrec->pre_title;
-				$post_title    = $rrec->post_title;
-				$description   = $rrec->description;
-				$category_id   = $rrec->category_id;
-				$mode          = $rrec->mode;
-				$discontinuity = $rrec->discontinuity;
-				$dir           = dirname($rrec->path);
-				$priority      = $rrec->priority;
-				$rrec->delete();
-				reclog( $rev_id.' 録画開始失敗] 再予約を試みます。 '.$rev_ds, EPGREC_WARN );
-				@unlink($ts_path);
-				try{
-					$rval = Reservation::custom(
+	if( $get_time < toTimestamp($rrec->endtime) - 30 ){
+		if( $autorec>=0 && $program_id>0 && storage_free_space( $ts_path )>TS_STREAM_RATE ){
+			// PID付き手動予約も制限付きで対応
+			$prg = new DBRecord( PROGRAM_TBL, 'id', $program_id );
+			if( $autorec ){
+				$keyword     = new DBRecord( KEYWORD_TBL, 'id', $autorec );
+				$restart_lmt = toTimestamp( $prg->starttime ) + REC_RETRY_LIMIT + (int)$keyword->sft_start;
+				$starttime   = $prg->starttime;
+				$endtime     = $prg->endtime;
+			}else{
+				$restart_lmt = toTimestamp( $prg->starttime ) + REC_RETRY_LIMIT;
+				$starttime   = $rrec->starttime;
+				$endtime     = $rrec->shortened ? toDatetime(toTimestamp($rrec->endtime)+(int)$settings->former_time+(int)$settings->rec_switch_time) : $rrec->endtime;
+			}
+			if( $restart_lmt < toTimestamp( $rrec->endtime ) ){
+				if( $restart_lmt > $get_time ){
+					// 録画開始に失敗 再予約 --> 時間予約にフォールバック
+					$pre_id        = $rrec->id;
+					$channel_id    = $rrec->channel_id;
+					$title         = $rrec->title;
+					$pre_title     = $rrec->pre_title;
+					$post_title    = $rrec->post_title;
+					$description   = $rrec->description;
+					$category_id   = $rrec->category_id;
+					$mode          = $rrec->mode;
+					$discontinuity = $rrec->discontinuity;
+					$dir           = dirname($rrec->path);
+					$priority      = $rrec->priority;
+					$rrec->delete();
+					reclog( $rev_id.' 録画開始失敗] 再予約を試みます。 '.$rev_ds, EPGREC_WARN );
+					@unlink($ts_path);
+					try{
+						$rval = Reservation::custom(
 								$starttime,
 								$endtime,
 								$channel_id,
@@ -97,29 +100,30 @@ try{
 								0,
 								$priority,
 								$dir,
-					);
-				}
-				catch( Exception $e ) {
+						);
+					}
+					catch( Exception $e ) {
+						if( $autorec == 0 ){
+							// 手動予約のトラコン設定削除
+							$trans_obj = new DBRecord( TRANSEXPAND_TBL );
+							$tran_ex   = $trans_obj->fetch_array( null, null, 'key_id=0 AND type_no='.$pre_id );
+							foreach( $tran_ex as $tran_set )
+								$trans_obj->force_delete( $tran_set['id'] );
+						}
+						reclog( "Error:".$e->getMessage(), EPGREC_ERROR );
+						exit( "Error:".$e->getMessage() );
+					}
 					if( $autorec == 0 ){
-						// 手動予約のトラコン設定削除
+						// 手動予約のトラコン設定の予約ID修正
+						$wrt_set = array();
+						list( , , $wrt_set['type_no'], ) = explode( ':', $rval );
 						$trans_obj = new DBRecord( TRANSEXPAND_TBL );
 						$tran_ex   = $trans_obj->fetch_array( null, null, 'key_id=0 AND type_no='.$pre_id );
 						foreach( $tran_ex as $tran_set )
-							$trans_obj->force_delete( $tran_set['id'] );
+							$trans_obj->force_update( $tran_set['id'], $wrt_set );
 					}
-					reclog( "Error:".$e->getMessage(), EPGREC_ERROR );
-					exit( "Error:".$e->getMessage() );
+					exit();
 				}
-				if( $autorec == 0 ){
-					// 手動予約のトラコン設定の予約ID修正
-					$wrt_set = array();
-					list( , , $wrt_set['type_no'], ) = explode( ':', $rval );
-					$trans_obj = new DBRecord( TRANSEXPAND_TBL );
-					$tran_ex   = $trans_obj->fetch_array( null, null, 'key_id=0 AND type_no='.$pre_id );
-					foreach( $tran_ex as $tran_set )
-						$trans_obj->force_update( $tran_set['id'], $wrt_set );
-				}
-				exit();
 			}
 		}
 	}
@@ -127,7 +131,10 @@ try{
 	reclog( 'recomplete:リトライチェック: 予約テーブルのアクセスに失敗した模様('.$e->getMessage().')', EPGREC_ERROR );
 	exit( $e->getMessage() );
 }
-
+if( $ts_path != INSTALL_PATH.$settings->spool.'/'.$rrec->path ){
+	@rename($ts_path, INSTALL_PATH .$settings->spool . '/'. $rrec->path);
+	$ts_path = INSTALL_PATH .$settings->spool . '/'. $rrec->path;
+}
 try{
 	if( ! storage_free_space( $ts_path ) )
 		reclog( $rev_id.' 録画中断] '.$rev_ds.'<br>録画ストレージ残容量が0byteです。', EPGREC_ERROR );

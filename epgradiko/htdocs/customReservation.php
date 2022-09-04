@@ -9,8 +9,8 @@ include_once( INSTALL_PATH . "/include/Settings.class.php" );
 
 $settings = Settings::factory();
 
-$program_id = 0;
-if( isset( $_POST['program_id'] ) ) $program_id = $_POST['program_id'];
+$program_id = isset( $_POST['program_id'] ) ? (int)$_POST['program_id'] : 0;
+$reserve_id = isset( $_POST['reserve_id'] ) ? (int)$_POST['reserve_id'] : 0;
 
 
 if(!(
@@ -61,6 +61,13 @@ $category_id = $_POST['category_id'];
 $mode = $_POST['record_mode'];
 $discontinuity = $_POST['discontinuity'];
 $priority = $_POST['priority'];
+$priority = $_POST['autorec'];
+
+if( $rec_dir ){
+	$chk_dir = INSTALL_PATH.$settings->spool.'/'.$rec_dir;
+	if( ! file_exists( $chk_dir ) ) exit( "Error:録画ディレクトリがありません");
+	else if( ! is_dir( $chk_dir ) ) exit( "Error:録画ディレクトリがディレクトリではありません");
+}
 
 if( $trans_dir ){
 	$chk_dir = str_replace( '%VIDEO%', INSTALL_PATH.$settings->spool, TRANS_ROOT ).'/'.$trans_dir;

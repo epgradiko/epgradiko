@@ -29,7 +29,7 @@ if( file_exists(INSTALL_PATH.'/settings/config.xml') ){
 	);
 	$record_cmd['GR'] = array(
 		'type'		=>	'video',
-		'suffix'	=>	'_HD_.ts',
+		'suffix'	=>	'_FHD.ts',
 		'epg_rec'	=>	array(
 			'command'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/channels/%TYPE%/%CHANNEL%/stream?decode=0'
 					   .' -H "x-mirakurun-priority:%PRIORITY%"',	// コマンドフルパス(%TYPE%,%CHANNEL%,%PRIORITYのみ変換)

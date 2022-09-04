@@ -129,7 +129,6 @@ class Reservation {
 		return $rval.( strpos( $prec->description, '【終】' )!==FALSE ? ':1' : ':0' );
 	}
 
-	
 	public static function custom(
 		$starttime,				// 開始時間Datetime型
 		$endtime,				// 終了時間Datetime型
@@ -1445,9 +1444,12 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			                     2 => array( 'pipe', 'w' ),
 			);
 			// AT発行準備
+			$explode_text = explode('.', $record_cmd[$crec_->type]['suffix']);
+			$ext = end($explode_text);
 			$cmdline = $settings->at.' '.date('H:i m/d/Y', $at_start);
 			$env = array(
-						  'OUTPUT'     => $spool_path.'/'.$add_dir.$filename,
+//						  'OUTPUT'     => $spool_path.'/'.$add_dir.$filename,
+						  'OUTPUT'     => $spool_path.'/'.$rrec->id.'.'.$ext,
 						  'THUMB'      => INSTALL_PATH.$settings->thumbs.'/'.$rrec->id.'.jpg',
 						  'FORMER'     => $settings->former_time,
 						  'FFMPEG'     => $settings->ffmpeg,
@@ -1480,7 +1482,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				fwrite($pipes[0], '('.$settings->sleep.' '.$gen_thumbnail_wait.' && '.$gen_thumbnail.") &\n" );
 			}
 			if( $settings->use_plogs == 1 && $record_cmd[$crec_->type]['type'] == 'video' ){
-				$map_analyze = $settings->ffmpeg.' -ss 5 -i '.$spool_path.'/'.$add_dir.$filename.
+				$map_analyze = $settings->ffmpeg.' -ss 5 -i '.$spool_path.'/'.$rrec->id.'.'.$ext.
 						' 2>&1|grep -e "Audio" -e "Subtitle" -e "Video" >'.INSTALL_PATH.$settings->plogs.'/'.$rrec->id.'.mapinfo';
 				$map_analyze_wait = $settings->former_time + 10; //適当
 				fwrite($pipes[0], '('.$settings->sleep.' '.$map_analyze_wait.' && '.$map_analyze.") &\n" );
@@ -1491,7 +1493,8 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 					$crec_->type,
 					sprintf('%d%05d%05d',(int)$crec_->network_id,(int)$crec_->sid,(int)$eid),  // mirak program-id
 					$priority,		 	// 優先順位
-					$add_dir.$filename,		// 出力先
+//					$add_dir.$filename,		// 出力先
+					$rrec->id.'.'.$ext,		// 出力先
 				);
 			}else{
 //				$rrec->program_id  = 0;
@@ -1502,7 +1505,8 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 						$crec_->sid,                    // サービスID
 						$priority, 			// 優先順位
 						$duration,                      // 録画時間
-						$add_dir.$filename,		// 出力先
+//						$add_dir.$filename,		// 出力先
+						$rrec->id.'.'.$ext,		// 出力先
 					);
 				}else{
 					$cmd_ts = build_channel_rec_cmd(
@@ -1510,21 +1514,20 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 						$crec_->channel,                // チャンネル
 						$priority, 			// 優先順位
 						$duration,                      // 録画時間
-						$add_dir.$filename,		// 出力先
+//						$add_dir.$filename,		// 出力先
+						$rrec->id.'.'.$ext,		// 出力先
 					);
 				}
 			}
 			fwrite($pipes[0], $cmd_ts."\n" );
-			fwrite($pipes[0], COMPLETE_CMD.' '.$rrec->id."\n" );
 			if( $settings->use_thumbs == 1 ) {
 				fwrite($pipes[0], $gen_thumbnail."\n" );
 			}
+			fwrite($pipes[0], COMPLETE_CMD.' '.$rrec->id."\n" );
 			fwrite($pipes[0], 'rm /tmp/tuner_'.$rrec->id."\n" );		//ATジョブのPID保存ファイルを削除
 			fclose($pipes[0]);
 			// 標準エラーを取る
 			$rstring = stream_get_contents( $pipes[2] );
-reclog('at add std='.stream_get_contents($pipes[1]),EPGREC_DEBUG);
-reclog('at add err='.$rstring,EPGREC_DEBUG);
 			
 			fclose( $pipes[2] );
 	 		fclose( $pipes[1] );
@@ -1568,7 +1571,8 @@ reclog('at add err='.$rstring,EPGREC_DEBUG);
 	}
 
 	// 取り消し
-	public static function cancel( $reserve_id = 0, $delete_file = FALSE ) {
+	public static function cancel( $reserve_id = 0, $delete_file = FALSE ){
+		global $record_cmd;
 		$settings = Settings::factory();
 		try {
 			$reserve_obj = new DBRecord( RESERVE_TBL );
@@ -1608,7 +1612,7 @@ reclog('at add err='.$rstring,EPGREC_DEBUG);
 					}
 				}
 				//ATキャンセル
-				if( $reserve['job'] ){
+				if( $reserve['job'] && !$reserve['complete'] ){
 					exec( $settings->at.'q '.$reserve['job'], $rarr );
 					if( count($rarr) == 1){
 						$ret_cd = system( $settings->atrm.' '. $reserve['job'], $var_ret );
@@ -1616,11 +1620,19 @@ reclog('at add err='.$rstring,EPGREC_DEBUG);
 							reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']削除失敗] '.
 								$reserve['channel_disc'].'(T'.$reserve['tuner'].'-'.$reserve['channel'].') '.
 								$reserve['starttime'].' 『'.$reserve['title'].'』', EPGREC_ERROR );
+						}else{
+							reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']削除]', EPGREC_DEBUG );
 						}
+					}else{
+							reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']検索失敗]', EPGREC_WARN );
 					}
 				}
 				//録画ファイル削除
 				if( $delete_file ){
+					$explode_text = explode('.', $record_cmd[$reserve['type']]['suffix']);
+					$ext = end($explode_text);
+					$video = INSTALL_PATH.$settings->spool.'/'.$reserve['id'].'.'.$ext;
+					if( file_exists( $video ) ) @unlink( $video );
 					$video = INSTALL_PATH.$settings->spool.'/'.$reserve['path'];
 					if( file_exists( $video ) ) @unlink( $video );
 				}
@@ -1644,6 +1656,51 @@ reclog('at add err='.$rstring,EPGREC_DEBUG);
 		}
 		catch( Exception $e ) {
 			reclog('Reservation::cancel 予約キャンセルでDB接続またはアクセスに失敗した模様 $reserve_id:'.$reserve_id. EPGREC_ERROR );
+			throw $e;
+		}
+		return 0;
+	}
+	public static function update(
+		$reserve_id = NULL,			// 予約ID
+		$title = NULL,				// タイトル
+		$pre_title = NULL,			// タイトル
+		$post_title = NULL,			// タイトル
+		$description = NULL,			// 概要
+		$category_id = NULL,			// カテゴリID
+		$mode = NULL,				// 録画モード
+		$discontinuity = NULL,			// 隣接禁止フラグ
+		$dirty = NULL,				// ダーティフラグ
+		$man_priority = NULL,			// 優先度
+		$add_dir = NULL,				// ディレクトリ
+	){
+		$settings = Settings::factory();
+		try{
+			if( is_null($reserve_id) ) throw new Exception(' IDの指定がありません');
+			$reserve = new DBRecord( RESERVE_TBL, 'id', $reserve_id );
+			if( !is_null($title) ) $reserve->title = $title;
+			if( !is_null($pre_title) ) $reserve->pre_title = $pre_title;
+			if( !is_null($post_title) ) $reserve->post_title = $post_title;
+			if( !is_null($description) ) $reserve->description = $description;
+			if( !is_null($category_id) ) $reserve->category_id = $category_id;
+			if( !is_null($mode) ) $reserve->mode = $mode;
+			if( !is_null($discontinuity) ) $reserve->discontinuity = $discontinuity;
+			if( !is_null($man_priority) ) $reserve->man_priority = $man_priority;
+			if( !is_null($add_dir) ){
+				// 文字コード変換
+				if( defined( 'FILESYSTEM_ENCODING' ) ){
+					$add_dir  = mb_convert_encoding( $add_dir, FILESYSTEM_ENCODING, 'UTF-8' );
+				}
+				$chk_dir = INSTALL_PATH.$settings->spool.'/'.$add_dir;
+				if( ! file_exists( $chk_dir ) ) throw new Exception("予約録画ディレクトリがありません");
+				else if( ! is_dir( $chk_dir ) ) throw new Exception("予約録画ディレクトリがディレクトリではありません");
+				$filename = basename( $reserve->path );
+				$reserve->path = $add_dir.'/'.$filename;
+			}
+			$reserve->update;
+			return $reserve->job.':0';			// 成功
+		}
+		catch( Exception $e ) {
+			reclog('Reservation::cancel 予約更新でDB接続またはアクセスに失敗した模様 $reserve_id:'.$reserve_id. EPGREC_ERROR );
 			throw $e;
 		}
 		return 0;

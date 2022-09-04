@@ -394,7 +394,9 @@ try{
 			}
 			$arr['keyword']     = putProgramHtml( $r['title'], '*', 0, $r['category_id'], 16 );
 			$arr['view_set'] = '';
-			if( file_exists( INSTALL_PATH.$settings->spool.'/'.$r['path'] ) ){
+			$explode_text = explode('.', $record_cmd[$r['type']]['suffix']);
+			$ext = end($explode_text);
+			if( file_exists( INSTALL_PATH.$settings->spool.'/'.$r['path'] ) || file_exists( INSTALL_PATH.$settings->spool.'/'.$r['id'].'.'.$ext ) ){
 				switch( $r['complete'] ) {
 				case 0:
 					if( time() > $start_time ){ //延長？失敗？

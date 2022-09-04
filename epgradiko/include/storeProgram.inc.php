@@ -320,7 +320,6 @@ function storeProgram( $type, $xmlfile ) {
 	$single_ch = strncmp( $xmlfile, $settings->temp_xml.'_', strlen( $settings->temp_xml )+1 ) ? TRUE : FALSE;
 	$first_epg = TRUE;
 	$pro_obj   = new DBRecord( PROGRAM_TBL );
-	$reserve_obj = new DBRecord( RESERVE_TBL );
 	while( count($params) ){
 		// 取得
 		while(1){
@@ -1214,9 +1213,9 @@ NEXT_SUB:;
 											$wrt_set['program_disc'] = $program_disc;
 											$pro_obj->force_update( $rec['id'], $wrt_set );
 											$wrt_set = array();
-											$wrt_set['endtime']      = $endtime;
-											$wrt_set['reserve_disc'] = md5( $reserve->channel_disc . toDatetime( $reserve->starttime ). toDatetime( $endtime ) );
-											$reserve_obj->force_update( $reserve->id, $wrt_set );
+											$reserve->endtime      = $endtime;
+											$reserve->reserve_disc = md5( $reserve->channel_disc . $reserve->starttime . $endtime );
+											$reserve->update();
 										}
 									}else{
 										if( (int)($reserve->autorec) === 0 ){
@@ -1241,7 +1240,7 @@ NEXT_SUB:;
 											$arr['prior']  = (int)$reserve->priority;
 											array_push( $stk_rev, $arr );
 										}else{
-//											reclog( $rev_ds.'は時間変更の可能性があり予約取り消し' );
+											reclog( $rev_ds.'は時間変更の可能性があり予約取り消し' );
 											$key_stk[$key_cnt++] = (int)$reserve->autorec;
 										}
 										Reservation::cancel( $reserve->id );
@@ -1639,9 +1638,10 @@ NEXT_SUB:;
 		$result  = array_unique( $key_stk, SORT_NUMERIC );		// keyword IDの重複解消
 		foreach( $result as $keyword_id ){
 			$rec = new Keyword( 'id', $keyword_id );
-//			$rec->rev_delete();
+			$rec->rev_delete();
 //			$rec->reservation( $type, $shm_id, $sem_key );
-			$rec->reservation( $type );
+//			$rec->reservation( $type );
+			$rec->reservation( '*' );
 		}
 	}
 

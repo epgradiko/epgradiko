@@ -101,7 +101,13 @@ if( !isset($input_mode) && isset( $trans_id )){
 	}
 }
 if( !isset($input_mode) && isset( $reserve_id ) ){
-	$ts_file = INSTALL_PATH.$settings->spool.'/'.$reserve->path;
+	if( $reserve->complete == 0 ){
+		$explode_text = explode('.', $record_cmd[$reserve->type]['suffix']);
+		$ext = end($explode_text);
+		$ts_file = INSTALL_PATH.$settings->spool.'/'.$reserve->id.'.'.$ext;
+	}else{
+		$ts_file = INSTALL_PATH.$settings->spool.'/'.$reserve->path;
+	}
 	if( file_exists($ts_file) ){
 		$real_size = filesize( $ts_file );
 		if( $end_time > time() ){
@@ -252,19 +258,22 @@ if( $input_mode == 'file' ){
 		}
 		fseek( $fp, $start );
 		$curr = $start;
+		$usleep_time = 20;
 	}else{
 		$curr = 0;
 		$start = 0;
 		$end = $size - 1;
+		$usleep_time = 0;
 		header( 'HTTP/1.1 200 OK' );
 	}
 	if( isset($_GET['download']) ){
-		if( isset($_GET['start']) ) $start_time = (int)$_GET['start'] * 60;
+		if( isset($_GET['start']) ) $start_time = (int)$_GET['start'];
 		else $start_time = 0;
-		if( isset($_GET['end']) ) $end_time = (int)$_GET['end'] * 60;
+		if( isset($_GET['end']) ) $end_time = (int)$_GET['end'];
 		else $end_time = $duration;
-		if( $end_time <= $start_time || $duration < $end_time ){
+		if( $end_time <= $start_time || $duration < $end_time - $start_time ){
 			reclog( 'sendstream.php:: 時間指定が誤っています。', EPGREC_WARN );
+			reclog('duration='.$duration.'start='.$start_time.' end='.$end_time, EPGREC_DEBUG );
 			die();
 		}
 		if( $start_time ){
@@ -288,6 +297,7 @@ if( $input_mode == 'file' ){
 //	header( 'Connection: close' );
 }else{
 	reclog('sendstream.php::stream='.$pipe_cmd, EPGREC_DEBUG);
+	$usleep_time = 0;
 	header( 'HTTP/1.1 200 OK' );
 }
 if( isset($_GET['download']) && $input_mode == 'file' ){
@@ -297,6 +307,8 @@ if( isset($_GET['download']) && $input_mode == 'file' ){
 	}
 	else if( isset($title) ) $name = $title.'.'.$ext;
 	else $name = 'no_name';
+
+	$usleep_time = 0;
 
 	header('Content-Description: File Transfer');
 	header('Cache-Control: no-cache, must-revalidate');
@@ -315,6 +327,7 @@ while( !feof($fp) && (connection_status() == 0) ){
 	}else{
 		print fread( $fp, BUFFERS );
 	}
+	usleep( $usleep_time );
 	flush();
 }
 if( $input_mode == 'pipe' ){
