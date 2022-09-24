@@ -24,7 +24,7 @@ if( DBRecord::countRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$channel_disc.'
 	$url = $channel->logo;
 	if( $url == 'mirakurun' ){
 		if( $settings->mirakurun == 'uds' ){
-			curl_setopt($ch, CURLOPT_UNIX_DOMAIN_PATH, $settings->mirakurun_uds);
+			curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $settings->mirakurun_uds);
 			$mirakurun_server = 'http://mirakurun';
 		}else{
 			$mirakurun_server = 'http://'.$settings->mirakurun_address;

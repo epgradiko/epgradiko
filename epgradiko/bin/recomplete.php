@@ -131,6 +131,7 @@ try{
 	reclog( 'recomplete:リトライチェック: 予約テーブルのアクセスに失敗した模様('.$e->getMessage().')', EPGREC_ERROR );
 	exit( $e->getMessage() );
 }
+reclog( $rev_id.' 録画終了] '.$rev_ds );
 if( $ts_path != INSTALL_PATH.$settings->spool.'/'.$rrec->path ){
 	@rename($ts_path, INSTALL_PATH .$settings->spool . '/'. $rrec->path);
 	$ts_path = INSTALL_PATH .$settings->spool . '/'. $rrec->path;
@@ -161,7 +162,7 @@ try{
 					$stop_stk  = killtree( (int)$ps->pid, FALSE, posix_getpid());
 				}
 				if( $get_time < toTimestamp($rrec->endtime) ){
-					reclog( $rev_id.' 短縮終了] '.$rev_ds, EPGREC_WARN );
+					reclog( $rev_id.' 短縮終了 '.$rrec->endtime.'->'.toDatetime( $get_time ).']'.$rev_ds, EPGREC_WARN );
 					$rrec->endtime = toDatetime( $get_time );
 				}
 			}

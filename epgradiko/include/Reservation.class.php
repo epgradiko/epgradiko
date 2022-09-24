@@ -249,10 +249,10 @@ class Reservation {
 				$tuners   = (int)($settings->bs_tuners);
 				$type_str = '(type=\'BS\' OR type=\'CS\')';
 			}
-//			$stt_str  = toDatetime( $start_time-$ed_tm_sft_chk );
-//			$end_str  = toDatetime( $end_time+$ed_tm_sft_chk );
-			$stt_str  = toDatetime( $start_time );
-			$end_str  = toDatetime( $end_time );
+			$stt_str  = toDatetime( $start_time-$ed_tm_sft_chk );
+			$end_str  = toDatetime( $end_time+$ed_tm_sft_chk );
+//			$stt_str  = toDatetime( $start_time );
+//			$end_str  = toDatetime( $end_time );
 			$battings = DBRecord::countRecords( RESERVE_TBL, 'WHERE complete=0 AND '.$type_str.
 									' AND channel<>\''.$crec->channel.'\''.
 									' AND starttime<=\''.$end_str.'\''.
@@ -263,33 +263,33 @@ class Reservation {
 				//予約群 先頭取得
 				$res_obj    = new DBRecord( RESERVE_TBL );
 				$prev_trecs = array();
-//				while( 1 ){
-//					try{
-//						$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.
+				while( 1 ){
+					try{
+						$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.
 //										' AND channel<>\''.$crec->channel.'\''.
-//										' AND starttime<\''.$stt_str.'\''.
-//										' AND endtime>=\''.$stt_str.'\' ORDER BY starttime ASC' );
-//						if( count($prev_trecs) == 0 )
-//							break;
-//						$stt_str = toDatetime( toTimestamp( $prev_trecs[0]['starttime'] )-$ed_tm_sft_chk );
-//					}catch( Exception $e ){
-//						break;
-//					}
-//				}
-//				//予約群 最後尾取得
-//				while( 1 ){
-//					try{
-//						$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.
+										' AND starttime<\''.$stt_str.'\''.
+										' AND endtime>=\''.$stt_str.'\' ORDER BY starttime ASC' );
+						if( count($prev_trecs) == 0 )
+							break;
+						$stt_str = toDatetime( toTimestamp( $prev_trecs[0]['starttime'] )-$ed_tm_sft_chk );
+					}catch( Exception $e ){
+						break;
+					}
+				}
+				//予約群 最後尾取得
+				while( 1 ){
+					try{
+						$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.
 //										' AND channel<>\''.$crec->channel.'\''.
-//										' AND starttime<=\''.$end_str.'\''.
-//										' AND endtime>\''.$end_str.'\' ORDER BY endtime DESC' );
-//						if( count($prev_trecs) == 0 )
-//							break;
-//						$end_str = toDatetime( toTimestamp( $prev_trecs[0]['endtime'] )+$ed_tm_sft_chk );
-//					}catch( Exception $e ){
-//						break;
-//					}
-//				}
+										' AND starttime<=\''.$end_str.'\''.
+										' AND endtime>\''.$end_str.'\' ORDER BY endtime DESC' );
+						if( count($prev_trecs) == 0 )
+							break;
+						$end_str = toDatetime( toTimestamp( $prev_trecs[0]['endtime'] )+$ed_tm_sft_chk );
+					}catch( Exception $e ){
+						break;
+					}
+				}
 
 				//重複予約配列取得
 				$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.
@@ -1609,22 +1609,23 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 						}
 						$tran_exs = DBRecord::createRecords( TRANSEXPAND_TBL, 'WHERE key_id=0 AND type_no='. $reserve['id'] );
 						foreach( $tran_exs as $tran_ex ) $tran_ex->delete();
-					}
-				}
-				//ATキャンセル
-				if( $reserve['job'] && !$reserve['complete'] ){
-					exec( $settings->at.'q '.$reserve['job'], $rarr );
-					if( count($rarr) == 1){
-						$ret_cd = system( $settings->atrm.' '. $reserve['job'], $var_ret );
-						if( $ret_cd != '' || $var_ret != 0 ){
-							reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']削除失敗] '.
-								$reserve['channel_disc'].'(T'.$reserve['tuner'].'-'.$reserve['channel'].') '.
-								$reserve['starttime'].' 『'.$reserve['title'].'』', EPGREC_ERROR );
-						}else{
-							reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']削除]', EPGREC_DEBUG );
-						}
 					}else{
-							reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']検索失敗]', EPGREC_WARN );
+						//ATキャンセル
+						if( $reserve['job'] ){
+							exec( $settings->at.'q '.$reserve['job'], $rarr );
+							if( count($rarr) == 1){
+								$ret_cd = system( $settings->atrm.' '. $reserve['job'], $var_ret );
+								if( $ret_cd != '' || $var_ret != 0 ){
+									reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']削除失敗] '.
+									$reserve['channel_disc'].'(T'.$reserve['tuner'].'-'.$reserve['channel'].') '.
+									$reserve['starttime'].' 『'.$reserve['title'].'』', EPGREC_ERROR );
+								}else{
+									reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']削除]', EPGREC_DEBUG );
+								}
+							}else{
+								reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']検索失敗]', EPGREC_WARN );
+							}
+						}
 					}
 				}
 				//録画ファイル削除

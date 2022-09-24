@@ -1638,6 +1638,7 @@ NEXT_SUB:;
 		$result  = array_unique( $key_stk, SORT_NUMERIC );		// keyword IDの重複解消
 		foreach( $result as $keyword_id ){
 			$rec = new Keyword( 'id', $keyword_id );
+			reclog( '[キーワードID:'.$keyword_id.' 削除・再登録]'.$rec->name, EPGREC_DEBUG);
 			$rec->rev_delete();
 //			$rec->reservation( $type, $shm_id, $sem_key );
 //			$rec->reservation( $type );

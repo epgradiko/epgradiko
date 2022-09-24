@@ -74,8 +74,8 @@ while(1){
 	if( $transing_cnt < TRANS_PARA ){
 		$pending_trans = $trans_obj->fetch_array( null, null, 'status=0 ORDER BY '.$trans_order_txt.', rec_endtime, id desc' );
 		if( count( $pending_trans ) ){
-			$tran_start       = $pending_trans[0];
-			$reserve          = $res_obj->fetch_array( 'id', $tran_start['rec_id'] );
+			$tran_start	  = $pending_trans[0];
+			$reserve	  = $res_obj->fetch_array( 'id', $tran_start['rec_id'] );
 			$tran_start['hd'] = '[予約ID:'.$tran_start['rec_id'].' トランスコード';
 			$tran_start['tl'] = '['.$RECORD_MODE[$tran_start['mode']]['name'].'(mode'.$tran_start['mode'].')]] '.
 					$reserve[0]['channel_disc'].'(T'.$reserve[0]['tuner'].'-'.$reserve[0]['channel'].') '.$reserve[0]['starttime'].' 『'.$reserve[0]['title'].'』';
@@ -87,18 +87,20 @@ while(1){
 				$trans_obj->force_update( $tran_start['id'], $wrt_set );
 				continue;
 			}
-			// 
+			//
 			$tran_start['ts'] = $reserve[0]['path'];
 			$ts_replace_str = '\''.INSTALL_PATH.$settings->spool.'/'.$tran_start['ts'].'\'';
 			if($settings->plogs) $ts_replace_str .= ' -progress /tmp/trans_'.$tran_start['id'];
 			if( file_exists(INSTALL_PATH.$settings->plogs.'/'.$reserve[0]['id'].'.mapinfo' ) ) {
-				if( $reserve[0]['audio_type'] == 2 && $reserve[0]['multi_type'] == 1 ){
-					$grep_parm = ' -e "Video" -e "Subtitle" ';
-				}else{
-					$grep_parm = ' -e "Audio" -e "Video" -e "Subtitle" ';
-				}
+//				if( $reserve[0]['audio_type'] == 2 && $reserve[0]['multi_type'] == 1 ){
+//					$grep_parm = ' -e "Video" -e "Subtitle" ';
+//				}else{
+//					$grep_parm = ' -e "Audio" -e "Video" -e "Subtitle" ';
+//				}
+				$grep_parm = ' -e "Audio" ';
 				$mapinfo = substr(@shell_exec('grep'.$grep_parm.INSTALL_PATH.$settings->plogs.'/'.$reserve[0]['id'].'.mapinfo'.
-						'| grep -o -e 0:[0-9]* | sed -e "s/0:/-map 0:/" | sed -e ":a" -e "N" -e \'$!ba\' -e "s/\n/ /g"'), 0, -1);
+					'| grep -o -e \#0:[0-9]* | sed -e "s/#0:/-map 0:/" | sed -e ":a" -e "N" -e \'$!ba\' -e "s/\n/ /g"'), 0, -1);
+				$mapinfo .= ' -map 0:v:0\? -map 0:s:0\? ';
 				if( $reserve[0]['audio_type'] == 2 && $reserve[0]['multi_type'] == 1 ){
 					$mapinfo = '-filter_complex channelsplit[FL][FR] '.
 						' -map [FL] -map [FR] '.$mapinfo;
@@ -106,7 +108,7 @@ while(1){
 			}else{
 				$mapinfo = '';
 			}
-			$trans      = array('%FFMPEG%'		=> $settings->ffmpeg,
+			$trans	    = array('%FFMPEG%'		=> $settings->ffmpeg,
 						'%TS%'		=> $ts_replace_str,
 						'%TRANS%'	=> '"'.$tran_start['path'].'"',
 						'%TITLE%'	=> '"'.normalize($reserve[0]['title']).'"',
@@ -114,10 +116,10 @@ while(1){
 						'%MAPINFO%'	=> $mapinfo,
 			);
 			if( $RECORD_MODE[$tran_start['mode']]['command'] === '' ){
-				$cmd_set               = strtr( TRANSTREAM_CMD['ts'], $trans );
+				$cmd_set	       = strtr( TRANSTREAM_CMD['ts'], $trans );
 				$tran_start['succode'] = TRANS_SUCCESS_CODE;
 			}else{
-				$cmd_set               = strtr( $RECORD_MODE[$tran_start['mode']]['command'], $trans );
+				$cmd_set	       = strtr( $RECORD_MODE[$tran_start['mode']]['command'], $trans );
 				$tran_start['succode'] = $RECORD_MODE[$tran_start['mode']]['succode']===TRUE ? TRANS_SUCCESS_CODE : $RECORD_MODE[$tran_start['mode']]['succode'];
 			}
 			$descspec = array(
@@ -130,10 +132,10 @@ while(1){
 				reclog( $tran_start['hd'].'開始'.$tran_start['tl'] );
 				$wrt_set = array();
 				$wrt_set['enc_starttime'] = toDatetime(time());
-				$wrt_set['name']          = $RECORD_MODE[$tran_start['mode']]['name'];
-				$wrt_set['status']        = 1;
-				$st                       = proc_get_status( $tran_start['pro'] );
-				$wrt_set['pid']           = $st['pid'];
+				$wrt_set['name']	  = $RECORD_MODE[$tran_start['mode']]['name'];
+				$wrt_set['status']	  = 1;
+				$st			  = proc_get_status( $tran_start['pro'] );
+				$wrt_set['pid'] 	  = $st['pid'];
 				$trans_obj->force_update( $tran_start['id'], $wrt_set );
 
 				$tran_start['title'] = $reserve[0]['title'];
@@ -214,7 +216,7 @@ while(1){
 						proc_terminate( $trans_stack[$key]['pro'], 9 );
 						$wrt_set = array();
 						$wrt_set['enc_endtime'] = toDatetime(time());
-						$wrt_set['status']      = 3;
+						$wrt_set['status']	= 3;
 						$trans_obj->force_update( $trans_stack[$key]['id'], $wrt_set );
 						reclog( $trans_stack[$key]['hd'].'失敗(タイムアウト)'.$trans_stack[$key]['tl'], EPGREC_WARN );
 						array_splice( $trans_stack, $key, 1 );

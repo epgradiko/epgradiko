@@ -17,7 +17,14 @@
 			<span class="labelLeft">自動予約禁止：</span>
 			<input type="checkbox" name="autorec" id="id_autorec" value="0" {if $autorec}checked{/if} />
 		</div>
-
+{if $del_file}
+		<div>
+			<span class="labelLeft">録画ファイル削除：</span>
+			<input type="checkbox" name="del_file" id="id_del_file" value="1" {if $del_file_flg}checked>{/if} />
+		</div>
+{else}
+			<input type="hidden" name="del_file" id="id_del_file" value="0" />
+{/if}
 		<div>
 			<input type="hidden" name="reserve_id" id="id_reserve_id" value="{$reserve_id}" />
 		</div>

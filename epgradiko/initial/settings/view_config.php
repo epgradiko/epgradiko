@@ -3,7 +3,7 @@
 define( 'REALVIEW', TRUE );						// リアルタイム視聴を有効にするときはtrueに(新方式で録画コマンドの標準出力対応が必須・トランスコード対応)
 
 // sendstream 送信単位
-define( 'BUFFERS', 13 * 188 );
+define( 'BUFFERS', 16 * 188 );
 
 //概要の長さ（以降は「…」）
 define( 'DESC_LEN', 220 );

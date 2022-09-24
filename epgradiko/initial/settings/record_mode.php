@@ -24,7 +24,7 @@ $TRANS_MODE = array(
 							// %TRANS% 出力ファイル
 		'command' => "%FFMPEG% -y -loglevel quiet -fix_sub_duration -i %TS% -ignore_unknown ".
 				"-vf 'yadif=0:-1' -f mp4 ".
-				"-c:v libx264 -b:v 4M -minrate 4M -maxrate 4M ".
+				"-c:v libx264 -b:v 4M -minrate 4M -maxrate 4M -bufsize 40M ".
 				"-c:a libfdk_aac -ac 2 -ar 48000 -b:a 128k -async 1 ".
 				"-c:s mov_text -metadata:s:s:0 language=jpn ".
 				"-metadata title=%TITLE% -metadata description=%DESC% ".
@@ -38,7 +38,7 @@ $TRANS_MODE = array(
 		'tsuffix' => '-SD.mp4',
 		'command' => "%FFMPEG% -y -loglevel quiet -fix_sub_duration -i %TS% -ignore_unknown ".
 				"-vf 'yadif=0:-1' -f mp4 ".
-				"-c:v libx264 -b:v 1M -minrate 1M -maxrate 1M ".
+				"-c:v libx264 -b:v 1M -minrate 1M -maxrate 1M -bufsize 10M ".
 				"-c:a libfdk_aac -ac 2 -ar 48000 -b:a 128k -async 1 ".
 				"-c:s mov_text -metadata:s:s:0 language=jpn ".
 				"-metadata title=%TITLE% -metadata description=%DESC% ".

@@ -79,10 +79,13 @@
 			var id_reserve_id = $('#id_reserve_id').val();
 			var tmp_disc = $('#id_autorec').prop('checked');
 			var id_autorec = tmp_disc ? 1 : 0;
+			var tmp_disc = $('#id_del_file').prop('checked');
+			var id_del_file = tmp_disc ? 1 : 0;
 			var str = "<div>予約キャンセル中</div>";
 
 			$('#floatBox4Dialog').html(str);
 			$.get('/cancelReservation.php', { reserve_id: id_reserve_id,
+							delete_file: id_del_file,
 							autorec: id_autorec }, function(data) {
 				if(data.match(/^error/i)){
 					$('#floatBox4Dialog').dialog('close');
