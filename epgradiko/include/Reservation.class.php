@@ -1624,7 +1624,9 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 							reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']削除]', EPGREC_DEBUG );
 						}
 					}else{
-							reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']検索失敗]', EPGREC_WARN );
+						if(!$reserve['complete']){
+							reclog( '[予約ID:'.$reserve['id'].' AT['.$reserve['job'].']なし]', EPGREC_DEBUG );
+						}
 					}
 				}
 				//録画ファイル削除
