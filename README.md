@@ -9,7 +9,7 @@ radiko(ラジコ)はスマートフォンやアプリ・パソコンでラジオ
 　epgradiko・・・・・epgrecUNAを改造  
 　epgdump・・・・・・epgrecUNA版epgdumpを改造  
 　tspacketchk・・・・パケットチェック表示オプションを追加（サマリーと詳細の標準出力とエラー出力分け、表示をシンプルにするモード追加）  
-　radish ・・・・・・出力ファイル名の拡張子補完機能を削除  
+　radish(https://github.com/uru2/radish) ・・・・・・出力ファイル名の拡張子補完機能を削除  
 ・外部のソフトウェア（各自用意のこと）  
 　docker ・・・・・・実行環境整備してください  
 　mysql・・・・・・・utf8mb4データベースが作成可能な環境  

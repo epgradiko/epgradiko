@@ -1295,7 +1295,7 @@ NEXT_SUB:;
 						$reco = DBRecord::createRecords( PROGRAM_TBL, 'WHERE channel_id='.$channel_id.' AND eid='.$eid.' AND program_disc!=\''.$program_disc.'\'' );
 						foreach( $reco as $del_pro ){
 							$prg_st    = toTimestamp( $del_pro->starttime );
-							$prev_recs = DBRecord::createRecords( RESERVE_TBL, 'WHERE complete=0 AND program_id='.$del_pro->id.'AND starttime > '.$now_time.' ORDER BY starttime DESC' );
+							$prev_recs = DBRecord::createRecords( RESERVE_TBL, 'WHERE complete=0 AND program_id='.$del_pro->id.' AND starttime > '.$now_time.' ORDER BY starttime DESC' );
 							foreach( $prev_recs as $reserve ){
 								if( (int)($reserve->autorec) === 0 ){
 									// 手動予約の退避
