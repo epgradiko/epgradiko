@@ -119,19 +119,14 @@ COPY --from=epgdump /usr/local /usr/local
 COPY --from=tspacketchk /usr/local /usr/local
 COPY ./root_fs /
 COPY ./epgradiko /var/www/localhost/
-# s6 packages
-ENV S6_OVERLAY_VERSION v2.2.0.1
-ADD https://github.com/just-containers/s6-overlay/releases/download/$S6_OVERLAY_VERSION/s6-overlay-amd64.tar.gz /tmp/
-RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C / && \
 # php8 packages
-    apk add --update --no-cache apache2 at curl libxml2-utils \
+RUN apk add --update --no-cache s6-overlay apache2 at curl libxml2-utils \
                      php8 php8-ctype php8-mysqli php8-apache2 php8-mbstring php8-simplexml php8-fileinfo \
                      php8-posix php8-shmop php8-sysvsem php8-sysvshm php8-pcntl php8-curl php8-iconv \
 		     ca-certificates curl libstdc++ jq && \
     rm -rf /var/cache/apk/* && \
-    adduser -u 1000 -S epgradiko && \
     addgroup -g 1000 -S epgradiko && \
-    addgroup epgradiko epgradiko && \
+    adduser -u 1000 -S epgradiko -G epgradiko && \
     sed -i -e "s/;date.timezone *=.*$/date.timezone = Asia\/Tokyo/" /etc/php8/php.ini && \
     sed -i -e "s/memory_limit = 128M/memory_limit = 256M/" /etc/php8/php.ini && \
     echo epgradiko >> /etc/at.allow && \
@@ -158,7 +153,9 @@ RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C / && \
     rm -fr /var/www/localhost/cgi-bin && \
     chown -R 1000:1000 /var/www/localhost/ && \
     ln -sf /dev/stdout /var/log/apache2/access.log && \
-    ln -sf /dev/stderr /var/log/apache2/error.log
+    ln -sf /dev/stderr /var/log/apache2/error.log && \
+    chmod -R +x /etc/cont-init.d && \
+    chmod -R +x /etc/services.d
 VOLUME ["/var/spool/atd", "/etc/crontabs"]
 VOLUME ["/var/www/localhost/settings", "/var/www/localhost/thumbs", "/var/www/localhost/recorded", "/var/www/localhost/plogs"]
 ENTRYPOINT ["/init"]

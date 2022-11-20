@@ -1,5 +1,5 @@
-#!/bin/bash
+#!/usr/bin/with-contenv bash
 
 # Restart transcode job
 
-/var/www/localhost/bin/trans_manager.php
+/var/www/localhost/bin/trans_manager.php &

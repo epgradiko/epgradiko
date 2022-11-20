@@ -16,7 +16,7 @@ function get_mirak_grchannels($tab_flg = ''){
 	$mirak_channels = array();
 	foreach( $mirak_channels_raw as $channel ){
 		foreach( $channel->services as $service ){
-			$mirak_channels[] = $pre_tab.'"'.$channel->name.'_'.$service->serviceId.'"'." =>\t".'"'.$channel->channel.'",'.
+			$mirak_channels[] = $pre_tab.'"'.$channel->type.$channel->channel.'_'.$service->serviceId.'"'." =>\t".'"'.$channel->channel.'",'.
 					"\t// ".$channel->channel."\t".$service->serviceId.','."\t// ".$service->name;
 		}
 	}

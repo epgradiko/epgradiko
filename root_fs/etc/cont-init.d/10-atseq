@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/with-contenv bash
 
 # at SEQ
 touch /var/spool/atd/.SEQ

@@ -162,7 +162,7 @@ try{
 					$stop_stk  = killtree( (int)$ps->pid, FALSE, posix_getpid());
 				}
 				if( $get_time < toTimestamp($rrec->endtime) ){
-					reclog( $rev_id.' 短縮終了 '.$rrec->endtime.'->'.toDatetime( $get_time ).']'.$rev_ds, EPGREC_WARN );
+					reclog( $rev_id.' 短縮終了 '.$rrec->endtime.'→'.toDatetime( $get_time ).']'.$rev_ds, EPGREC_WARN );
 					$rrec->endtime = toDatetime( $get_time );
 				}
 			}

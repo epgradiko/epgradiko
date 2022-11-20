@@ -23,7 +23,8 @@ if( file_exists(INSTALL_PATH.'/settings/config.xml') ){
 	}else $record_cmd_mirakurun ='';
 
 	$record_cmd['mirakurun'] = array(
-		'gr_channels'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/channels/GR', 
+	//	'gr_channels'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/channels/GR', 
+		'gr_channels'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/channels|jq \'map(select( .["type"] == "GR"))\'',
 	//	mirakcはこれ？	   $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/channels|jq \'map(select( .["type"] == "GR"))\''
 		'version'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/version',
 	);

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/with-contenv bash
 
 # initial crontab files
 cp -np /var/www/localhost/initial/crontabs/*	/etc/crontabs/
@@ -10,5 +10,9 @@ cp -npr /var/www/localhost/initial/settings/*	/var/www/localhost/settings/
 cp -np /var/www/localhost/initial/config.php	/var/www/localhost/
 
 # daily tasks
-ln -s /var/www/localhost/bin/optimizeTable.php	/var/www/localhost/settings/daily_tasks/00_optimizeTable.php
-ln -s /var/www/localhost/bin/radikoStation.php	/var/www/localhost/settings/daily_tasks/10_radikoStation.php
+if [ ! -L /var/www/localhost/settings/daily_tasks/00_optimizeTable.php ]; then
+  ln -s /var/www/localhost/bin/optimizeTable.php	/var/www/localhost/settings/daily_tasks/00_optimizeTable.php
+fi
+if [ ! -L /var/www/localhost/settings/daily_tasks/10_radikoStation.php ]; then
+  ln -s /var/www/localhost/bin/radikoStation.php	/var/www/localhost/settings/daily_tasks/10_radikoStation.php
+fi
