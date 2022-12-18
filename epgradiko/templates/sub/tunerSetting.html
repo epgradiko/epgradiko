@@ -24,6 +24,8 @@ function tuner(){
 		var mirakurun         = $('input[name=mirakurun]:checked').val();
 		var mirakurun_address = $('#id_mirakurun_address').val();
 		var mirakurun_uds     = $('#id_mirakurun_uds').val();
+		var timeshift         = $('input[name=timeshift]:checked').val();
+		var timeshift_address = $('#id_timeshift_address').val();
 		var gr_tuners         = $('#id_gr_tuners').val();
 		var gr_epg_max        = $('#id_gr_epg_max').val();
 		var bs_tuners         = $('#id_bs_tuners').val();
@@ -34,6 +36,8 @@ function tuner(){
 			mirakurun: mirakurun,
 			mirakurun_address: mirakurun_address,
 			mirakurun_uds: mirakurun_uds,
+			timeshift: timeshift,
+			timeshift_address: timeshift_address,
 			gr_tuners: gr_tuners,
 			gr_epg_max: gr_epg_max,
 			bs_tuners: bs_tuners,
@@ -60,13 +64,26 @@ $(document).ready(function(){
 
 $(function() {
 	$("[name='mirakurun']").click(function(){
-		var mirakurun = $(":checked").val();
+		var mirakurun = $("[name='mirakurun']:checked").val();
 		if ( mirakurun == 'tcp' ){
 			$("#id_mirakurun_address").prop("disabled", false);
 			$("#id_mirakurun_uds").prop("disabled", true);
-		} else {
-			$("#id_mirakurun_address").prop("disabled", true);
-			$("#id_mirakurun_uds").prop("disabled", false);
+		}else{
+			if ( mirakurun == 'uds' ){
+				$("#id_mirakurun_address").prop("disabled", true);
+				$("#id_mirakurun_uds").prop("disabled", false);
+			}else{
+				$("#id_mirakurun_address").prop("disabled", true);
+				$("#id_mirakurun_uds").prop("disabled", true);
+			}
+		}
+	}),
+	$("[name='timeshift']").click(function(){
+		var timeshift = $("[name='timeshift']:checked").val();
+		if ( timeshift == 'tcp' ){
+			$("#id_timeshift_address").prop("disabled", false);
+		}else{
+			$("#id_timeshift_address").prop("disabled", true);
 		}
 	});
 });
@@ -99,7 +116,7 @@ form label.error, label.err { color: red; }
 <div>
 <form id="form_tuner">
  {if $return == 'initial'}
- <font color="red">mirakurunの設定と確認をします。</font>
+ <font color="red">mirakurunの設定を確認をします。</font>
  {/if}
  <input type="hidden" name="return" id="id_return" value="{$return}">
  <fieldset>
@@ -107,17 +124,33 @@ form label.error, label.err { color: red; }
 
   <h3>mirakurun接続設定</h3>
   <div class="setting">
-   <div class="caption">mirakurun接続方式を選び、アドレス／ソケットを指定してください。テレビ録画しない場合、そのままにしてください。</div>
+   <div class="caption">mirakurun接続方式を選び、アドレス／ソケットを指定してください。テレビ録画しない場合、「なし」にしてください。</div>
     <table>
      <tr>
       <td><input type="radio" name="mirakurun" value="tcp"{if $settings->mirakurun == "tcp"} checked{/if}>TCP/IP(アドレス:ポートを指定)</td>
       <td><input type="radio" name="mirakurun" value="uds"{if $settings->mirakurun == "uds"} checked{/if}>socket(ソケットパスを指定)</td>
+      <td><input type="radio" name="mirakurun" value="none"{if $settings->mirakurun == "none"} checked{/if}>なし</td>
      </tr>
      <tr>
       <td><input type="text" name="mirakurun_address" id="id_mirakurun_address"
-            value="{$settings->mirakurun_address}" size="30" class="required"{if $settings->mirakurun == "uds"} disabled{/if} /></td>
+            value="{$settings->mirakurun_address}" size="30" class="required"{if $settings->mirakurun != "tcp"} disabled{/if} /></td>
       <td><input type="text" name="mirakurun_uds" id="id_mirakurun_uds"
-            value="{$settings->mirakurun_uds}" size="30" class="required"{if $settings->mirakurun == "tcp"} disabled{/if} /></td>
+            value="{$settings->mirakurun_uds}" size="30" class="required"{if $settings->mirakurun != "uds"} disabled{/if} /></td>
+     </tr>
+    </table>
+  </div>
+
+  <h3>timeshift利用設定</h3>
+  <div class="setting">
+   <div class="caption">timeshiftサーバのアドレスを指定してください。timeshiftを利用しない場合、「なし」にしてください。</div>
+    <table>
+     <tr>
+      <td><input type="radio" name="timeshift" value="tcp"{if $settings->timeshift == "tcp"} checked{/if}>TCP/IP(アドレス:ポートを指定)</td>
+      <td><input type="radio" name="timeshift" value="none"{if $settings->timeshift == "none"} checked{/if}>なし</td>
+     </tr>
+     <tr>
+      <td><input type="text" name="timeshift_address" id="id_timeshift_address"
+            value="{$settings->timeshift_address}" size="30" class="required"{if $settings->timeshift != "tcp"} disabled{/if} /></td>
      </tr>
     </table>
   </div>

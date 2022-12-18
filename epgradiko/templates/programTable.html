@@ -958,7 +958,7 @@ ex.18 101 333">チャンネル番号3</td>
  <tr id="resid_{$program.no}" class="ctg_{$program.cat}{if $program.rec && !$program.rev_id}{if $program.key_id==$keyword_id} prg_rec{else} prg_rec_oth{/if}{/if}{if !$program.autorec} freeze{/if}{if $program.resvd} {$program.resvd}{/if}"
      onMouseover="this.style.border='2px solid blue'" onMouseout="this.style.border=''">
   <td>{if $program.keyword != ""}{$program.no}{/if}</td>
-  <td style="text-align: left;"><a{if $program.keyword != ""} href="{$program.keyword}" title="番組検索にジャンプ"{/if} id="tid_{$program.rev_id}">{$program.title|escape}</a></td>
+  <td style="text-align: left;{if isset($program.recording)} {if $program.rev_id}color: {$program.title_color};{else}font-weight: bold;{/if}{/if}"><a{if $program.keyword != ""} href="{$program.keyword}" title="番組検索にジャンプ"{/if} id="tid_{$program.rev_id}">{$program.title|escape}</a></td>
   <td style="white-space: nowrap;"><a{if $program.keyword != ""} href="/index.php?type={$program.type}&length=8&time={$program.prg_top}" title="EPG番組表へジャンプ"{/if}>{$program.date}</a><br>
       <a{if $program.keyword != ""} href="/revchartTable.php?length=8&time={$program.prg_top}" title="予約遷移表へジャンプ"{/if}>{$program.starttime}{$program.endtime}<br>{$program.duration}{if $program.keyword != ""}<br>{$program.station_name}{/if}</a></td>
   <td style="text-align: center;">{$program.genres}</td>

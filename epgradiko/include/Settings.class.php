@@ -53,7 +53,9 @@ class Settings extends SimpleXMLElement {
 			// 使用コマンドのパス設定
 			$xml->mirakurun = 'tcp';							// mirakurun接続設定
 			$xml->mirakurun_address = 'mirakurun:40772';					// mirakurun TCP/IP
-			$xml->mirakurun_uds = '/var/run/mirakurun.sock';			// mirakurun SOCKET
+			$xml->mirakurun_uds = '/var/run/mirakurun.sock';				// mirakurun SOCKET
+			$xml->timeshift = 'tcp';							// mirakurun接続設定
+			$xml->timeshift_address = 'mirakc:40772';					// mirakurun TCP/IP
 			$xml->gr_tuners = 0;								// 地デジチューナーの台数
 			$xml->gr_epg_max = 1;								// 地デジEPG取得台数
 			$xml->bs_tuners = 0;								// BSチューナーの台数

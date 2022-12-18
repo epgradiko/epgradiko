@@ -9,6 +9,7 @@ include_once( INSTALL_PATH . '/include/Settings.class.php' );
 include_once( INSTALL_PATH . '/include/reclib.php' );
 include_once( INSTALL_PATH . '/include/epg_const.php' );
 include_once( INSTALL_PATH . '/include/etclib.php' );
+include_once( INSTALL_PATH . '/include/menu_list.php' );
 
 function view_strlen( $str ){
 	$byte_len = strlen( $str );
@@ -53,8 +54,8 @@ $pager_option = '';
 $full_mode    = FALSE;
 $order        = 'starttime+DESC';
 
-
-$options = 'starttime<\''. date('Y-m-d H:i:s').'\'';	// ながら再生は無理っぽい？
+$options = '((type <> \'timeshft\' AND starttime<\''. date('Y-m-d H:i:s').'\') OR '
+		.'(type = \'timeshft\' AND endtime<\''. date('Y-m-d H:i:s').'\'))';
 
 $rev_obj = new DBRecord( RESERVE_TBL );
 
@@ -283,7 +284,6 @@ try{
 		array_push( $keys, $arr );
 	}
 
-
 	$rvs = $rev_obj->fetch_array( null, null, $options.$rev_opt.' ORDER BY '.str_replace( '+', ' ', $order ) );
 	$stations[0]['count'] = $cats[0]['count'] = count( $rvs );
 
@@ -400,25 +400,33 @@ try{
 				switch( $r['complete'] ) {
 				case 0:
 					if( time() > $start_time ){ //延長？失敗？
-						if( !search_recps($r['id']) ){ //録画コマンド実行なし→失敗
-							$wrt_set = array();
-							$wrt_set['complete'] = 2;
-							$rev_obj->force_update( $r['id'], $wrt_set );
-							reclog('予約ID:'.$r['id'].' 録画開始時間超過 録画ジョブなしのためエラー', EPGREC_ERROR);
-							$bg_color = 'red';
-							$add_fileset = '<br>stop';
-						}else{
-							if( time() > $end_time ){ //録画中
-								$bg_color = 'orange';
-								$add_fileset = '<br>extend rec..';
+						if( $r['type'] !== 'timeshft' ){ //タイムシフト録画中
+							if( !search_recps($r['id']) ){ //録画コマンド実行なし→失敗
+								$wrt_set = array();
+								$wrt_set['complete'] = 2;
+								$rev_obj->force_update( $r['id'], $wrt_set );
+								reclog('予約ID:'.$r['id'].' 録画開始時間超過 録画ジョブなしのためエラー', EPGREC_ERROR);
+								$bg_color = 'red';
+								$add_fileset = '<br>stop';
 							}else{
-								$bg_color = 'greenyellow';
-								$add_fileset = '<br>recording..';
+								if( time() > $end_time ){ //録画中
+									$bg_color = 'orange';
+									$add_fileset = '<br>extend rec..';
+								}else{
+									$bg_color = 'greenyellow';
+									$add_fileset = '<br>recording..';
+									$arr['recording'] = TRUE;
+								}
 							}
+						}else{
+							$bg_color = 'greenyellow';
+							$add_fileset = '<br>recording..';
+							$arr['recording'] = TRUE;
 						}
 					}else{
 						$bg_color = 'greenyellow';
 						$add_fileset = '<br>recording..';
+						$arr['recording'] = TRUE;
 					}
 					break;
 				case 1:
@@ -449,20 +457,24 @@ try{
 //				}
 			}else{
 				if( time() > $start_time && time() < $end_time ){ //延長？失敗？
-					if( !search_recps($r['id']) ){ //録画コマンド実行なし→失敗
-						$wrt_set = array();
-						$wrt_set['complete'] = 2;
-						$rev_obj->force_update( $r['id'], $wrt_set );
-						reclog('予約ID:'.$r['id'].' 録画開始時間超過 録画ジョブなしのためエラー', EPGREC_ERROR);
-						$bg_color = 'red';
-						$arr['file_set'] = '<br>not run';
+					if( $r['type'] !== 'timeshft' ){
+						if( !search_recps($r['id']) ){ //録画コマンド実行なし→失敗
+							$wrt_set = array();
+							$wrt_set['complete'] = 2;
+							$rev_obj->force_update( $r['id'], $wrt_set );
+							reclog('予約ID:'.$r['id'].' 録画開始時間超過 録画ジョブなしのためエラー', EPGREC_ERROR);
+							$bg_color = 'red';
+							$arr['file_set'] = '<br>not run';
+						}else{
+							$wrt_set = array();
+							$wrt_set['complete'] = 2;
+							$rev_obj->force_update( $r['id'], $wrt_set );
+							reclog('予約ID:'.$r['id'].' 録画開始時間超過 録画ファイルなしのためエラー', EPGREC_ERROR);
+							$bg_color = 'red';
+							$arr['file_set'] = '<br>not recording';
+						}
 					}else{
-						$wrt_set = array();
-						$wrt_set['complete'] = 2;
-						$rev_obj->force_update( $r['id'], $wrt_set );
-						reclog('予約ID:'.$r['id'].' 録画開始時間超過 録画ファイルなしのためエラー', EPGREC_ERROR);
-						$bg_color = 'red';
-						$arr['file_set'] = '<br>not recording';
+						$arr['file_set'] = '<br>wait for finish';
 					}
 				}else{
 					$arr['file_set'] = '';

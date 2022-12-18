@@ -7,6 +7,7 @@ include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
 include_once( INSTALL_PATH . '/include/reclib.php' );
 include_once( INSTALL_PATH . '/include/Settings.class.php' );
 include_once( INSTALL_PATH . '/include/epg_const.php' );
+include_once( INSTALL_PATH . '/include/menu_list.php' );
 
 // 設定ファイルの有無を検査する
 if( ! file_exists( INSTALL_PATH.'/settings/config.xml') && !file_exists( '/etc/epgrecUNA/config.xml' ) ) {
@@ -30,7 +31,8 @@ if( isset($_REQUEST['order']) ){
 
 try{
 	$res_obj = new DBRecord( RESERVE_TBL );
-	$rvs     = $res_obj->fetch_array( null, null, 'complete=0 and now() <= starttime ORDER BY '.str_replace( '+', ' ', $order ));
+	$rvs     = $res_obj->fetch_array( null, null, "(type <> 'timeshft' AND complete=0 AND now() <= starttime) ".
+							"OR (type = 'timeshft' AND complete=0 AND now() <= endtime) ORDER BY ".str_replace( '+', ' ', $order ));
 	$res_cnt = count( $rvs );
 
 	if( ( SEPARATE_RECORDS_RESERVE===FALSE && SEPARATE_RECORDS<1 ) || ( SEPARATE_RECORDS_RESERVE!==FALSE && SEPARATE_RECORDS_RESERVE<1 ) )	// "<1"にしているのはフェイルセーフ
@@ -81,12 +83,16 @@ try{
 					if(isset($record_cmd[$r['type']]['program_rec']['command'])){
 						$source    = '<br>番組予約:<br><small><small>'.sprintf('%d%05d%05d', $ch_network_id[$r['channel_id']], $ch_sid[$r['channel_id']], $prg->eid).'</small></small>';
 					}else{
-						$source    = '<br>時刻予約:<br>'.$r['channel_disc'];
+						$source    = '<br>時刻予約:<br>';
+						if($r['type'] !== 'timeshft') $source .= $r['channel_disc'];
+						else $source .= "timeshift";
 					}
 				}catch( exception $e ) {
 					reclog( 'reservationTable.php::予約ID:'.$r['id'].'  '.$e->getMessage(), EPGREC_ERROR );
 					$sub_genre = 16;
-					$source    = '<br>時刻予約:<br>'.$r['channel_disc'];
+					$source    = '<br>時刻予約:<br>';
+					if($r['type'] !== 'timeshft') $source .= $r['channel_disc'];
+					else $source .= "timeshift";
 				}
 			}else{
 				$sub_genre = 16;
@@ -135,7 +141,7 @@ try{
 	$smarty->template_dir = INSTALL_PATH . "/templates/";
 	$smarty->compile_dir = INSTALL_PATH . "/templates_c/";
 	$smarty->cache_dir = INSTALL_PATH . "/cache/";
-	$smarty->assign( 'sitetitle','録画予約一覧');
+	$smarty->assign( 'sitetitle','予約一覧');
 	$smarty->assign( 'reservations', $reservations );
 	$smarty->assign( 'spool_freesize', spool_freesize() );
 	$smarty->assign( 'pager', $full_mode ? '' : make_pager( 'reservationTable.php', $separate_records, $res_cnt, $page, $pager_option.'order='.$order.'&' ) );

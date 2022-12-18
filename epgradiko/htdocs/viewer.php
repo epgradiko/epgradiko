@@ -15,6 +15,8 @@ if( ! file_exists( INSTALL_PATH.'/settings/config.xml') && !file_exists( '/etc/e
 
 $settings = Settings::factory();
 
+$recorder = '';
+$timeshift_id = '';
 $channel = '';
 $sid = '';
 $type = '';
@@ -23,6 +25,8 @@ $reserve_id = '';
 $trans_id = '';
 $name = '';
 
+if( isset( $_GET['recorder'] ) ) $recorder = $_GET['recorder'];
+if( isset( $_GET['timeshift_id'] ) ) $timeshift_id = $_GET['timeshift_id'];
 if( isset( $_GET['ch'] ) ) $channel = $_GET['ch'];
 if( isset( $_GET['sid'] ) ) $sid = $_GET['sid'];
 if( isset( $_GET['type'] ) ) $type = substr($_GET['type'], 0, 2 );
@@ -41,10 +45,10 @@ $dh = '';
 $dm = '';
 $ds = '';
 $target_path = '';
-if ($reserve_id) {
+if($reserve_id){
 	try{
 		$rrec = new DBRecord( RESERVE_TBL, 'id', $reserve_id );
-		if ($rrec) {
+		if($rrec){
 			$title    = htmlspecialchars(str_replace(array("\r\n","\r","\n"), '', $rrec->title),ENT_QUOTES);
 			$abstract = htmlspecialchars(str_replace(array("\r\n","\r","\n"), '', $rrec->description),ENT_QUOTES);
 			$start_time = toTimestamp($rrec->starttime);
@@ -56,67 +60,72 @@ if ($reserve_id) {
 			$duration = $duration % 60;
 			$ds       = $duration;
 			$target_path = '/recorded';
-			if ($trans_id) {
+			if($trans_id){
 				$transcode = new DBRecord( TRANSCODE_TBL, 'id', $trans_id );
-				if ($transcode) {
+				if($transcode){
 					$address = '/trans_id/'.$trans_id.'.'.pathinfo($RECORD_MODE[$transcode->mode]['tsuffix'], PATHINFO_EXTENSION);
-				} else {
+				}else{
 					jdialog( '視聴情報がありません<br>', 'recordedTable.php' );
 				}
-			} else {
+			}else{
 				$address = '/reserve_id/'.$reserve_id.'/'.$rrec->title;
 			}
-		} else {
+		}else{
 			jdialog( '録画情報がありません<br>', 'recordedTable.php' );
 		}
 	}catch( Exception $e ){
 		exit( $e->getMessage() );
 	}
-} else {
+}else{
 	$title = $name;
 }
 
-$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https' : 'http';
-
-$host = $_SERVER["HTTP_HOST"];
-if ($sendstream_mode) {
-//	$target_path = '/sendstream.php';
+if($recorder){
+	$target_path = '/timeshift';
+	$address = '/'.$recorder;
+	if( $timeshift_id ) $address .= '/'.$timeshift_id.'/'.$title;
+}
+if($sendstream_mode){
 	$target_path = '/stream';
-	if ($trans !=='' ) $target_path .= $trans;
-	if ($channel) {
-//		$target_path = '/stream';
-		$address = '/'.$type.'/'.$channel.'/'.$sid.'/'.$title;
-	} else {
-		if ($trans_id) {
-//			$address ='?reserve_id='.$reserve_id.'&trans_id='.$trans_id;
+	if($trans !=='') $target_path .= $trans;
+	if($channel){
+		$address = '/type/'.$type.'/'.$channel.'/'.$sid.'/'.$title;
+	}else{
+		if($trans_id){
 			$address ='/trans_id/'.$trans_id.'/'.$title;
-		} else {
-			if ($reserve_id) {
-//				$address = '?reserve_id='.$reserve_id;
+		}else{
+			if($reserve_id){
 				$address = '/reserve_id/'.$reserve_id.'/'.$title;
+			}else{
+				if($recorder){
+					$address = '/timeshift/'.$recorder;
+					if( $timeshift_id ) $address .= '/'.$timeshift_id;
+					$address .= '/'.$title;
+				}
 			}
 		}
 	}
-//	if ($trans !=='' ) $address .= '&trans='.$trans;
-//	if ($title !=='' ) $address .= '&title='.$title;
 }
-//if ($title !=='' ) $address .= '&title='.$title;
-$base_address = $host.$settings->url.$target_path;
+$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https' : 'http';
+
+$host = $_SERVER["HTTP_HOST"];
+$base_address = $host.$target_path;
 $source_url = $protocol.'://'.$base_address.$address;
-		
+
 $is_ts = TRUE;
-if ($trans !=='' || $trans_id) $is_ts = FALSE;
+if($trans !=='' || $trans_id) $is_ts = FALSE;
 if( $is_ts ){
-	if( isset($_COOKIE['ts_urlscheme']) && $_COOKIE['ts_urlscheme'] !== '' ){
+	if(isset($_COOKIE['ts_urlscheme']) && $_COOKIE['ts_urlscheme'] !== '' ){
 		$url_scheme = $_COOKIE['ts_urlscheme'];
-		$str_rep = array( '%PROTOCOL%'	=> $protocol,
+		$str_rep = array(
+				'%PROTOCOL%'	=> $protocol,
 				'%ADDRESS%'	=> $base_address.$address,
 				'%address%'	=> $base_address.rawurlencode($address),
-			);
+		);
 		$url = strtr( $url_scheme, $str_rep );
 		header('Location: '.$url, TRUE, 307);
 		echo '<a href="'.$url.'">起動</a>';
-	} else {
+	}else{
 		header('Expires: Thu, 01 Dec 1994 16:00:00 GMT');
 		header('Last-Modified: '. gmdate('D, d M Y H:i:s'). ' GMT');
 		header('Cache-Control: no-cache, must-revalidate');
@@ -137,16 +146,17 @@ if( $is_ts ){
 		echo '</ASX>';
 	}
 }else{
-	if( isset($_COOKIE['video_urlscheme']) && $_COOKIE['video_urlscheme'] !== '' ){
+	if(isset($_COOKIE['video_urlscheme']) && $_COOKIE['video_urlscheme'] !== '' ){
 		$url_scheme = $_COOKIE['video_urlscheme'];
-		$str_rep = array( '%PROTOCOL%'	=> $protocol,
+		$str_rep = array(
+				'%PROTOCOL%'	=> $protocol,
 				'%ADDRESS%'	=> $base_address.$address,
 				'%address%'	=> $base_address.rawurlencode($address),
-			);
+		);
 		$url = strtr( $url_scheme, $str_rep );
 		header('Location: '.$url, TRUE, 307);
 		echo '<a href="'.$url.'">起動</a>';
-	} else {
+	}else{
 		echo '<html>';
 		echo '<head>';
 		echo '<meta charset="UTF-8">';

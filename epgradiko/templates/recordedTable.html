@@ -409,7 +409,7 @@ select.autokeys option{white-space:pre;}
   <td style="font-size: 1.2em; text-align: left;text-shadow: -1px -1px 0px white, 1px -1px 0px white, -1px 1px 0px white, 1px 1px 0px white; position:relative;">
     {if $use_thumbs == 1}<a href="{$rec.video}">{$rec.thumb}</a>{/if}
     <b><a id="tid_{$rec.id}" {if $rec.keyword != ""}href="{$rec.keyword}" title="番組検索にジャンプ"{/if}
-    style="line-height:19px; position: absolute; top: 0; left:0; z-index: 0;">{$rec.title}</a></b></td>
+    style="line-height:19px; position: absolute; top: 0; left:0; z-index: 0;{if isset($rec.recording)} color:red{/if}">{$rec.title}</a></b></td>
   <td style="white-space: nowrap;">{$rec.starttime}{$rec.endtime}<br>({$rec.duration})<br>{$rec.station_name}</td>
   {if $TRANSCODE_STREAM}<td style="white-space: nowrap;">{$rec.file_set}{if isset($rec.packetlog)}{$rec.packetlog}{/if}</td>{/if}
   <td style="white-space: pre;">{$rec.view_set}{if isset($rec.ffmpeglog)}{$rec.ffmpeglog}{/if}</td>

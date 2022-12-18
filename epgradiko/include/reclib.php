@@ -720,30 +720,6 @@ function make_pager( $link, $separate_records, $total, $page, $option='' )
 		return '';
 }
 
-function link_menu_create( $mode = 'none' )
-{
-	global $settings,$NET_AREA,$SELECTED_CHANNEL_MAP;
-
-	include( INSTALL_PATH . '/include/menu_list.php' );
-
-	if( $mode !== 'INDEX' ){
-		$link_add = array();
-		if( (int)$settings->gr_tuners > 0 )
-			$link_add[] = array( 'name' => '地デジ番組表　　　　　　', 'url' => 'index.php' );
-		if( (int)$settings->bs_tuners > 0 ){
-			$link_add[] = array( 'name' => 'BS番組表　　　　　　　　', 'url' => 'index.php?type=BS' );
-			if( (boolean)$settings->cs_rec_flg )
-				$link_add[] = array( 'name' => 'CS番組表　　　　　　　　', 'url' => 'index.php?type=CS' );
-		}
-		if( (int)$settings->ex_tuners > 0 )
-			$link_add[] = array( 'name' => 'ラジオ番組表　　　　　　', 'url' => 'index.php?type=EX' );
-		if( isset($SELECTED_CHANNEL_MAP) )
-			$link_add[] = array( 'name' => '選別番組表　　　　　　　', 'url' => 'index.php?type=SELECT' );
-		$MENU_LIST = array_merge( $link_add, $MENU_LIST );
-	}
-	return $MENU_LIST;
-}
-
 function storage_free_space( $path )
 {
 	$piece = explode( '/', $path );
@@ -939,7 +915,7 @@ function build_realview_cmd( $type, $channel, $sid )
 		'%SID%'		=>	$sid,
 		'%PRIORITY%'	=>	$priority,
 	);
-	$return_str = strtr( $record_cmd[$type][$rec_mode]['command'], $str_rep );
+	$return_str = 'tsreadex -x 18/38/39 -n -1 -a 13 -b 5 -c 1 -u 1 -d 13 -|'.strtr( $record_cmd[$type][$rec_mode]['command'], $str_rep );
 	$return_str .= ' 2>/dev/null';
 	return $return_str;
 }
@@ -1051,6 +1027,26 @@ function build_service_rec_cmd( $type, $channel, $sid, $priority, $duration, $ou
 		'%DURATION%'	=>	$duration,
 	);
 	$return_str = $settings->timeout.' '.$duration.' '.strtr( $record_cmd[$type]['service_rec']['command'], $str_rep )
+			.' 1>'."'".$output."'";
+
+	$return_str .= ' 2>/dev/null';
+	return $return_str;
+}
+
+//タイムシフト保存時のコマンド組み立て
+function build_timeshift_rec_cmd( $type, $recorder, $timeshift_id, $output )
+{
+        global $settings, $record_cmd;
+	if( !isset($record_cmd[$type]['service_rec']) ) return "";
+	if( (!isset($type)|| !isset($recorder)|| !isset($timeshift_id)|| !isset($output))
+	  ||($type ==''|| $recorder == ''|| $timeshift_id == ''|| $output =='') ){
+		return "";
+	}
+	$str_rep = array(
+		'%RECORDER%'		=>	$recorder,
+		'%TIMESHIFT_ID%'	=>	$timeshift_id,
+	);
+	$return_str = $settings->timeout.' 0 '.strtr( $record_cmd['timeshft']['timeshift_rec']['command'], $str_rep )
 			.' 1>'."'".$output."'";
 
 	$return_str .= ' 2>/dev/null';

@@ -18,6 +18,7 @@ function trans_job_set( $rrec, $tran_ex )
 	$wrt_set = array();
 	$wrt_set['rec_id']      = $rrec->id;
 	$wrt_set['rec_endtime'] = $rrec->endtime;
+	$wrt_set['rec_endtime'] = $rrec->endtime;
 	$wrt_set['mode']        = $tran_ex['mode'];
 	$wrt_set['ts_del']      = $tran_ex['ts_del'];
 	// ファイル名生成 文字数チェックは行なわない。
@@ -51,7 +52,7 @@ try{
 	$autorec    = (int)$rrec->autorec;
 	$program_id = (int)$rrec->program_id;
 	$get_time   = time();
-	if( $get_time < toTimestamp($rrec->endtime) - 30 ){
+	if( $rrec->type !== 'timeshft' && $get_time < toTimestamp($rrec->endtime) - 30 ){
 		if( $autorec>=0 && $program_id>0 && storage_free_space( $ts_path )>TS_STREAM_RATE ){
 			// PID付き手動予約も制限付きで対応
 			$prg = new DBRecord( PROGRAM_TBL, 'id', $program_id );
@@ -149,21 +150,23 @@ try{
 //		if( (int)trim(exec("stat -c %s '".$ts_path."'")) )
 		if( filesize( $ts_path ) ) {
 			$rec_success = TRUE;
-			if( !$rrec->program_id ){
-				$rrec->endtime = toDatetime( $get_time );
-				if( $get_time < toTimestamp($rrec->endtime) ){
-					$rec_success = FALSE;
-					reclog( $rev_id.' 手動中断] '.$rev_ds, EPGREC_WARN );
-					$rrec->autorec = $rrec->autorec * -1 - 1;
-				}
-			}else{
-				$ps = search_scoutcmd( $rrec->id );
-				if( $ps !== FALSE ){
-					$stop_stk  = killtree( (int)$ps->pid, FALSE, posix_getpid());
-				}
-				if( $get_time < toTimestamp($rrec->endtime) ){
-					reclog( $rev_id.' 短縮終了 '.$rrec->endtime.'→'.toDatetime( $get_time ).']'.$rev_ds, EPGREC_WARN );
+			if( $rrec->type !== 'timeshft' ){
+				if( !$rrec->program_id ){
 					$rrec->endtime = toDatetime( $get_time );
+					if( $get_time < toTimestamp($rrec->endtime) ){
+						$rec_success = FALSE;
+						reclog( $rev_id.' 手動中断] '.$rev_ds, EPGREC_WARN );
+						$rrec->autorec = $rrec->autorec * -1 - 1;
+					}
+				}else{
+					$ps = search_scoutcmd( $rrec->id );
+					if( $ps !== FALSE ){
+						$stop_stk  = killtree( (int)$ps->pid, FALSE, posix_getpid());
+					}
+					if( $get_time < toTimestamp($rrec->endtime) ){
+						reclog( $rev_id.' 短縮終了 '.$rrec->endtime.'→'.toDatetime( $get_time ).']'.$rev_ds, EPGREC_WARN );
+						$rrec->endtime = toDatetime( $get_time );
+					}
 				}
 			}
 			if( $rec_success ){

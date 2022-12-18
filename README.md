@@ -9,25 +9,27 @@ radiko(ラジコ)はスマートフォンやアプリ・パソコンでラジオ
 　epgradiko・・・・・epgrecUNAを改造  
 　epgdump・・・・・・epgrecUNA版epgdumpを改造  
 　tspacketchk・・・・パケットチェック表示オプションを追加（サマリーと詳細の標準出力とエラー出力分け、表示をシンプルにするモード追加）  
-　[radish](https://github.com/uru2/radish) ・・・・・・出力ファイル名の拡張子補完機能を削除  
+　radish ・・・・・・出力ファイル名の拡張子補完機能を削除  
+　tsreadex ・・・・・そのまま  
 ・外部のソフトウェア（各自用意のこと）  
 　docker ・・・・・・実行環境整備してください  
 　mysql・・・・・・・utf8mb4データベースが作成可能な環境  
-　mirakurun・・・・・デジタル放送受信が可能な環境（mirakcでも大丈夫かな？）  
+　mirakurun・・・・・デジタル放送受信が可能な環境（mirakcでも大丈夫。タイムシフトも使える）  
   
   
 ## 特徴  
-epgrec UNAをもとにmirakurunに対応させました。  
+epgrecUNAをもとにmirakurunに対応させました。mirakurun互換のmirakcにおいてはタイムシフト録画の再生、epgrecUNAの録画データに保存できます。  
 UIについては大幅変更(といいつつ、操作感は昔のまま）しているため、epgrec UNAで実現できている機能がすべて動くわけではありません。  
 また、設定ファイルやテーブル定義についても互換がないので、移行することはできません。  
 epgrec UNAとは別環境の新たな稼働環境を作成してください。  
-ちなみにradikoだけでも動きます。  
+ちなみにradikoだけ、mirakcタイムシフトだけでも動きます。  
 また、docker環境でffmpeg5を使用して、以下のトランスコードに標準で対応しています。（字幕・副音声の再生は標準videoプレイヤーではなく、VLC等が必要です。）  
 ・mp4字幕埋め込み  
 ・複数音声トラック（副音声、解説音声）埋め込み  
   
   
 ## 注意  
+チューナー重複処理はいい加減なので、正しく判定できません。実態はmirakurunがうまいことやってくれるので、チューナー数をごまかして乗り切ってください。  
 自環境以外の稼働確認をしていないため、不具合によりテーブルデータの消失や録画物の消失の恐れがあります。(すべてをチェックしていません)  
 また、消失しなくともシェル対応、テーブル操作が必要な状態に陥ることもあります。  
 特に録画ファイルについては、自環境では必ずトランスコードを行い、録画ファイル操作も常に削除オプションを使用しており、前述以外の検証が充分ではありません。  
@@ -65,6 +67,7 @@ view_config.php ・・・・・視聴関連のパラメータ設定
 ・docker環境化  
 ・radiko対応(EXチューナー定義（スカパー対応廃止)を利用)。  
 →スカパー使えません。greatpyrenees.php廃止  
+・mirakcタイムシフト再生対応。  
 ・トランスコード変換を1本のみにしました。（チューナー消費しないので、それぞれ予約を作ってください）  
 ・間欠運転廃止  
 ・番組タイトルと文字放送記号などのマークを分離  
@@ -203,8 +206,12 @@ scoutEpg.php ・・・・・・・録画前・単チャンネルEPG取得更新�
 sheepdog.php ・・・・・・・地上波EPG取得更新管理（shepherd.phpから呼ばれる）  
 shepherd.php ・・・・・・・並列受信EPG取得更新管理スクリプト管理。並列数制限・radiko番組表呼び出し対応。  
 trans_manager.php・・・・・トランスコード管理スクリプト（recomplete.phpから呼ばれる）  
+waitFinish.php ・・・・・・（新規）タイムシフトデータ保存時に録画終了待機スクリプト  
 radikoProgram.php・・・・・（新規）radiko番組表取得  
-radikoStation.php・・・・・（新規）radiko放送局取得  
+daily_task.php ・・・・・・（新規）日次処理の起動。起動される日次処理は/settings/daily_tasksディレクトリに配置。  
+radikoStation.php・・・・・（新規）radiko放送局取得（日次処理）  
+optimizeTable.php・・・・・（新規）mysqlテーブルの最適化（日次処理）  
+garbageClean.php ・・・・・（新規）番組表・ログデータ削除（日次処理）  
   
 ### htdocsディレクトリ  
 cancelReservationForm.php・予約削除フォーム  
@@ -232,6 +239,7 @@ get_file.php ・・・・・・・（新規）ディレクトリ分離に伴い�
 logoImage.php・・・・・・・（新規）IPTV用チャンネルロゴ取得  
 singleEpg.php・・・・・・・（新規）単局EPG情報取得。radiko対応  
 xmltv.php・・・・・・・・・（新規）IPTV用番組情報作成  
+timeshiftTable.php ・・・・（新規）タイムシフト録画番組表  
   
 ### htdocs/subディレクトリ  
 commandSetting.php ・・・・（再編）コマンドパス設定ページ  
@@ -273,6 +281,7 @@ menu_list.tpl ・・・・・・・（新規）メニュー用Smartyテンプレ
 menu_star.tpl ・・・・・・・（新規）メニュー上段表示Smartyテンプレート  
 podcast.xml ・・・・・・・・（新規）podcast連携用RSS Smartyテンプレート  
 xmltv.xml ・・・・・・・・・（新規）IPTV用番組情報Smartyテンプレート  
+timeshiftTable.php・・・・・（新規）タイムシフト録画番組表テンプレート  
   
 ### templates/subディレクトリ  
 commandSetting.php ・・・・（再編）コマンドパス設定ページSmartyテンプレート  

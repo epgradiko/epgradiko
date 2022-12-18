@@ -23,7 +23,7 @@ new single_Program('optimaizeTable');
 $settings = Settings::factory();
 
 //テーブル最適化
-reclog( 'テーブル最適化::開始' );
+reclog( 'テーブル最適化::処理開始' );
 $dbh = mysqli_connect( $settings->db_host, $settings->db_user, $settings->db_pass, $settings->db_name );
 optimize_table(RESERVE_TBL);
 optimize_table(PROGRAM_TBL);
@@ -32,5 +32,5 @@ optimize_table(CATEGORY_TBL);
 optimize_table(KEYWORD_TBL);
 optimize_table(TRANSCODE_TBL);
 optimize_table(TRANSEXPAND_TBL);
-reclog( 'テーブル最適化::終了' );
+reclog( 'テーブル最適化::処理終了' );
 ?>

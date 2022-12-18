@@ -7,6 +7,7 @@ include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
 include_once( INSTALL_PATH . '/include/Settings.class.php' );
 include_once( INSTALL_PATH . '/include/Keyword.class.php' );
 include_once( INSTALL_PATH . '/include/epg_const.php' );
+include_once( INSTALL_PATH . '/include/menu_list.php' );
 
 // 設定ファイルの有無を検査する
 if( ! file_exists( INSTALL_PATH.'/settings/config.xml') && !file_exists( '/etc/epgrecUNA/config.xml' ) ) {
@@ -554,6 +555,9 @@ try{
 				$start_time          = toTimestamp($p->starttime);
 				$end_time            = toTimestamp($p->endtime);
 				$duration            = $end_time - $start_time;
+				if( $start_time <= time() && time() <= $end_time ){
+					$arr['recording'] = TRUE;
+				}
 				if( $duration > $criterion_dura ) $criterion_dura = $duration;
 				$arr['date']         = date( 'm/d(', $start_time ).$week_tb[date( 'w', $start_time )].')';
 				$arr['starttime']    = date( 'H:i:s-', $start_time );
@@ -621,10 +625,13 @@ EXIT_REV:;
 						$arr['title'] = $r->title;
 						$arr['pre_title'] = strtr($r->pre_title, array_column(ProgramMark, 'char', 'name'));
 						$arr['post_title'] = strtr($r->post_title, array_column(ProgramMark, 'char', 'name'));
-						if( $r->title !== $p->title ) $arr['title_color'] = 'black';
-						else $arr['title_color']   = 'gray';
 						$start_time          = toTimestamp($r->starttime);
 						$end_time            = toTimestamp($r->endtime);
+						if( $start_time <= time() && time() <= $end_time ){
+							$arr['title_color'] = 'red';
+							$arr['recording'] = TRUE;
+						}else if( $r->title !== $p->title ) $arr['title_color'] = 'black';
+						else $arr['title_color']   = 'gray';
 						$duration            = $end_time - $start_time;
 						$arr['date']         = date( 'm/d(', $start_time ).$week_tb[date( 'w', $start_time )].')';
 						$arr['starttime']    = date( 'H:i:s-', $start_time );

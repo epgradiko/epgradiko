@@ -8,12 +8,15 @@
 </span>
 </div>
 <div id="naver" style="width:calc(100vw - 20px); display: inline-block; height: 25px; text-align: right; vertical-align: middle; z-index: 1;">
-{if isset($transsize_set)}<label>📺
- <select name="trans_size" id="trans_size" title="視聴解像度" onChange="chgScreensize(0,{$transsize_set_cnt},this.selectedIndex)">
-  {foreach from=$transsize_set name=lp item=size_set}
-   <option value="{$smarty.foreach.lp.index}"{$size_set.selected}>{$size_set.name}</option>
-  {/foreach}
- </label></select>
+<form name="top_navi_form">
+{if isset($transsize_set)}
+ <label>📺
+  <select name="trans_size" id="trans_size" title="視聴解像度" onChange="chgScreensize(0,{$transsize_set_cnt},this.selectedIndex)">
+   {foreach from=$transsize_set name=lp item=size_set}
+    <option value="{$smarty.foreach.lp.index}"{$size_set.selected}>{$size_set.name}</option>
+   {/foreach}
+  </select>
+ </label>
 {/if}
 {if isset($spool_freesize)}<label onClick="diskUsage_open();" style="cursor: pointer;" titile="ディスク残量">💿{$spool_freesize}</label>{/if}
 {if isset($transsize_set)}
@@ -23,4 +26,5 @@
  });
  </script>
 {/if}
+</form>
 </div>

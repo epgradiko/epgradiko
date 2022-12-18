@@ -11,6 +11,35 @@ include_once(INSTALL_PATH . '/include/etclib.php' );
 
 $settings = Settings::factory();
 
+if( isset( $_GET['recorder'] ) ){
+	$recorder = $_GET['recorder'];
+	if( isset( $_GET['timeshift_id'] ) ){
+		$timeshift_id = $_GET['timeshift_id'];
+		$ts_base_addr = 'http://'.$settings->timeshift_address.'/api/timeshift/'.urlencode($recorder).'/records/'.$timeshift_id;
+		$ts_info = json_decode(file_get_contents($ts_base_addr), TRUE);
+		if( $ts_info == NULL ){
+			reclog('sendstream.php::タイムシフト録画ID:'.$timeshift_id.'なし', EPGREC_WARN);
+			die();
+		}else{
+			$start_time = (int)$ts_info['startTime'] / 1000;
+			if( (bool)$ts_info['recording'] ){
+				$duration = (int) (( (int)$ts_info['program']['startAt'] + (int)$ts_info['program']['duration'] - (int)$ts_info['startTime'] ) / 1000);
+				$size = (int) ( (int)$ts_info['size'] * ((int)$ts_info['program']['duration'] / (int)$ts_info['duration']) );
+			}else{
+				$duration = (int)((int)$ts_info['duration'] / 1000);
+				$size = (int)$ts_info['size'];
+			}
+			$end_time = $start_time + $duration;
+			$input_mode = 'file';
+			$send_file = $ts_base_addr.'/stream';
+			$ext = '.ts';
+		}
+	}else{
+		reclog('sendstream.php::タイムシフト録画ID:なし', EPGREC_WARN);
+		die();
+	}
+}
+
 if( isset( $_GET['reserve_id'] ) ){
 	$reserve_id = $_GET['reserve_id'];
 	if( DBRecord::countRecords( RESERVE_TBL, 'WHERE id='.$reserve_id ) ){
@@ -136,7 +165,7 @@ if( !isset($input_mode) ){
 $explode_text = explode('.', $ext);
 $ext = end($explode_text);
 if( isset($input_mode) && isset($trans) ){
-	if( ($trans == 0) && (TRANSTREAM_CMD[$ext]['command'] === '') ){
+	if( (TRANSTREAM_CMD[$ext]['command'] === '') ){
 		// skip
 	}else{
 		if( isset( $TRANSSIZE_SET[$trans] ) ){
@@ -247,7 +276,6 @@ if( $input_mode == 'file' ){
 	if( isset($_SERVER['HTTP_RANGE']) ){
 		list( $start, $end ) = sscanf( $_SERVER['HTTP_RANGE'], "bytes=%d-%d" );
 		if( empty($end) ) $end = $size - 1;
-//		if( empty($end) ) $end = $start + BUFFERS - 1;
 		if( $start > $size ) $start = 0;
 		if( $end > $size - 1 ) $end = $size - 1;
 		if( ($start > 0) || ($end < $size - 1) ){
@@ -256,9 +284,20 @@ if( $input_mode == 'file' ){
 		}else{	
 			header( 'HTTP/1.1 200 OK' );
 		}
-		fseek( $fp, $start );
+		if( $start ){
+			if( isset($recorder) ){
+				$curr = 0;
+				while( $curr < $start ){
+					$buff = fread( $fp, min( 8192, $start - $curr ) );
+					$curr += min( 8192, $start - $curr );
+				}
+				if( isset($buff) ) unset( $buff );
+			}else{
+				fseek( $fp, $start );
+			}
+		}
 		$curr = $start;
-		$usleep_time = 20;
+		$usleep_time = 0;
 	}else{
 		$curr = 0;
 		$start = 0;
@@ -291,7 +330,11 @@ if( $input_mode == 'file' ){
 	}
 	header( 'Accept-Ranges: bytes' );
 	header( 'Content-Length:'.($end - $start + 1) );
-	header( 'Last-Modified: '.gmdate("D, d M Y H:i:s", filemtime($send_file)).' GMT' );
+	if( isset($recorder) ){
+		header( 'Last-Modified: '.gmdate("D, d M Y H:i:s", time()).' GMT' );
+	}else{
+		header( 'Last-Modified: '.gmdate("D, d M Y H:i:s", filemtime($send_file)).' GMT' );
+	}
 	header( 'Etag: "'.md5( $_SERVER["REQUEST_URI"] ).$size.'"' );
 //	header( "Content-Transfer-Encoding: binary\n");
 //	header( 'Connection: close' );
@@ -319,6 +362,8 @@ if( isset($_GET['download']) && $input_mode == 'file' ){
 }
 
 set_time_limit(0);
+ob_start();
+
 while( !feof($fp) && (connection_status() == 0) ){
 	if( ($input_mode == 'file') ){
 		if( $curr >= $end ) break;
@@ -328,10 +373,12 @@ while( !feof($fp) && (connection_status() == 0) ){
 		print fread( $fp, BUFFERS );
 	}
 	usleep( $usleep_time );
-	flush();
+	ob_flush();
 }
+
+ob_end_flush();
+
 if( $input_mode == 'pipe' ){
 	proc_close( $ts_pro );
 }
-die();
 ?>

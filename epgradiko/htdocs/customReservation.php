@@ -11,7 +11,9 @@ $settings = Settings::factory();
 
 $program_id = isset( $_POST['program_id'] ) ? (int)$_POST['program_id'] : 0;
 $reserve_id = isset( $_POST['reserve_id'] ) ? (int)$_POST['reserve_id'] : 0;
-
+$recorder = isset( $_POST['recorder'] ) ? $_POST['recorder'] : '';
+$channel_disc = isset( $_POST['channel_disc'] ) ? $_POST['channel_disc'] : '';
+$timeshift_id = isset( $_POST['timeshift_id'] ) ? (int)$_POST['timeshift_id'] : 0;
 
 if(!(
    isset($_POST['shour'])       && 
@@ -44,7 +46,6 @@ $start_time = @mktime( $_POST['shour'], $_POST['smin'], $_POST['ssec'], $_POST['
 if( ($start_time < 0) || ($start_time === false) ) {
 	exit("Error:開始時間が不正です" );
 }
-
 $end_time = @mktime( $_POST['ehour'], $_POST['emin'], $_POST['esec'], $_POST['emonth'], $_POST['eday'], $_POST['eyear'] );
 if( ($end_time < 0) || ($end_time === false) ) {
 	exit("Error:終了時間が不正です" );
@@ -61,7 +62,6 @@ $category_id = $_POST['category_id'];
 $mode = $_POST['record_mode'];
 $discontinuity = $_POST['discontinuity'];
 $priority = $_POST['priority'];
-$priority = $_POST['autorec'];
 
 if( $rec_dir ){
 	$chk_dir = INSTALL_PATH.$settings->spool.'/'.$rec_dir;
@@ -77,23 +77,49 @@ if( $trans_dir ){
 
 $rval = 0;
 try{
-	$rval = Reservation::custom(
-		toDatetime($start_time),
-		toDatetime($end_time),
-		$channel_id,
-		$title,
-		$pre_title,
-		$post_title,
-		$description,
-		$category_id,
-		$program_id,
-		0,		// 自動録画
-		$mode,	// 録画モード
-		$discontinuity,
-		1,		// ダーティフラグ
-		$priority,
-		$rec_dir,
-	);
+	if($recorder){
+		$rval = Reservation::timeshift_rec(
+				$recorder,
+				$timeshift_id,
+				$start_time,
+				$end_time,
+				$channel_disc,
+				$title,
+				$pre_title,
+				$post_title,
+				$description,
+				$category_id,
+				$program_id,
+				0,
+				$mode,
+				$discontinuity,
+				1,
+				$priority,
+				$rec_dir,
+				0,
+				0,
+				0,
+				0,
+		);
+	}else{
+		$rval = Reservation::custom(
+			toDatetime($start_time),
+			toDatetime($end_time),
+			$channel_id,
+			$title,
+			$pre_title,
+			$post_title,
+			$description,
+			$category_id,
+			$program_id,
+			0,		// 自動録画
+			$mode,	// 録画モード
+			$discontinuity,
+			1,		// ダーティフラグ
+			$priority,
+			$rec_dir,
+		);
+	}
 }
 catch( Exception $e ) {
 	exit( "Error:".$e->getMessage() );

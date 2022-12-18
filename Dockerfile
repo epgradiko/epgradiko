@@ -16,6 +16,15 @@ RUN apk --update add git gcc g++ make && \
     cd tspacketchk && \
     make && \
     make install
+# tsreadex
+FROM alpine:$ALPINE_VER as tsreadex
+WORKDIR /tmp
+COPY ./tsreadex /tmp/tsreadex
+RUN apk add git gcc g++ make cmake && \
+    cd /tmp && \
+    cd tsreadex && \
+    cmake . && \
+    make
 # ffmpeg
 FROM alpine:$ALPINE_VER as ffmpeg
 ###############################
@@ -67,8 +76,7 @@ RUN apk add --update --no-cache --virtual=dev \
 #    git clone https://github.com/0p1pp1/FFmpeg.git ffmpeg && \
     git clone https://git.ffmpeg.org/ffmpeg.git && \
     cd /tmp/ffmpeg && \
-#    git checkout release/5.0 && \
-    git checkout -b n5.0.1 n5.0.1&& \
+    git checkout release/5.1 && \
 # Compile ffmpeg.
     ./configure \
         --extra-version=epgradiko0.1 \
@@ -117,6 +125,7 @@ RUN apk add --update --no-cache pcre \
     ln -s /usr/local/bin/ffmpeg /usr/bin/
 COPY --from=epgdump /usr/local /usr/local
 COPY --from=tspacketchk /usr/local /usr/local
+COPY --from=tsreadex /tmp/tsreadex/tsreadex /usr/local/bin/
 COPY ./root_fs /
 COPY ./epgradiko /var/www/localhost/
 # php8 packages

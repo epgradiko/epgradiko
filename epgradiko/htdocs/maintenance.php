@@ -6,6 +6,7 @@ include_once( INSTALL_PATH . '/include/DBRecord.class.php' );
 include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
 include_once( INSTALL_PATH . '/include/reclib.php' );
 include_once( INSTALL_PATH . '/include/Settings.class.php' );
+include_once( INSTALL_PATH . '/include/menu_list.php' );
 
 if( !INSTALL_PATH ){
 	exit("conpig.phpが正しくインストールできていません。<br><br>"

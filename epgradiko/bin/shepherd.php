@@ -40,7 +40,7 @@ function exit_shephewrd(){
 
 	new single_Program('shepherd');
 
-	garbageClean();			//  不要プログラム削除
+//	garbageClean();			//  不要プログラム削除
 
 /* 別口で対応
 	// 定期EPG更新に録画開始前EPG更新が重ならないようにする。

@@ -8,6 +8,7 @@ include_once( INSTALL_PATH . '/include/reclib.php' );
 include_once( INSTALL_PATH . '/include/Reservation.class.php' );
 include_once( INSTALL_PATH . '/include/Keyword.class.php' );
 include_once( INSTALL_PATH . '/include/Settings.class.php' );
+include_once( INSTALL_PATH . '/include/menu_list.php' );
 
 function word_chk( $chk_wd ){
 	return ( strpos( $chk_wd, '"' )===FALSE && strpos( $chk_wd, '\'' )===FALSE ? $chk_wd : '' );

@@ -1,0 +1,3 @@
+[submodule "tsreadex"]
+	path = tsreadex
+	url = https://github.com/xtne6f/tsreadex.git

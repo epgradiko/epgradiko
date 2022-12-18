@@ -1,7 +1,8 @@
 <form method="post" action="/customReservation.php">
 <div>
-  <span class="labelLeft2">番組録画:</span><input type="checkbox" name="program_id" id="id_program_id" value="{$program_id}" checked="checked" onchange="change_checkBox(this.checked)">
-(未チェックの場合、時刻録画)<br>
+  <span class="labelLeft2">番組録画:</span>
+  <input type="checkbox" name="program_id" id="id_program_id" value="{$program_id}" checked="checked" onchange="change_checkBox(this.checked)"{if $mode == 'T'} disabled{/if}>
+  {if $mode != 'T'}(未チェックの場合、時刻録画){/if}<br>
  <script type="text/javascript">{literal}
     function change_checkBox(checked_state){
       document.querySelectorAll("div#id_div_time input")
@@ -30,9 +31,9 @@
 </div>
 
 <div>
-<span class="labelLeft2">チャンネル:</span>&nbsp;{if $type=="GR"}{$type}{/if}{$channel}ch
+<span class="labelLeft2">チャンネル:</span>&nbsp;{if $type=="GR"}{$type}{/if}{$channel}
        <input type="hidden" name="channel_id" id="id_channel_id" value="{$channel_id}" />　
- 優先度<input type="number" style="width: 2.5em;" size="2" name="priority" id="id_priority" value="{$priority}" />
+ 優先度<input type="number" style="width: 2.5em;" size="2" name="priority" id="id_priority" value="{$priority}" {if $mode == 'T'}disabled{/if}/>
 </div>
 
 <div>
@@ -50,6 +51,9 @@
    <input type="text" size="50" name="title" id="id_title" value="{$title|escape}" />
    <input type="hidden" name="pre_title" id="id_pre_title" value="{$pre_title|escape}" />
    <input type="hidden" name="post_title" id="id_post_title" value="{$post_title|escape}" />
+   <input type="hidden" name="recorder" id="id_recorder" value="{$recorder|escape}" />
+   <input type="hidden" name="timeshift_id" id="id_timeshift_id" value="{$timeshift_id|escape}" />
+   <input type="hidden" name="channel_disc" id="id_channel_disc" value="{$channel_disc|escape}" />
 </div>
 
 <div>

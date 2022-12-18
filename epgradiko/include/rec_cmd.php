@@ -13,12 +13,15 @@ if( file_exists(INSTALL_PATH.'/settings/config.xml') ){
 		switch( $obj->mirakurun ){
 			case 'tcp':	
 				$record_cmd_mirakurun = 'http://'.$obj->mirakurun_address;
+				$record_cmd_timeshift = 'http://'.$obj->timeshift_address;
 				break;
 			case 'uds':
 				$record_cmd_mirakurun = '--unix-socket '.$obj->mirakurun_uds.' http://mirakurun';
+				$record_cmd_timeshift = '--unix-socket '.$obj->timeshift_uds.' http://mirakurun';
 				break;
 			default:
-				$record_cmd_mirakurun ='';
+				$record_cmd_mirakurun = '';
+				$record_cmd_timeshift = '';
 		}
 	}else $record_cmd_mirakurun ='';
 
@@ -59,6 +62,16 @@ if( file_exists(INSTALL_PATH.'/settings/config.xml') ){
 		'suffix'	=>	'_HD.aac',
 		'service_rec'	=>	array(
 			'command'	=> RADIKO_CMD,
+		),
+	);
+	$record_cmd['timeshft'] = array(
+		'type'		=>	'video',
+		'suffix'	=>	'_FHD.ts',
+		'epg_rec'	=>	array(
+			'command'	=> $obj->curl.' -sGN '.$record_cmd_timeshift.'/api/timeshift/%RECORDER%',
+		),
+		'timeshift_rec' =>	array(
+			'command'	=> $obj->curl.' -sGN '.$record_cmd_timeshift.'/api/timeshift/%RECORDER%/records/%TIMESHIFT_ID%/stream',
 		),
 	);
 }

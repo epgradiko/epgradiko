@@ -6,6 +6,7 @@ include_once( INSTALL_PATH . '/include/DBRecord.class.php' );
 include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
 include_once( INSTALL_PATH . '/include/Settings.class.php' );
 include_once( INSTALL_PATH . '/include/reclib.php' );
+include_once( INSTALL_PATH . '/include/menu_list.php' );
 
 // 設定ファイルの有無を検査する
 if( ! file_exists( INSTALL_PATH.'/settings/config.xml') && !file_exists( '/etc/epgrecUNA/config.xml' ) ) {

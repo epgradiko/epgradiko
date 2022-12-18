@@ -22,7 +22,7 @@ libxml_use_internal_errors(true);
 
 if($settings->ex_tuners == 0) exit();
 
-reclog( 'radiko放送局更新::開始' );
+reclog( 'radiko放送局更新::処理開始' );
 
 // Get radiko Area ID
 $radiko_area_chk_url = "https://radiko.jp/area";
@@ -274,6 +274,6 @@ if( $map_chg ){
 		}
 	}
 }
-reclog( 'radiko放送局更新::終了' );
+reclog( 'radiko放送局更新::処理終了' );
 // channel 終了
 ?>

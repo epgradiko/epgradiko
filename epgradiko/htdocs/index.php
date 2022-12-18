@@ -7,6 +7,7 @@ include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
 include_once( INSTALL_PATH . '/include/reclib.php' );
 include_once( INSTALL_PATH . '/include/Settings.class.php' );
 include_once( INSTALL_PATH . '/include/epg_const.php' );
+include_once( INSTALL_PATH . '/include/menu_list.php' );
 
 function ch_collect( $type, $select_ch, $sort_calm='sid' )
 {

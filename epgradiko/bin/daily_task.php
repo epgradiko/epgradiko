@@ -27,7 +27,7 @@ if( file_exists( INSTALL_PATH . '/settings/daily_tasks' ) && is_dir( INSTALL_PAT
 		if( ! file_exists( $task) ) continue;
 		$task_permit = getPerm( $task );
 		if( substr($task_permit, 0, 1) == '7' ){
-			reclog('日次処理::'.$task.' 処理開始', EPGREC_DEBUG);
+			reclog('日次処理::'.$task.' 起動', EPGREC_DEBUG);
 			$ret = shell_exec( $task );
 			if( $ret === FALSE ) reclog('daily_task::'.$task.' 実行失敗', EPGREC_ERROR);
 			else{
