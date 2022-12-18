@@ -323,6 +323,7 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 						]);
 					}
 				}
+				if(!count($reca)) continue;
 			}catch( exception $e ) {
 			// 何もしない
 			}
