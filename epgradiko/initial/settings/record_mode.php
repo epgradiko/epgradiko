@@ -21,8 +21,9 @@ $TRANS_MODE = array(
 							// %TS% 入力ファイル
 							// %TITLE% 番組名
 							// %DESC% 番組概要
+							// %TRANS_ID% トランスコードID
 							// %TRANS% 出力ファイル
-		'command' => "%FFMPEG% -y -loglevel quiet -fix_sub_duration -i %TS% -ignore_unknown ".
+		'command' => "%FFMPEG% -y -loglevel quiet -fix_sub_duration -i %TS% -progress /tmp/trans_%TRANS_ID% -ignore_unknown ".
 				"-vf 'yadif=0:-1' -f mp4 ".
 				"-c:v libx264 -b:v 4M -minrate 4M -maxrate 4M -bufsize 40M ".
 				"-c:a libfdk_aac -ac 2 -ar 48000 -b:a 128k -async 1 ".
@@ -36,7 +37,7 @@ $TRANS_MODE = array(
 		'type'	  => 'video',			// 
 		'name'	  => 'X264-SD',
 		'tsuffix' => '-SD.mp4',
-		'command' => "%FFMPEG% -y -loglevel quiet -fix_sub_duration -i %TS% -ignore_unknown ".
+		'command' => "%FFMPEG% -y -loglevel quiet -fix_sub_duration -i %TS% -progress /tmp/trans_%TRANS_ID% -ignore_unknown ".
 				"-vf 'yadif=0:-1' -f mp4 ".
 				"-c:v libx264 -b:v 1M -minrate 1M -maxrate 1M -bufsize 10M ".
 				"-c:a libfdk_aac -ac 2 -ar 48000 -b:a 128k -async 1 ".
@@ -50,7 +51,7 @@ $TRANS_MODE = array(
 		'type'	  => 'audio',			// 
 		'name'	  => 'RADIO',
 		'tsuffix' => '-RD.m4a',
-		'command' => "%FFMPEG% -y -loglevel quiet -i %TS% -vn ".
+		'command' => "%FFMPEG% -y -loglevel quiet -i %TS% -progress /tmp/trans_%TRANS_ID% -vn ".
 				"-f mp4 ".
 				"-c:a libfdk_aac -ac 2 -ar 48000 -b:a 128k ".
 				"-metadata title=%TITLE% -metadata description=%DESC% ".

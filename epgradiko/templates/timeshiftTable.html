@@ -68,10 +68,14 @@
 			var endTime = new Date(startTime.getTime() + duration * 1000);
 			var tuner = parseInt(TG.children('.prg_tuner').html());
 			var prgID = parseInt(TG.children('.prg_id').html(),10);
-			var timeshiftID = parseInt(TG.children('.timeshift_id').html(),10);
 			var channelID = TG.children('.prg_channel_id').html();
 			var title = TG.children('.prg_title').html();
 			var nowTime = new Date();
+			if( channelID.substr(0,3) == 'EX_' ){
+				var mirakcTimeshiftID = startTime.getFullYear().toString() + (startTime.getMonth() + 1).toString().padStart(2, '0') + startTime.getDate().toString().padStart(2, '0') + startTime.getHours().toString().padStart(2, '0') + startTime.getMinutes().toString().padStart(2, '0') +  startTime.getSeconds().toString().padStart(2, '0');
+			}else{
+				var mirakcTimeshiftID = parseInt(TG.children('.mirakc_timeshift_id').html(),10);
+			}
 			var str = '<div class="prg_title">' + title +'</div>' + 
 				'<div class="prg_rec_cfg ui-corner-all">' +
 				'<div class="prg_channel"><span class=" labelLeft">チャンネル：</span><span class="bold">' + TG.children('.prg_channel').html() + '</span></div>' +
@@ -81,14 +85,26 @@
 					'<span class=" labelLeft">録画時間：</span><span class="bold">' +
 					 parseInt(duration / 60,10) +'</span>分' + ((duration % 60)>0?'<span class="bold">' + parseInt(duration % 60,10) + '</span>秒':'') + '</div>' +
 				'</div>' + 
-				'<div style="margin:2em 0 1em 0;text-align:center;">' +
-				'<a href="/viewer.php?recorder=' + channelID + '&timeshift_id=' + timeshiftID + '&name=' + title + '" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">ts</a>';
+				'<div style="margin:2em 0 1em 0;text-align:center;">';
+			if( channelID.substr(0,3) == 'EX_' ){
+				str += '<a href="/viewer.php?recorder=' + channelID.substr(3) + '&starttime=' + mirakcTimeshiftID + '&name=' + title + '" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">aac</a>';
+			}else{
+				str += '<a href="/viewer.php?recorder=' + channelID + '&mirakc_timeshift_id=' + mirakcTimeshiftID + '&name=' + title + '" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">ts</a>';
+			}
 			{if isset($transsize_set)}
-			var trans_size = document.top_navi_form.trans_size.selectedIndex;
-			str += '　<a href="/viewer.php?recorder=' + channelID + '&timeshift_id=' + timeshiftID + '&name=' + title + '&trans=' + trans_size +'" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">視聴</a>';
+			if( channelID.substr(0,3) == 'EX_' ){
+				str += '　<a href="/viewer.php?recorder=' + channelID.substr(3)  + '&starttime=' + mirakcTimeshiftID + '&name=' + title + '&trans=0" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">視聴</a>';
+			}else{
+				var trans_size = document.top_navi_form.trans_size.selectedIndex;
+				str += '　<a href="/viewer.php?recorder=' + channelID + '&mirakc_timeshift_id=' + mirakcTimeshiftID + '&name=' + title + '&trans=' + trans_size +'" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">視聴</a>';
+			}
 			{/if}
-			str += '　<a href="javascript:PRG.customform(\'' + channelID + '\', ' + timeshiftID + ', ' + prgID + ')" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">録画済みに保存</a>' +
-				'<a>  </a>' +
+			if( channelID.substr(0,3) == 'EX_' ){
+				str += '　<a href="javascript:PRG.customform(\'' + channelID + '\', ' + mirakcTimeshiftID + ')" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">録画済みに保存</a>';
+			}else{
+				str += '　<a href="javascript:PRG.customform(\'' + channelID + '\', ' + mirakcTimeshiftID + ', ' + prgID + ')" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">録画済みに保存</a>';
+			}
+			str += '<a>  </a>' +
 				'<a href="' + TG.children('.prg_keyword').html() + '" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">番組検索</a></div>';
 			$('#floatBox4Dialog').html(str);
 			$('#floatBox4Dialog').dialog('option', 'title', '録画再生');
@@ -144,9 +160,9 @@
 			$('#channelDialog').html(str);
 			$('#channelDialog').dialog('open', 'center');
 		},
-		customform:function(recorder, timeshift_id, program_id){
+		customform:function(recorder, mirakc_timeshift_id, program_id = 0){
 			$('#floatBox4Dialog').dialog('close');
-			$.get('/reservationform.php', { recorder: recorder, timeshift_id: timeshift_id, pgm_id: program_id }, function(data) {
+			$.get('/reservationform.php', { recorder: recorder, mirakc_timeshift_id: mirakc_timeshift_id, pgm_id: program_id }, function(data) {
 				if(data.match(/^error/i)){
 					alert(data);
 				}
@@ -175,7 +191,7 @@
 			var id_channel_id = $('#id_channel_id').val();
 			var id_channel_disc = $('#id_channel_disc').val();
 			var id_recorder = $('#id_recorder').val();
-			var id_timeshift_id = $('#id_timeshift_id').val();
+			var id_mirakc_timeshift_id = $('#id_mirakc_timeshift_id').val();
 			var id_record_mode = $('#id_record_mode').val();
 			var id_title = $('#id_title').val();
 			var id_pre_title = $('#id_pre_title').val();
@@ -220,7 +236,7 @@
 							  priority: id_priority,
 							  ts_del: id_ts_del,
 							  recorder: id_recorder,
-							  timeshift_id: id_timeshift_id
+							  mirakc_timeshift_id: id_mirakc_timeshift_id
 			}, function(data) {
 				var recv = data.match(/error/i);
 				document.getElementById("id_customrec").disabled = true;
@@ -494,7 +510,7 @@ h2 {padding: 4px}
 #tvtable div.prg_subtitle {font-size:80%;}
 #tvtable div.prg_desc {font-size:80%;}
 
-#tvtable div.prg_start, #tvtable div.prg_duration, #tvtable div.prg_channel, #tvtable div.timeshift_id, #tvtable div.prg_id, #tvtable div.prg_key_id, #tvtable div.prg_tuner, #tvtable div.prg_channel_id, #tvtable div.prg_genre, #tvtable div.prg_sub_genre, #tvtable div.prg_keyword {display: none;}
+#tvtable div.prg_start, #tvtable div.prg_duration, #tvtable div.prg_channel, #tvtable div.mirakc_timeshift_id, #tvtable div.prg_id, #tvtable div.prg_key_id, #tvtable div.prg_tuner, #tvtable div.prg_channel_id, #tvtable div.prg_genre, #tvtable div.prg_sub_genre, #tvtable div.prg_keyword {display: none;}
 
 #tvtable div.ctg-hide,            #category_select a.ctg-hide        {background-color: #F8F8F8; color:#888;}
 #tvtable div.ctg-hide .prg_title, #category_select a.ctg-hide .prg_title{color:#666;}
@@ -690,8 +706,8 @@ h2 {padding: 4px}
    </div>
    <div class="ch_ctrl">
     <a style="color:white;" href="/timeshiftTable.php?ch={$program.channel_disc}">単局</a>
-    {if $REALVIEW == 1 && isset($program.type)}<a style="background-color: limegreen; color: black;" href="{$realview_cmd}?recorder={$program.id}&timeshift_id={$program.timeshift_id}&name={$program.station_name}" target="_blank">{$program.type}</a>
-     {if $TRANSCODE_STREAM}<a style="color: white; background-color: royalblue;" href="{$realview_cmd}?recorder={$program.id}&timeshift_id={$program.timeshift_id}&name={$program.station_name}&trans=ON" id="trans_url_{$smarty.foreach.loop.index}" target="_blank">視聴</a>{/if}
+    {if $REALVIEW == 1 && isset($program.type)}<a style="background-color: limegreen; color: black;" href="{$realview_cmd}?recorder={$program.id}&mirakc_timeshift_id={$program.mirakc_timeshift_id}&name={$program.station_name}" target="_blank">{$program.type}</a>
+     {if $TRANSCODE_STREAM}<a style="color: white; background-color: royalblue;" href="{$realview_cmd}?recorder={$program.id}&mirakc_timeshift_id={$program.mirakc_timeshift_id}&name={$program.station_name}&trans=ON" id="trans_url_{$smarty.foreach.loop.index}" target="_blank">視聴</a>{/if}
     {/if}
    </div>
   </div>
@@ -734,7 +750,7 @@ h2 {padding: 4px}
           <div class="prg_start">{$item.prg_start}</div>
           <div class="prg_duration">{$item.duration}</div>
           <div class="prg_id">{$item.id}</div>
-          <div class="timeshift_id">{$item.rec_id}</div>
+          <div class="mirakc_timeshift_id">{$item.rec_id}</div>
           <div class="prg_tuner">{$item.tuner}</div>
           <div class="prg_key_id">{$item.key_id}</div>
           <div class="prg_channel_id">{$item.channel_id}</div>

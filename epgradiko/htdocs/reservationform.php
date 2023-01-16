@@ -18,10 +18,16 @@ if( isset( $_GET['program_id'] )){
 	$mode = 'R';
 }else if( isset( $_GET['recorder'] )){
 	$recorder = $_GET['recorder'];
-	$mode = 'T';
+	if( substr( $recorder, 0, 3 ) == 'EX_' ){
+		$mode = 'F';
+		$station = substr( $reecorder, 3 );
+		$starttime = isset( $_GET['starttime'] ) ? $_GET['starttime'] : '';
+	}else{
+		$mode = 'T';
+		$mirakc_timeshift_id = isset( $_GET['mirakc_timeshift_id'] ) ? (int)$_GET['mirakc_timeshift_id'] : 0;
+	}
 }
 
-$timeshift_id = isset( $_GET['timeshift_id'] ) ? (int)$_GET['timeshift_id'] : 0;
 $pgm_id = isset( $_GET['pgm_id'] ) ? (int)$_GET['pgm_id'] : 0;
 $keyword_id = isset( $_GET['keyword_id'] ) ? (int)$_GET['keyword_id'] : 0;
 
@@ -72,7 +78,7 @@ try {
 			$complete = 0;
 
 			$recorder = '';
-			$timeshift_id = 0;
+			$mirakc_timeshift_id = 0;
 
 			break;
 		case 'R':
@@ -108,13 +114,13 @@ try {
 			$complete = $reserve->complete;
 
 			$recorder = '';
-			$timeshift_id = 0;
+			$mirakc_timeshift_id = 0;
 
 			break;
 		case 'T':
-			$ts_base_addr = 'http://'.$settings->timeshift_address.'/api/timeshift/';
+			$ts_base_addr = 'http://'.$settings->mirakc_timeshift_address.'/api/timeshift/';
 			$channel_raw = json_decode(file_get_contents($ts_base_addr.urlencode($recorder)),TRUE);
-			$program_raw = json_decode(file_get_contents($ts_base_addr.urlencode($recorder).'/records/'.$timeshift_id),TRUE);
+			$program_raw = json_decode(file_get_contents($ts_base_addr.urlencode($recorder).'/records/'.$mirakc_timeshift_id),TRUE);
 			if( !isset($program_id) || !$program_id ){
 				$autorec = 0;
 				$category_id = $program_raw['program']['genres'][0]['lv1'] + 1;
@@ -134,8 +140,44 @@ try {
 				$description = $program_raw['program']['description'];
 			}
 			if( !$program_raw['recording'] ){
-				$starttime = strftime("%Y-%m-%d %H:%M:%S", (int)($program_raw['startTime'] / 1000));
-				$endtime = strftime("%Y-%m-%d %H:%M:%S", (int)(($program_raw['startTime'] + $program_raw['duration']) / 1000));
+				$starttime = date("Y-m-d H:i:s", (int)($program_raw['startTime'] / 1000));
+				$endtime = date("Y-m-d H:i:s", (int)(($program_raw['startTime'] + $program_raw['duration']) / 1000));
+			}
+			$priority = MANUAL_REV_PRIORITY;
+			$autorec_mode  = (int)$settings->normalrec_mode;
+			$discontinuity = '';
+  
+			$rec_dir = $settings->normalrec_dir;
+			$trans_dir = $settings->normalrec_trans_dir;
+
+			$complete = 0;
+
+			break;
+		case 'F':
+			$ts_base_addr = 'http://'.$settings->mirakc_timeshift_address.'/api/timeshift/';
+			$channel_raw = json_decode(file_get_contents($ts_base_addr.urlencode($recorder)),TRUE);
+			$program_raw = json_decode(file_get_contents($ts_base_addr.urlencode($recorder).'/records/'.$mirakc_timeshift_id),TRUE);
+			if( !isset($program_id) || !$program_id ){
+				$autorec = 0;
+				$category_id = $program_raw['program']['genres'][0]['lv1'] + 1;
+				$type = $channel_raw['service']['channel']['type'];
+
+				$channel = $channel_raw['service']['channel']['channel'];
+				if( $channel_raw['service']['channel']['type'] == 'GR' ){
+					$channel_disc = $channel_raw['service']['channel']['type'].$channel_raw['service']['channel']['channel'].'_'.$channel_raw['service']['serviceId'];
+				}else{
+					$channel_disc = $channel_raw['service']['channel']['type'].'_'.$channel_raw['service']['serviceId'];
+				}
+				$channel_obj = new DBRecord( CHANNEL_TBL, "channel_disc", $channel_disc );
+				$channel_id = $channel_obj->id;
+				$title = $program_raw['program']['name'];
+				$pre_title = '';
+				$post_title = '';
+				$description = $program_raw['program']['description'];
+			}
+			if( !$program_raw['recording'] ){
+				$starttime = date("Y-m-d H:i:s", (int)($program_raw['startTime'] / 1000));
+				$endtime = date("Y-m-d H:i:s", (int)(($program_raw['startTime'] + $program_raw['duration']) / 1000));
 			}
 			$priority = MANUAL_REV_PRIORITY;
 			$autorec_mode  = (int)$settings->normalrec_mode;
@@ -187,7 +229,7 @@ try {
 	$smarty->assign( "channel_id", $channel_id );
 	$smarty->assign( "channel_disc", $channel_disc );
 	$smarty->assign( "recorder", $recorder );
-	$smarty->assign( "timeshift_id", $timeshift_id );
+	$smarty->assign( "mirakc_timeshift_id", $mirakc_timeshift_id );
 	$smarty->assign( "record_mode" , $RECORD_MODE );
 	$smarty->assign( "autorec_mode" , $autorec_mode );
 	$smarty->assign( "autorec" , $autorec );

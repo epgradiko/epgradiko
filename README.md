@@ -199,7 +199,6 @@ table_name.php ・・・・・・（新規）旧config.phpより分岐
 airwavesSheep.php・・・・・単チャンネルEPG取得更新スクリプト（sheepdog.php・collie.phpから呼ばれる）  
 collie.php ・・・・・・・・衛星波EPG取得更新管理（shepherd.phpから呼ばれる）  
 gen-thumbnail.sh ・・・・・サムネイル作成。ラジオ番組サムネイル追加対応。  
-cancelReservation.php・・・JavaScriptから呼ばれる予約取り消し。  
 recomplete.php ・・・・・・録画終了処理  
 repairEpg.php・・・・・・・番組構成の乱れ修正・EPG取得更新スクリプト（storeProgram.inc.phpから呼ばれる）  
 scoutEpg.php ・・・・・・・録画前・単チャンネルEPG取得更新スクリプト（ATから呼ばれる）。録画終了時呼び出し対応。  

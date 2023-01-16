@@ -79,7 +79,7 @@ foreach( $reserves as $reserve ) {
     $arr['type'] = get_content_type( $trans_set[2] );
     $arr['pubdate'] = gmdate('D, j M Y H:i:s', strtotime($reserve->starttime)).' GMT';
     $arr['guid'] = 'epgradiko'.$reserve->id; //$reserve->starttime;
-    $arr['duration'] = strftime("%T",strtotime($reserve->endtime)-strtotime($reserve->starttime)-60*60*9);
+    $arr['duration'] = date("H:i:s",strtotime($reserve->endtime)-strtotime($reserve->starttime)-60*60*9);
     $arr['category'] = "";
     array_push( $records, $arr );
     $site_image_url = $arr['thumb'];

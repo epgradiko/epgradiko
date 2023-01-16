@@ -24,8 +24,8 @@ function tuner(){
 		var mirakurun         = $('input[name=mirakurun]:checked').val();
 		var mirakurun_address = $('#id_mirakurun_address').val();
 		var mirakurun_uds     = $('#id_mirakurun_uds').val();
-		var timeshift         = $('input[name=timeshift]:checked').val();
-		var timeshift_address = $('#id_timeshift_address').val();
+		var mirakc_timeshift  = $('input[name=mirakc_timeshift]:checked').val();
+		var mirakc_timeshift_address = $('#id_mirakc_timeshift_address').val();
 		var gr_tuners         = $('#id_gr_tuners').val();
 		var gr_epg_max        = $('#id_gr_epg_max').val();
 		var bs_tuners         = $('#id_bs_tuners').val();
@@ -36,8 +36,8 @@ function tuner(){
 			mirakurun: mirakurun,
 			mirakurun_address: mirakurun_address,
 			mirakurun_uds: mirakurun_uds,
-			timeshift: timeshift,
-			timeshift_address: timeshift_address,
+			mirakc_timeshift: mirakc_timeshift,
+			mirakc_timeshift_address: mirakc_timeshift_address,
 			gr_tuners: gr_tuners,
 			gr_epg_max: gr_epg_max,
 			bs_tuners: bs_tuners,
@@ -78,12 +78,12 @@ $(function() {
 			}
 		}
 	}),
-	$("[name='timeshift']").click(function(){
-		var timeshift = $("[name='timeshift']:checked").val();
-		if ( timeshift == 'tcp' ){
-			$("#id_timeshift_address").prop("disabled", false);
+	$("[name='mirakc_timeshift']").click(function(){
+		var mirakc_timeshift = $("[name='mirakc_timeshift']:checked").val();
+		if ( mirakc_timeshift == 'tcp' ){
+			$("#id_mirakc_timeshift_address").prop("disabled", false);
 		}else{
-			$("#id_timeshift_address").prop("disabled", true);
+			$("#id_mirakc_timeshift_address").prop("disabled", true);
 		}
 	});
 });
@@ -140,17 +140,17 @@ form label.error, label.err { color: red; }
     </table>
   </div>
 
-  <h3>timeshift利用設定</h3>
+  <h3>mirakc_timeshift利用設定</h3>
   <div class="setting">
-   <div class="caption">timeshiftサーバのアドレスを指定してください。timeshiftを利用しない場合、「なし」にしてください。</div>
+   <div class="caption">mirakc_timeshiftサーバのアドレスを指定してください。mirakc_timeshiftを利用しない場合、「なし」にしてください。</div>
     <table>
      <tr>
-      <td><input type="radio" name="timeshift" value="tcp"{if $settings->timeshift == "tcp"} checked{/if}>TCP/IP(アドレス:ポートを指定)</td>
-      <td><input type="radio" name="timeshift" value="none"{if $settings->timeshift == "none"} checked{/if}>なし</td>
+      <td><input type="radio" name="mirakc_timeshift" value="tcp"{if $settings->mirakc_timeshift == "tcp"} checked{/if}>TCP/IP(アドレス:ポートを指定)</td>
+      <td><input type="radio" name="mirakc_timeshift" value="none"{if $settings->mirakc_timeshift == "none"} checked{/if}>なし</td>
      </tr>
      <tr>
-      <td><input type="text" name="timeshift_address" id="id_timeshift_address"
-            value="{$settings->timeshift_address}" size="30" class="required"{if $settings->timeshift != "tcp"} disabled{/if} /></td>
+      <td><input type="text" name="mirakc_timeshift_address" id="id_mirakc_timeshift_address"
+            value="{$settings->mirakc_timeshift_address}" size="30" class="required"{if $settings->mirakc_timeshift != "tcp"} disabled{/if} /></td>
      </tr>
     </table>
   </div>

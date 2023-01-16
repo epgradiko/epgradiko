@@ -31,7 +31,7 @@ if( file_exists( INSTALL_PATH . '/settings/daily_tasks' ) && is_dir( INSTALL_PAT
 			$ret = shell_exec( $task );
 			if( $ret === FALSE ) reclog('daily_task::'.$task.' 実行失敗', EPGREC_ERROR);
 			else{
-				if( $ret !== NULL ) reclog('daily_task::'.$task.' '.$ret);
+				if( $ret !== NULL ) reclog('daily_task::'.$task.' '.substr($ret, 0, 2000));
 				reclog('日次処理::'.$task.' 実行終了', EPGREC_DEBUG);
 			}
 		}

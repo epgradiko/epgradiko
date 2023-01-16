@@ -40,12 +40,12 @@ function rest_check( $ch_disk, $sql_time ){
 	}else
 		return TRUE;			//停波中
 }
-	run_user_regulate();
-	$settings      = Settings::factory();
-	$tuners        = (int)$settings->gr_tuners;
-	$usable_tuners = (int)$argv[1];
+run_user_regulate();
+$settings      = Settings::factory();
+$tuners        = (int)$settings->gr_tuners;
+$usable_tuners = (int)$argv[1];
 
-	$map           = array_filter(array_unique($GR_CHANNEL_MAP), function($e){return $e!=='NC';});
+$map           = array_filter(array_unique($GR_CHANNEL_MAP), function($e){return $e!=='NC';});
 // 地上波を処理する
 if( $usable_tuners !== 0 ){
 	$rec_time  = FIRST_REC;
@@ -214,5 +214,5 @@ GATHER_SHEEPS:
 		}
 	}while( !$end_flag || $pro_cnt );
 }
-	exit();
+exit();
 ?>

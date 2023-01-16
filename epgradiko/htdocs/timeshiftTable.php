@@ -5,6 +5,7 @@ include_once( $script_path . '/../config.php');
 include_once( INSTALL_PATH . '/include/DBRecord.class.php' );
 include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
 include_once( INSTALL_PATH . '/include/reclib.php' );
+include_once( INSTALL_PATH . '/include/etclib.php' );
 include_once( INSTALL_PATH . '/include/Settings.class.php' );
 include_once( INSTALL_PATH . '/include/epg_const.php' );
 include_once( INSTALL_PATH . '/include/menu_list.php' );
@@ -52,67 +53,124 @@ $height_per_sec  = (float)$height_per_hour / 3600;
 $program_length = (int)$settings->program_length;
 if( isset( $_GET['length']) ) $program_length = (int) $_GET['length'];
 
+$type = '';
+if( isset( $_GET['type']) ) $type = $_GET['type'];
+
 // 番組表
 // 表示チャンネル
 $programs = array();
 $single_ch_disc = $single_ch_sid = $single_ch_name = $single_ch = null;
 $single_gr_selects = $single_bs_selects = $single_cs_selects = $single_ex_selects = null;
-$channel_map = array();
-
-$ts_base_addr = 'http://'.$settings->timeshift_address.'/api/timeshift';
-$channels_raw = json_decode(file_get_contents($ts_base_addr),TRUE);
 $channels = array();
-foreach($channels_raw as $channel_raw){
-	if( $channel_raw['service']['channel']['type'] == 'GR' ){
-		$channel_disc = $channel_raw['service']['channel']['type'].$channel_raw['service']['channel']['channel'].'_'.$channel_raw['service']['serviceId'];
-	}else{
-		$channel_disc = $channel_raw['service']['channel']['type'].'_'.$channel_raw['service']['serviceId'];
+$mirakc_types = 0;
+if( isset( $settings->mirakc_timeshift ) && $settings->mirakc_timeshift !== 'none' ){
+	switch( $settings->mirakc_timeshift ){
+		case 'tcp':
+			$ts_base_addr = 'http://'.$settings->mirakc_timeshift_address.'/api/timeshift';
+			$uds = '';
+			break;
+		case 'uds':
+			$ts_base_addr = 'http://mirakc/api/timeshift';
+			$uds = $settings->mirakc_timeshift_uds;
+			break;
+		default:
+			$ts_base_addr = '';
+			$uds = '';
 	}
-	$ch_duration = (int)($channel_raw['duration'] / 1000);
-	$ch_duration_d = (int)($ch_duration / ( 24 * 60 * 60 ));
-	$ch_duration_h = (int)(($ch_duration - $ch_duration_d * 24 * 60 * 60) / (60 * 60));
-	$ch_duration_m = (int)(($ch_duration - ($ch_duration_d * 24 + $ch_duration_h) * 60 * 60) / 60);
-	$ch_duration_dhm = '';
-	if($ch_duration_d) $ch_duration_dhm .= $ch_duration_d.'日';
-	if($ch_duration_h) $ch_duration_dhm .= $ch_duration_h.'時間';
-	if($ch_duration_m) $ch_duration_dhm .= $ch_duration_m.'分';
-	array_push( $channels, ["id" => $channel_raw['name'],
-				"type" => $channel_raw['service']['channel']['type'],
-				"channel" => $channel_raw['service']['channel']['channel'],
-				"name" => $channel_raw['service']['name'],
-				"channel_disc" => $channel_disc,
-				"sid" => $channel_raw['service']['serviceId'],
-				"skip" => '0',
-				"network_id" => $channel_raw['service']['networkId'],
-				"ts_id" => $channel_raw['service']['transportStreamId'],
-				"logo" => '',
-				"starttime" => strftime("%m/%d %H:%M:%S", (int)($channel_raw['startTime'] / 1000)),
-				"duration" => $ch_duration_dhm,
-	]);
-	$ch_first_starttime[$channel_disc] = strftime("%Y-%m-%d %H:%M:%S", time());
-	$ch_last_endtime[$channel_disc] = strftime("%Y-%m-%d %H:%M:%S", 0);
-	$programs_raw = json_decode(file_get_contents($ts_base_addr.'/'.urlencode($channel_raw['name']).'/records'),TRUE);
-	foreach( $programs_raw as $program_raw ){
-		$program_starttime = strftime("%Y-%m-%d %H:%M:%S", (int)($program_raw['startTime'] / 1000));
-		$program_endtime = strftime("%Y-%m-%d %H:%M:%S", (int)(($program_raw['startTime'] + $program_raw['duration']) / 1000));
-		if( $ch_first_starttime[$channel_disc] > $program_starttime) $ch_first_starttime[$channel_disc] = $program_starttime;
-		if( $ch_last_endtime[$channel_disc] < $program_endtime) $ch_last_endtime[$channel_disc] = $program_endtime;
+	$channels_raw = json_decode(url_get_contents($ts_base_addr, $uds),TRUE);
+	foreach($channels_raw as $channel_raw){
+		if( $channel_raw['service']['channel']['type'] == 'GR' ){
+			$channel_disc = $channel_raw['service']['channel']['type'].$channel_raw['service']['channel']['channel'].'_'.$channel_raw['service']['serviceId'];
+		}else{
+			$channel_disc = $channel_raw['service']['channel']['type'].'_'.$channel_raw['service']['serviceId'];
+		}
+		$ch_duration = (int)($channel_raw['duration'] / 1000);
+		$ch_duration_d = (int)($ch_duration / ( 24 * 60 * 60 ));
+		$ch_duration_h = (int)(($ch_duration - $ch_duration_d * 24 * 60 * 60) / (60 * 60));
+		$ch_duration_m = (int)(($ch_duration - ($ch_duration_d * 24 + $ch_duration_h) * 60 * 60) / 60);
+		$ch_duration_dhm = '';
+		if($ch_duration_d) $ch_duration_dhm .= $ch_duration_d.'日';
+		if($ch_duration_h) $ch_duration_dhm .= $ch_duration_h.'時間';
+		if($ch_duration_m) $ch_duration_dhm .= $ch_duration_m.'分';
+		array_push( $channels, ["id" => $channel_raw['name'],
+					"type" => $channel_raw['service']['channel']['type'],
+					"channel" => $channel_raw['service']['channel']['channel'],
+					"name" => $channel_raw['service']['name'],
+					"channel_disc" => $channel_disc,
+					"sid" => $channel_raw['service']['serviceId'],
+					"skip" => '0',
+					"network_id" => $channel_raw['service']['networkId'],
+//					"ts_id" => $channel_raw['service']['transportStreamId'],
+					"logo" => '',
+					"starttime" => date("m/d H:i:s", (int)($channel_raw['startTime'] / 1000)),
+					"duration" => $ch_duration_dhm,
+		]);
+		$ch_first_starttime[$channel_disc] = date("Y-m-d H:i:s", time());
+		$ch_last_endtime[$channel_disc] = date("Y-m-d H:i:s", 0);
+		$programs_raw = json_decode(file_get_contents($ts_base_addr.'/'.urlencode($channel_raw['name']).'/records'),TRUE);
+		foreach( $programs_raw as $program_raw ){
+			$program_starttime = date("Y-m-d H:i:s", (int)($program_raw['startTime'] / 1000));
+			$program_endtime = date("Y-m-d H:i:s", (int)(($program_raw['startTime'] + $program_raw['duration']) / 1000));
+			if( $ch_first_starttime[$channel_disc] > $program_starttime) $ch_first_starttime[$channel_disc] = $program_starttime;
+			if( $ch_last_endtime[$channel_disc] < $program_endtime) $ch_last_endtime[$channel_disc] = $program_endtime;
+		}
+	}
+	$mirakc_types = count(array_unique(array_column( $channels, 'type' )));
+	$mirakc_channels = $channels;
+}
+if( $settings->ex_tuners && isset($settings->radiko_timeshift) && $settings->radiko_timeshift ){
+	// Get radiko stations
+	$radiko_stations = "http://radiko.jp/v3/station/region/full.xml";
+	$radiko_stations_contents = @file_get_Contents($radiko_stations);
+	if( $radiko_stations_contents !== false ){
+		$regions_stations = simplexml_load_string($radiko_stations_contents);
+		foreach( $regions_stations->stations as $regions ){
+			foreach( $regions->station as $station) {
+				if( $station->timefree == 1 ){
+					$base_date = strtotime("-5 hour");
+					$start_time = date("Y-m-d", $base_date - 7 * 24 * 3600).' 05:00:00';
+					$db_programs = DBRecord::createRecords( PROGRAM_TBL, "WHERE starttime < now() AND starttime >= '".$start_time."'".
+							 " AND timeshift <> 2 AND channel_disc='EX_".$station->id."' ORDER BY starttime");
+					if( count($db_programs) ){
+						array_push( $channels, ["id" => 'EX_'.$station->id,
+									"type" => 'EX',
+									"channel" => 'EX_'.$station->id,
+									"name" => $station->name,
+									"channel_disc" => 'EX_'.$station->id,
+									"sid" => $station->id,
+									"skip" => '0',
+									"network_id" => 0,
+//									"ts_id" => 0,
+									"logo" => '',
+									"starttime" => $db_programs[0]->starttime,
+									"duration" => 0,
+						]);
+						$ch_first_starttime['EX_'.$station->id] = $db_programs[0]->starttime;
+						$ch_last_endtime['EX_'.$station->id] = date("Y-m-d H:i:s", time());
+					}
+				}
+			}
+		}
 	}
 }
+if( !$type || $type == 'SELECT' ){
+	if( $mirakc_types ){
+		if( $mirakc_types > 1){
+			$type = 'SELECT';
+			$selected_channel = TRUE;
+			$channel_map_keys = array_column( $mirakc_channels, 'channel_disc' );
+		}else $type = $mirakc_channels[0]['type'];
+	}else $type = 'EX';
+}
 // 地上=GR/BS=BS
-if( isset( $_GET['type'] ) ){
-	$type = $_GET['type'];
+if( $type !== 'SELECT' ){
 	$selected_channel = FALSE;
 	$channel_map_keys = array();
 	foreach( $channels as $channel ){
-		if( $channel['type'] == $type || $_GET['type'] == 'SELECT' ){
+		if( $channel['type'] == $type ){
 			$channel_map_keys[] = $channel['channel_disc'];
 		}
 	}
-}else{
-	$selected_channel = TRUE;
-	$type = 'SELECT';
-	$channel_map_keys = array_column( $channels, 'channel_disc' );
 }
 
 if( isset($_GET['ch']) ){
@@ -132,8 +190,8 @@ if( isset($_GET['ch']) ){
 	$channel_map_keys[] = $single_ch_disc;
 }
 
-$first_starttime = strftime("%Y-%m-%d %H:%M:%S", time());
-$last_endtime = strftime("%Y-%m-%d %H:%M:%S", 0);
+$first_starttime = date("Y-m-d H:i:s", time());
+$last_endtime = date("Y-m-d H:i:s", 0);
 foreach( $channel_map_keys as $channel_disc ){
 	if( $first_starttime > $ch_first_starttime[$channel_disc] ) $first_starttime = $ch_first_starttime[$channel_disc];
 	if( $last_endtime < $ch_last_endtime[$channel_disc] ) $last_endtime = $ch_last_endtime[$channel_disc];
@@ -226,100 +284,143 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 		foreach( $chd as $crec ){
 			$reca = array();
 			try {
-				$programs_raw = json_decode(file_get_contents($ts_base_addr.'/'.urlencode($crec['id']).'/records'),TRUE);
-				foreach( $programs_raw as $program_raw ){
-					$program_starttime = strftime("%Y-%m-%d %H:%M:%S", (int)($program_raw['startTime'] / 1000));
-					$program_endtime = strftime("%Y-%m-%d %H:%M:%S", (int)(($program_raw['startTime'] + $program_raw['duration']) / 1000));
-					if( $program_endtime > toDatetime($ch_top_time) && $program_starttime < toDatetime($ch_last_time) ){
-						if( isset($program_raw['program']['description']) ){
-							$program_desc = $program_raw['program']['description'];
-						}else{
-							$program_desc = '';
+				if( $settings->mirakc_timeshift !== 'none' && $crec['type'] !== 'EX' ){
+					$programs_raw = json_decode(url_get_contents($ts_base_addr.'/'.urlencode($crec['id']).'/records', $uds),TRUE);
+					foreach( $programs_raw as $program_raw ){
+						$program_starttime = date("Y-m-d H:i:s", (int)($program_raw['startTime'] / 1000));
+						$program_endtime = date("Y-m-d H:i:s", (int)(($program_raw['startTime'] + $program_raw['duration']) / 1000));
+						if( $program_endtime > toDatetime($ch_top_time) && $program_starttime < toDatetime($ch_last_time) ){
+							if( isset($program_raw['program']['description']) ){
+								$program_desc = $program_raw['program']['description'];
+							}else{
+								$program_desc = '';
+							}
+							if( isset($program_raw['program']['genres'][0]['lv1']) ){
+								$program_genre = $program_raw['program']['genres'][0]['lv1'] + 1;
+							}else{
+								$program_genre = 0;
+							}
+							$program_disc = md5( $program_raw['program']['name'] );
+							$db_programs = DBRecord::createRecords( PROGRAM_TBL, "WHERE channel_disc = '".$crec['channel_disc']."' AND eid=".$program_raw['program']['eventId'] );
+							if( count($db_programs) ){
+								$program_id = $db_programs[0]->id;
+								$title = $db_programs[0]->title;
+								$description = $db_programs[0]->description;
+								$free_CA_mode = $db_programs[0]->free_CA_mode;
+								$category_id = $db_programs[0]->category_id;
+								$sub_genre = $db_programs[0]->sub_genre;
+								$genre2 = $db_programs[0]->genre2;
+								$sub_genre2 = $db_programs[0]->sub_genre2;
+								$genre3 = $db_programs[0]->genre3;
+								$sub_genre3 = $db_programs[0]->sub_genre3;
+								$video_type = $db_programs[0]->video_type;
+								$audio_type = $db_programs[0]->audio_type;
+								$multi_type = $db_programs[0]->multi_type;
+								$program_disc = $db_programs[0]->program_disc;
+								$key_id = $db_programs[0]->key_id;
+								$key_id = 1;
+								$tuner = '1';
+								$split_time = $db_programs[0]->split_time;
+								$rec_ban_parts = $db_programs[0]->rec_ban_parts;
+								$pre_title = $db_programs[0]->pre_title;
+								$post_title = $db_programs[0]->post_title;
+								$image_url = $db_programs[0]->image_url;
+							}else{
+								$program_id = 0;
+								$title = $program_raw['program']['name'];
+								$description = $program_desc;
+								$free_CA_mode = $program_raw['program']['isFree'];
+								$category_id = $program_genre;
+								$sub_genre = 16;
+								$genre2 = 0;
+								$sub_genre2 = 16;
+								$genre3 = 0;
+								$sub_genre3 = 16;
+								$video_type = 1;
+								$audio_type = 1;
+								$multi_type = 1;
+								$program_disc = $program_disc;
+								$key_id = 0;
+								$tuner = '';
+								$split_time = 0;
+								$rec_ban_parts = '';
+								$pre_title = '';
+								$post_title = '';
+								$image_url = '';
+							}
+							array_push( $reca, [
+										"id" => $program_id,
+										"rec_id" => $program_raw['id'],
+										"channel_disc" => $crec['channel_disc'],
+										"channel_id" => $crec['id'],
+										"type" => $crec['type'],
+										"channel" => $crec['channel'],
+										"eid" => $program_raw['program']['eventId'],
+										"title" => $title,
+										"description" => $description,
+										"free_CA_mode" => $free_CA_mode,
+										"category_id" => $category_id,
+										"sub_genre" => $sub_genre,
+										"genre2" => $genre2,
+										"sub_genre2" => $sub_genre2,
+										"genre3" => $genre3,
+										"sub_genre3" => $sub_genre3,
+										"video_type" => $video_type,
+										"audio_type" => $audio_type,
+										"multi_type" => $multi_type,
+										"starttime" => $program_starttime,
+										"endtime" => $program_endtime,
+										"program_disc" => $program_disc,
+										"key_id" => $key_id,
+										"tuner" => $tuner,
+										"split_time" => $split_time,
+										"rec_ban_parts" => $rec_ban_parts,
+										"pre_title" => $pre_title,
+										"post_title" => $post_title,
+										"image_url" => $image_url,
+										"recording" => $program_raw['recording'],
+							]);
 						}
-						if( isset($program_raw['program']['genres'][0]['lv1']) ){
-							$program_genre = $program_raw['program']['genres'][0]['lv1'] + 1;
-						}else{
-							$program_genre = 0;
-						}
-						$program_disc = md5( $program_raw['program']['name'] );
-						$db_programs = DBRecord::createRecords( PROGRAM_TBL, 'WHERE channel_disc = "'.$crec['channel_disc'].'" AND eid='.$program_raw['program']['eventId'] );
-						if( count($db_programs) ){
-							$program_id = $db_programs[0]->id;
-							$title = $db_programs[0]->title;
-							$description = $db_programs[0]->description;
-							$free_CA_mode = $db_programs[0]->free_CA_mode;
-							$category_id = $db_programs[0]->category_id;
-							$sub_genre = $db_programs[0]->sub_genre;
-							$genre2 = $db_programs[0]->genre2;
-							$sub_genre2 = $db_programs[0]->sub_genre2;
-							$genre3 = $db_programs[0]->genre3;
-							$sub_genre3 = $db_programs[0]->sub_genre3;
-							$video_type = $db_programs[0]->video_type;
-							$audio_type = $db_programs[0]->audio_type;
-							$multi_type = $db_programs[0]->multi_type;
-							$program_disc = $db_programs[0]->program_disc;
-							$key_id = $db_programs[0]->key_id;
-							$key_id = 1;
-							$tuner = '1';
-							$split_time = $db_programs[0]->split_time;
-							$rec_ban_parts = $db_programs[0]->rec_ban_parts;
-							$pre_title = $db_programs[0]->pre_title;
-							$post_title = $db_programs[0]->post_title;
-							$image_url = $db_programs[0]->image_url;
-						}else{
-							$program_id = 0;
-							$title = $program_raw['program']['name'];
-							$description = $program_desc;
-							$free_CA_mode = $program_raw['program']['isFree'];
-							$category_id = $program_genre;
-							$sub_genre = 16;
-							$genre2 = 0;
-							$sub_genre2 = 16;
-							$genre3 = 0;
-							$sub_genre3 = 16;
-							$video_type = 1;
-							$audio_type = 1;
-							$multi_type = 1;
-							$program_disc = $program_disc;
-							$key_id = 0;
-							$tuner = '';
-							$split_time = 0;
-							$rec_ban_parts = '';
-							$pre_title = '';
-							$post_title = '';
-							$image_url = '';
-						}
+					}
+				}
+				if( $settings->ex_tuners && isset($settings->radiko_timeshift) && $settings->radiko_timeshift && $crec['type'] == 'EX' ){
+					$base_date = strtotime("-5 hour");
+					$start_time = date("Y-m-d", $base_date - 7 * 24 * 3600).' 05:00:00';
+					$db_programs = DBRecord::createRecords( PROGRAM_TBL, "WHERE starttime<'".toDatetime($ch_last_time)."' AND endtime >= '".toDatetime($ch_top_time)."'".
+							" AND starttime < now()".
+							" AND timeshift <> 2 AND channel_disc='".$crec['channel_disc']."' ORDER BY starttime");
+					foreach( $db_programs as $program ){
 						array_push( $reca, [
-									"id" => $program_id,
-									"rec_id" => $program_raw['id'],
+									"id" => $program->id,
+									"rec_id" => date('YmdHMS', strtotime($program->starttime)),
 									"channel_disc" => $crec['channel_disc'],
 									"channel_id" => $crec['id'],
 									"type" => $crec['type'],
 									"channel" => $crec['channel'],
-									"eid" => $program_raw['program']['eventId'],
-									"title" => $title,
-									"description" => $description,
-									"free_CA_mode" => $free_CA_mode,
-									"category_id" => $category_id,
-									"sub_genre" => $sub_genre,
-									"genre2" => $genre2,
-									"sub_genre2" => $sub_genre2,
-									"genre3" => $genre3,
-									"sub_genre3" => $sub_genre3,
-									"video_type" => $video_type,
-									"audio_type" => $audio_type,
-									"multi_type" => $multi_type,
-									"starttime" => strftime($program_starttime),
-									"endtime" => strftime($program_endtime),
-									"program_disc" => $program_disc,
-									"key_id" => $key_id,
-									"tuner" => $tuner,
-									"split_time" => $split_time,
-									"rec_ban_parts" => $rec_ban_parts,
-									"pre_title" => $pre_title,
-									"post_title" => $post_title,
-									"image_url" => $image_url,
-									"recording" => $program_raw['recording'],
+									"eid" => $program->eid,
+									"title" => $program->title,
+									"description" => $program->description,
+									"free_CA_mode" => $program->free_CA_mode,
+									"category_id" => $program->category_id,
+									"sub_genre" => $program->sub_genre,
+									"genre2" => $program->genre2,
+									"sub_genre2" => $program->sub_genre2,
+									"genre3" => $program->genre3,
+									"sub_genre3" => $program->sub_genre3,
+									"video_type" => $program->video_type,
+									"audio_type" => $program->audio_type,
+									"multi_type" => $program->multi_type,
+									"starttime" => $program->starttime,
+									"endtime" => $program->endtime,
+									"program_disc" => $program->program_disc,
+									"key_id" => $program->key_id,
+									"tuner" => '1',
+									"split_time" => $program->split_time,
+									"rec_ban_parts" => $program->rec_ban_parts,
+									"pre_title" => $program->pre_title,
+									"post_title" => $program->post_title,
+									"image_url" => $program->image_url,
+									"recording" => (bool) strtotime($program_starttime)<=time()&&strtotime($program_endtime)>time(),
 						]);
 					}
 				}
@@ -333,7 +434,7 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 			$programs[$st]['skip'] = $single_ch_disc ? 0 : $crec['skip'];
 			$programs[$st]['channel_disc'] = $crec['channel_disc'];
 			$programs[$st]['station_name'] = $crec['name'];
-			$programs[$st]['timeshift_id'] = $reca[0]['rec_id'];
+			$programs[$st]['mirakc_timeshift_id'] = $reca[0]['rec_id'];
 			$programs[$st]['ch_hash'] = md5($crec['channel_disc']);
 			$programs[$st]['channel'] = $crec['channel'];
 			$programs[$st]['starttime'] = $crec['starttime'];
@@ -346,7 +447,7 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 			$programs[$st]['list'] = array();
 			// シングルチャンネル用
 			if ( $single_ch_disc ) {
-				$single_date = strftime("%Y-%m-%d %H:%M:%S", $top_time + 24 * 3600 * $i);
+				$single_date = date("Y-m-d H:i:s", $top_time + 24 * 3600 * $i);
 				$single_ch      = $programs[$st]['channel'];
 				$single_ch_sid  = $programs[$st]['sid'];
 				$single_ch_name = $programs[$st]['station_name'];
@@ -476,11 +577,11 @@ $get_param2 = $single_ch_disc ? $_SERVER['SCRIPT_NAME'].'?ch='.$single_ch_disc :
 // タイプ選択
 $types = array();
 $i = 0;
-if( isset($channels) ){
+if( isset($mirakc_channels) && $mirakc_types > 1 ){
 	$types[$i]['selected'] = $type==='SELECT' ? 'class="selected"' : '';
 	$types[$i]['link']     = $_SERVER['SCRIPT_NAME'] . '?type=SELECT&length='.$program_length.'&time='.date( 'YmdH', $top_time);
 	$types[$i]['link2']    = $_SERVER['SCRIPT_NAME'] . '?type=SELECT&length='.$program_length;
-	$types[$i]['name']     = '全て';
+	$types[$i]['name']     = 'mirakc';
 	$types[$i]['chs']      = $single_ex_selects;
 	$i++;
 }
@@ -571,7 +672,6 @@ for( $i = 0 ; $i < $iMax; $i++ ) {
 	array_push( $tvtimes, $tmp );
 }
 
-
 $transcode = TRANSCODE_STREAM && $NET_AREA!==FALSE && $NET_AREA!=='H';
 if( $transcode && !TRANS_SCRN_ADJUST ){
 	for( $cnt=0; $cnt<count($TRANSSIZE_SET); $cnt++ )
@@ -603,7 +703,7 @@ $smarty->assign( 'transsize_set', $TRANSSIZE_SET );
 $smarty->assign( 'transsize_set_cnt', $num_all_ch );
 $smarty->assign( 'spool_freesize', spool_freesize() );
 
-$sitetitle = ( $type==='SELECT' ? '全' : ($type==='EX' ? 'ラジオ' : ( $type==='GR' ? '地デジ' : $type )).($single_ch_disc ? '['.$single_ch_name.']' : '') ).'タイムシフト '.
+$sitetitle = ( $type==='SELECT' ? 'mirakc' : ($type==='EX' ? 'ラジオ' : ( $type==='GR' ? '地デジ' : $type )).($single_ch_disc ? '['.$single_ch_name.']' : '') ).'タイムシフト '.
 			date( 'Y', $top_time ) . '年' . date( 'm', $top_time ) . '月' . date( 'd', $top_time ) . '日'. date( 'H', $top_time ) .'時～';
 
 $smarty->assign('sitetitle', $sitetitle );

@@ -3,7 +3,7 @@
 define( 'REALVIEW', TRUE );						// リアルタイム視聴を有効にするときはtrueに(新方式で録画コマンドの標準出力対応が必須・トランスコード対応)
 
 // sendstream 送信単位
-define( 'BUFFERS', 16 * 188 );
+define( 'BUFFERS', 200 * 188 );
 
 //概要の長さ（以降は「…」）
 define( 'DESC_LEN', 220 );
@@ -19,12 +19,13 @@ define( 'TRANSCODE_STREAM', TRUE );					// トランスコードストリーム�
 define( 'TRANSTREAM_CMD', array(
 	'ts' => array(
 		'command' => "%FFMPEG% -re -dual_mono_mode main -loglevel quiet -i %INPUT% ".
-			"-f mp4 ".
-			"-c:v libx264 %SIZE% -maxrate %RATE% ".
-			"-c:a libfdk_aac -ac 2 -ar 48000 ".
-//			"-c:s mov_text -metadata:s:s:0 language=jpn ".
-			"-threads 0 -tune fastdecode,zerolatency ".
-			"-movflags frag_keyframe+empty_moov+default_base_moof %OUTPUT%",
+				"-sn -threads 0 ".
+				"-c:v libx264 %SIZE% -maxrate %RATE% ".
+				"-c:a libfdk_aac -ac 2 -ar 48000 ".
+//				"-c:s mov_text -metadata:s:s:0 language=jpn ".
+				"-tune fastdecode,zerolatency ".
+				"-movflags frag_keyframe+empty_moov+faststart+default_base_moof ".
+				"-f mp4 %OUTPUT%",
 		'tsuffix' => '.mp4',
 	),
 	'aac' => array(

@@ -50,13 +50,10 @@ function link_menu_create( $mode = 'none' )
 		$MENU_LIST = array_merge( $link_add, $MENU_LIST );
 	}
 
-	if( $settings->timeshift == 'tcp' ){
-		$ts_base_addr = 'http://'.$settings->timeshift_address.'/api/timeshift';
-		if( @file_get_contents($ts_base_addr) ){
-			$link_add = array();
-			$link_add[] = array( 'name' => 'Timeshift　　　　　　　', 'url' => 'timeshiftTable.php');
-			$MENU_LIST = array_merge( $link_add, $MENU_LIST );
-		}
+	if( $settings->mirakc_timeshift !== 'none' || $settings->radiko_timeshift !== 'none' ){
+		$link_add = array();
+		$link_add[] = array( 'name' => 'Timeshift　　　　　　　', 'url' => 'timeshiftTable.php');
+		$MENU_LIST = array_merge( $link_add, $MENU_LIST );
 	}
 
 	return $MENU_LIST;

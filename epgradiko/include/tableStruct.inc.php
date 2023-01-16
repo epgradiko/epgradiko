@@ -78,6 +78,7 @@ define( "PROGRAM_STRUCT",
 	"split_time integer not null default '0',".			// 分割予約基準時間(秒)
 	"rec_ban_parts integer not null default '0',".			// 自動予約・分割予約禁止フラグ
 	"image_url varchar(512) default '',".				// 画像情報
+	"timeshift integer default '0',".				// タイムシフト(0=all,1=parted,2=none)
 	"index program_chid_idx (channel_id,eid),".			// インデックス
 	"index program_chdisc_idx (channel_disc),".
 	"index program_st_idx (channel_id,starttime),".

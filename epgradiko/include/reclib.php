@@ -884,9 +884,30 @@ function exe_start( $cmd, $wait_lp, $start_wt=0, $rst_view=TRUE ){
 	}
 }
 
+//radikoタイムフリー視聴時のコマンド組み立て
+function build_pastradiko_cmd( $recorder, $ft, $to){
+        global $record_cmd;
+	if( isset($record_cmd['EX']['timeshift_rec']['command']) ) $rec_mode = 'service_rec';
+	else return "";
+	switch( $rec_mode ){
+		case 'service_rec':
+			if( (!isset($recorder)|| !isset($ft)|| !isset($to))
+			 	||($recorder == ''|| $ft == ''|| $to == '') ) return "";
+			break;
+		default:
+			return "";
+	}
+	$str_rep = array( '%SID%'	=>	$recorder,
+		'%STARTTIME%'	=>	$ft,
+		'%ENDTIME%'	=>	$to,
+	);
+	$return_str = strtr( $record_cmd['EX']['timeshift_rec']['command'], $str_rep );
+	$return_str .= ' 2>/dev/null';
+	return $return_str;
+}
+
 //リアルタイム視聴時のコマンド組み立て
-function build_realview_cmd( $type, $channel, $sid )
-{
+function build_realview_cmd( $type, $channel, $sid ){
         global $record_cmd;
 	if( isset($record_cmd[$type]['service_rec']['command']) ) $rec_mode = 'service_rec';
 	else if( isset($record_cmd[$type]['channel_rec']['command']) ) $rec_mode = 'channel_rec';
@@ -915,14 +936,14 @@ function build_realview_cmd( $type, $channel, $sid )
 		'%SID%'		=>	$sid,
 		'%PRIORITY%'	=>	$priority,
 	);
-	$return_str = 'tsreadex -x 18/38/39 -n -1 -a 13 -b 5 -c 1 -u 1 -d 13 -|'.strtr( $record_cmd[$type][$rec_mode]['command'], $str_rep );
+	$return_str = strtr( $record_cmd[$type][$rec_mode]['command'], $str_rep );
+	if( $record_cmd[$type]['type'] == 'video' ) $return_str .= '|tsreadex -x 18/38/39 -n -1 -a 13 -b 5 -c 1 -u 1 -d 13 -';
 	$return_str .= ' 2>/dev/null';
 	return $return_str;
 }
 
 //epg取得時のコマンド組み立て
-function build_epg_rec_cmd( $type, $channel, $duration, $output )
-{
+function build_epg_rec_cmd( $type, $channel, $duration, $output ){
         global $settings,$record_cmd;
 	if( !isset($record_cmd[$type]['epg_rec']) ) return "";
 	if( (!isset($type)|| !isset($channel)|| !isset($duration)|| !isset($output))
@@ -949,8 +970,7 @@ function build_epg_rec_cmd( $type, $channel, $duration, $output )
 }
 
 //チャンネル録画時のコマンド組み立て
-function build_channel_rec_cmd( $type, $channel, $priority, $duration, $output )
-{
+function build_channel_rec_cmd( $type, $channel, $priority, $duration, $output ){
         global $settings,$record_cmd;
 	if( !isset($record_cmd[$type]['channel_rec']) ) return "";
 	if( (!isset($type)|| !isset($channel)|| !isset($duration)|| !isset($output))
@@ -977,8 +997,7 @@ function build_channel_rec_cmd( $type, $channel, $priority, $duration, $output )
 }
 
 //番組録画時のコマンド組み立て
-function build_program_rec_cmd( $type, $program_id, $priority, $output )
-{
+function build_program_rec_cmd( $type, $program_id, $priority, $output ){
         global $settings, $record_cmd;
 	if( !isset($record_cmd[$type]['program_rec']) ) return "";
 	if( (!isset($program_id)|| !isset($output))
@@ -1004,8 +1023,7 @@ function build_program_rec_cmd( $type, $program_id, $priority, $output )
 }
 
 //時刻録画時のコマンド組み立て
-function build_service_rec_cmd( $type, $channel, $sid, $priority, $duration, $output )
-{
+function build_service_rec_cmd( $type, $channel, $sid, $priority, $duration, $output ){
         global $settings, $record_cmd;
 	if( !isset($record_cmd[$type]['service_rec']) ) return "";
 	if( (!isset($type)|| !isset($channel)|| !isset($sid)|| !isset($duration)|| !isset($output))
@@ -1034,19 +1052,18 @@ function build_service_rec_cmd( $type, $channel, $sid, $priority, $duration, $ou
 }
 
 //タイムシフト保存時のコマンド組み立て
-function build_timeshift_rec_cmd( $type, $recorder, $timeshift_id, $output )
-{
+function build_mirakc_timeshift_rec_cmd( $type, $recorder, $mirakc_timeshift_id, $output ){
         global $settings, $record_cmd;
 	if( !isset($record_cmd[$type]['service_rec']) ) return "";
-	if( (!isset($type)|| !isset($recorder)|| !isset($timeshift_id)|| !isset($output))
-	  ||($type ==''|| $recorder == ''|| $timeshift_id == ''|| $output =='') ){
+	if( (!isset($type)|| !isset($recorder)|| !isset($mirakc_timeshift_id)|| !isset($output))
+	  ||($type ==''|| $recorder == ''|| $mirakc_timeshift_id == ''|| $output =='') ){
 		return "";
 	}
 	$str_rep = array(
 		'%RECORDER%'		=>	$recorder,
-		'%TIMESHIFT_ID%'	=>	$timeshift_id,
+		'%TIMESHIFT_ID%'	=>	$mirakc_timeshift_id,
 	);
-	$return_str = $settings->timeout.' 0 '.strtr( $record_cmd['timeshft']['timeshift_rec']['command'], $str_rep )
+	$return_str = $settings->timeout.' 0 '.strtr( $record_cmd['timeshft']['mirakc_timeshift_rec']['command'], $str_rep )
 			.' 1>'."'".$output."'";
 
 	$return_str .= ' 2>/dev/null';

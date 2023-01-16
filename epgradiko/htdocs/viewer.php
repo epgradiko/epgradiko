@@ -16,7 +16,8 @@ if( ! file_exists( INSTALL_PATH.'/settings/config.xml') && !file_exists( '/etc/e
 $settings = Settings::factory();
 
 $recorder = '';
-$timeshift_id = '';
+$mirakc_timeshift_id = '';
+$starttime = '';
 $channel = '';
 $sid = '';
 $type = '';
@@ -26,7 +27,8 @@ $trans_id = '';
 $name = '';
 
 if( isset( $_GET['recorder'] ) ) $recorder = $_GET['recorder'];
-if( isset( $_GET['timeshift_id'] ) ) $timeshift_id = $_GET['timeshift_id'];
+if( isset( $_GET['mirakc_timeshift_id'] ) ) $mirakc_timeshift_id = $_GET['mirakc_timeshift_id'];
+if( isset( $_GET['starttime'] ) ) $starttime = $_GET['starttime'];
 if( isset( $_GET['ch'] ) ) $channel = $_GET['ch'];
 if( isset( $_GET['sid'] ) ) $sid = $_GET['sid'];
 if( isset( $_GET['type'] ) ) $type = substr($_GET['type'], 0, 2 );
@@ -39,7 +41,6 @@ else $name = 'NO_NAME';
 $sendstream_mode = FALSE;
 if ($channel || $trans !=='') $sendstream_mode = TRUE;
 
-$title = '';
 $abstract = '';
 $dh = '';
 $dm = '';
@@ -49,7 +50,7 @@ if($reserve_id){
 	try{
 		$rrec = new DBRecord( RESERVE_TBL, 'id', $reserve_id );
 		if($rrec){
-			$title    = htmlspecialchars(str_replace(array("\r\n","\r","\n"), '', $rrec->title),ENT_QUOTES);
+			$name     = htmlspecialchars(str_replace(array("\r\n","\r","\n"), '', $rrec->title),ENT_QUOTES);
 			$abstract = htmlspecialchars(str_replace(array("\r\n","\r","\n"), '', $rrec->description),ENT_QUOTES);
 			$start_time = toTimestamp($rrec->starttime);
 			$end_time = toTimestamp($rrec->endtime );
@@ -76,31 +77,57 @@ if($reserve_id){
 	}catch( Exception $e ){
 		exit( $e->getMessage() );
 	}
-}else{
-	$title = $name;
 }
 
 if($recorder){
 	$target_path = '/timeshift';
 	$address = '/'.$recorder;
-	if( $timeshift_id ) $address .= '/'.$timeshift_id.'/'.$title;
+	if( $mirakc_timeshift_id ) $address .= '/'.$mirakc_timeshift_id.'/'.$name;
+	else{
+		if( $starttime ){
+			if( sscanf( $starttime , '%04d%2d%2d%2d%2d%2d', $y, $mon, $day, $H ,$M, $S ) == 6 ){
+				$date = new DateTime($y.'-'.$mon.'-'.$day.' '.$H.':'.$M.':'.$S);
+				$starttime = $date->format('Y-m-d H:i:s');
+				$start_time = $date->format('U');
+				$ft = $date->format('YmdHis');
+				$db_programs = DBRecord::createRecords( PROGRAM_TBL, "WHERE channel_disc='EX_".$recorder."' AND starttime<='".$starttime."' AND endtime>'".$starttime."' ORDER BY starttime" );
+				if( count($db_programs) ){
+					$date = new DateTime($db_programs[0]->endtime);
+					$end_time = $date->format('U');
+				}else{
+					$end_time = $start_time + 1440 * 60;
+				}
+				$to = date('YmdHis', $end_time);
+				$target_path = '/timefree';
+				$address = '/'.$recorder.'/'.$ft.'/'.$to.'/'.$name;
+			}else{
+				jdialog( '視聴情報がありません<br>', 'timeshiftTable.php' );
+			}
+		}else{
+			jdialog( '視聴情報がありません<br>', 'timeshiftTable.php' );
+		}
+	}
 }
 if($sendstream_mode){
 	$target_path = '/stream';
 	if($trans !=='') $target_path .= $trans;
 	if($channel){
-		$address = '/type/'.$type.'/'.$channel.'/'.$sid.'/'.$title;
+		$address = '/type/'.$type.'/'.$channel.'/'.$sid.'/'.$name;
 	}else{
 		if($trans_id){
-			$address ='/trans_id/'.$trans_id.'/'.$title;
+			$address ='/trans_id/'.$trans_id.'/'.$name;
 		}else{
 			if($reserve_id){
-				$address = '/reserve_id/'.$reserve_id.'/'.$title;
+				$address = '/reserve_id/'.$reserve_id.'/'.$name;
 			}else{
 				if($recorder){
-					$address = '/timeshift/'.$recorder;
-					if( $timeshift_id ) $address .= '/'.$timeshift_id;
-					$address .= '/'.$title;
+					if( $mirakc_timeshift_id ){
+						$address = '/timeshift/'.$recorder;
+						$address .= '/'.$mirakc_timeshift_id.'/'.$name;
+					}else{
+						$address = '/timefree/'.$recorder;
+						$address .= '/'.$ft.'/'.$to.'/'.$name;
+					}
 				}
 			}
 		}
@@ -112,15 +139,38 @@ $host = $_SERVER["HTTP_HOST"];
 $base_address = $host.$target_path;
 $source_url = $protocol.'://'.$base_address.$address;
 
-$is_ts = TRUE;
-if($trans !=='' || $trans_id) $is_ts = FALSE;
-if( $is_ts ){
+if($trans !=='' || $trans_id){
+	if(isset($_COOKIE['video_urlscheme']) && $_COOKIE['video_urlscheme'] !== '' ){
+		$url_scheme = $_COOKIE['video_urlscheme'];
+		$str_rep = array(
+			'%PROTOCOL%'	=> $protocol,
+			'%ADDRESS%'	=> $base_address.$address,
+			'%address%'	=> $base_address.rawurlencode($address),
+		);
+		$url = strtr( $url_scheme, $str_rep );
+		header('Location: '.$url, TRUE, 307);
+		echo '<a href="'.$url.'">起動</a>';
+	}else{
+		echo '<html>';
+		echo '<head>';
+		echo '<meta charset="UTF-8">';
+		echo '<title>'.$name.'</title>';
+		echo '</head>';
+		echo '<body style="padding: 0px; margin: 0px; background-color: black;" >';
+		echo '<DIV STYLE="vertical-align:middle;">';
+		echo '<video src="'.$source_url.'" width="100%" preload="auto" autoplay controls playsinline onclick="this.play();"/>';
+		echo '<p>動画を再生するにはvideoタグをサポートしたブラウザが必要です。</p></video>';
+		echo '</DIV>';
+		echo '</body>';
+		echo '</html>';
+	}
+}else{
 	if(isset($_COOKIE['ts_urlscheme']) && $_COOKIE['ts_urlscheme'] !== '' ){
 		$url_scheme = $_COOKIE['ts_urlscheme'];
 		$str_rep = array(
-				'%PROTOCOL%'	=> $protocol,
-				'%ADDRESS%'	=> $base_address.$address,
-				'%address%'	=> $base_address.rawurlencode($address),
+			'%PROTOCOL%'	=> $protocol,
+			'%ADDRESS%'	=> $base_address.$address,
+			'%address%'	=> $base_address.rawurlencode($address),
 		);
 		$url = strtr( $url_scheme, $str_rep );
 		header('Location: '.$url, TRUE, 307);
@@ -137,38 +187,13 @@ if( $is_ts ){
 		echo '<ASX version = "3.0">';
 		echo '<PARAM NAME = "Encoding" VALUE = "UTF-8" />';
 		echo '<ENTRY>';
-		echo '<TITLE>'.$title.'</TITLE>';
+		echo '<TITLE>'.$name.'</TITLE>';
 		echo '<REF HREF="'.$source_url.'" />';
 
 		echo '<ABSTRACT>'.$abstract.'</ABSTRACT>';
 		echo '<DURATION VALUE="'.sprintf( '%02d:%02d:%02d',$dh, $dm, $ds ).'" />';
 		echo '</ENTRY>';
 		echo '</ASX>';
-	}
-}else{
-	if(isset($_COOKIE['video_urlscheme']) && $_COOKIE['video_urlscheme'] !== '' ){
-		$url_scheme = $_COOKIE['video_urlscheme'];
-		$str_rep = array(
-				'%PROTOCOL%'	=> $protocol,
-				'%ADDRESS%'	=> $base_address.$address,
-				'%address%'	=> $base_address.rawurlencode($address),
-		);
-		$url = strtr( $url_scheme, $str_rep );
-		header('Location: '.$url, TRUE, 307);
-		echo '<a href="'.$url.'">起動</a>';
-	}else{
-		echo '<html>';
-		echo '<head>';
-		echo '<meta charset="UTF-8">';
-		echo '<title>'.$title.'</title>';
-		echo '</head>';
-		echo '<body style="padding: 0px; margin: 0px; background-color: black;" >';
-		echo '<DIV STYLE="vertical-align:middle;">';
-		echo '<video src="'.$source_url.'" width="100%" preload="auto" autoplay controls playsinline onclick="this.play();"/>';
-		echo '<p>動画を再生するにはvideoタグをサポートしたブラウザが必要です。</p></video>';
-		echo '</DIV>';
-		echo '</body>';
-		echo '</html>';
 	}
 }
 ob_flush();

@@ -13,30 +13,77 @@ $settings = Settings::factory();
 
 if( isset( $_GET['recorder'] ) ){
 	$recorder = $_GET['recorder'];
-	if( isset( $_GET['timeshift_id'] ) ){
-		$timeshift_id = $_GET['timeshift_id'];
-		$ts_base_addr = 'http://'.$settings->timeshift_address.'/api/timeshift/'.urlencode($recorder).'/records/'.$timeshift_id;
-		$ts_info = json_decode(file_get_contents($ts_base_addr), TRUE);
-		if( $ts_info == NULL ){
-			reclog('sendstream.php::タイムシフト録画ID:'.$timeshift_id.'なし', EPGREC_WARN);
-			die();
-		}else{
-			$start_time = (int)$ts_info['startTime'] / 1000;
-			if( (bool)$ts_info['recording'] ){
-				$duration = (int) (( (int)$ts_info['program']['startAt'] + (int)$ts_info['program']['duration'] - (int)$ts_info['startTime'] ) / 1000);
-				$size = (int) ( (int)$ts_info['size'] * ((int)$ts_info['program']['duration'] / (int)$ts_info['duration']) );
-			}else{
-				$duration = (int)((int)$ts_info['duration'] / 1000);
-				$size = (int)$ts_info['size'];
+	if( isset( $_GET['mirakc_timeshift_id'] ) ){
+		$mirakc_timeshift_id = $_GET['mirakc_timeshift_id'];
+		if( isset( $settings->mirakc_timeshift ) && $settings->mirakc_timeshift !== 'none' ){
+			switch( $settings->mirakc_timeshift ){
+				case 'tcp':
+					$ts_base_addr = 'http://'.$settings->mirakc_timeshift_address.'/api/timeshift/'.urlencode($recorder).'/records/'.$mirakc_timeshift_id;
+					$uds = '';
+					break;
+				case 'uds':
+					$ts_base_addr = 'http://mirakc/api/timeshift/'.urlencode($recorder).'/records/'.$mirakc_timeshift_id;
+					$uds = $settings->mirakc_timeshift_uds;
+					break;
+				default:
+					$ts_base_addr = '';
+					$uds = '';
 			}
-			$end_time = $start_time + $duration;
-			$input_mode = 'file';
-			$send_file = $ts_base_addr.'/stream';
-			$ext = '.ts';
+			if( $ts_base_addr || $uds ){
+				$ts_info = json_decode(url_get_contents($ts_base_addr, $uds), TRUE);
+				if( $ts_info == NULL ){
+					reclog('sendstream.php::タイムシフト録画ID:'.$mirakc_timeshift_id.'なし', EPGREC_WARN);
+					die();
+				}else{
+					$start_time = (int)$ts_info['startTime'] / 1000;
+					if( (bool)$ts_info['recording'] ){
+						$duration = (int) (( (int)$ts_info['program']['startAt'] + (int)$ts_info['program']['duration'] - (int)$ts_info['startTime'] ) / 1000);
+						$size = (int) ( (int)$ts_info['size'] * ((int)$ts_info['program']['duration'] / (int)$ts_info['duration']) );
+					}else{
+						$duration = (int)((int)$ts_info['duration'] / 1000);
+						$size = (int)$ts_info['size'];
+					}
+					$end_time = $start_time + $duration;
+					$input_mode = 'url';
+					$send_file = $ts_base_addr.'/stream';
+					$ext = '.ts';
+				}
+			}else{
+				reclog('sendstream.php::mirakc接続情報が取得できません', EPGREC_WARN);
+				die();
+			}
+		}else{
+			reclog('sendstream.php::mirakc接続情報がありません', EPGREC_WARN);
+			die();
 		}
 	}else{
-		reclog('sendstream.php::タイムシフト録画ID:なし', EPGREC_WARN);
-		die();
+		if( isset( $_GET['starttime'] ) && sscanf( $_GET['starttime'] , '%04d%2d%2d%2d%2d%2d', $y, $mon, $day, $H ,$M, $S ) == 6 ){
+			$date = new DateTime($y.'-'.$mon.'-'.$day.' '.$H.':'.$M.':'.$S);
+			$starttime = $date->format('Y-m-d H:i:s');
+			$start_time = $date->format('U');
+			$ft = $date->format('YmdHis');
+			if( isset( $_GET['endtime'] ) && sscanf( $_GET['endtime'] , '%04d%2d%2d%2d%2d%2d', $y, $mon, $day, $H, $M, $S ) == 6 ){
+				$date = new DateTime($y.'-'.$mon.'-'.$day.' '.$H.':'.$M.':'.$S);
+				$endtime = $date->format('Y-m-d H:i:s');
+				$end_time = $date->format('U');
+			}else{
+				$db_programs = DBRecord::createRecords( PROGRAM_TBL, "WHERE channel_disc='EX_".$recorder."' AND starttime<='".$starttime."' AND endtime>'".$starttime."' ORDER BY starttime" );
+				if( count($db_programs) ){
+					sscanf( $db_programs[0]->endtime, '%04d-%02d-%02d %2d:%2d:%2d', $y, $mon, $day, $H ,$M, $S );
+					$date = new DateTime($y.'-'.$mon.'-'.$day.' '.$H.':'.$M.':'.$S);
+					$end_time = $date->format('U');
+				}else{
+					$end_time = $start_time + 1440 * 60;
+				}
+			}
+			$to = date('YmdHis', $end_time);
+			$input_mode = 'pipe';
+			$pipe_cmd = build_pastradiko_cmd($recorder, $ft, $to);
+			$ext = 'aac';
+		}else{
+			reclog('sendstream.php::タイムシフト録画ID:なし'.$recorder, EPGREC_WARN);
+			die();
+		}
 	}
 }
 
@@ -176,7 +223,7 @@ if( isset($input_mode) && isset($trans) ){
 			}else{
 				$screen_size = '';
 			}
-			if( $input_mode == 'file' ){
+			if( $input_mode == 'file' || $input_mode == 'url' ){
 				$ff_input = $send_file;
 			}else{
 				$ff_input = 'pipe:0';
@@ -188,7 +235,7 @@ if( isset($input_mode) && isset($trans) ){
 					'%OUTPUT%' => 'pipe:1',				// 出力先
 			);
 			$trans_cmd = strtr( TRANSTREAM_CMD[$ext]['command'], $trans );
-			if( $input_mode == 'file' ){
+			if( $input_mode == 'file' || $input_mode == 'url' ){
 				$pipe_cmd = $trans_cmd;
 			}else{
 				$pipe_cmd = $pipe_cmd.'|'.$trans_cmd;
@@ -252,12 +299,12 @@ if( $input_mode == 'pipe' ){
 		}else{
 			// 常駐失敗? PID取得失敗
 			$errno = posix_get_last_error();
-			reclog( 'sendstream.php::視聴コマンドPID取得失敗('.$errno.')'.posix_strerror( $errno ), EPGREC_WARN );
+			reclog( 'sendstream.php::視聴コマンドPID取得失敗('.$errno.')'.posix_strerror( $errno ).'<br>'.$pipe_cmd, EPGREC_WARN );
 		}
 	}else{
 		// 常駐失敗
 		$errno = posix_get_last_error();
-		reclog( 'sendstream.php::視聴コマンド常駐失敗[exitcode='.$ts_stat['exitcode'].']$errno('.$errno.')'.posix_strerror( $errno ), EPGREC_WARN );
+		reclog( 'sendstream.php::視聴コマンド常駐失敗[exitcode='.$ts_stat['exitcode'].']$errno('.$errno.')'.posix_strerror( $errno ).'<br>'.$pipe_cmd, EPGREC_WARN );
 	}
 	if( isset($errno) ){
 		fclose( $ts_pipes[1] );
@@ -266,13 +313,20 @@ if( $input_mode == 'pipe' ){
 	}
 	$fp = $ts_pipes[1];
 }
-if( $input_mode == 'file' ){
-	$fp = @fopen( $send_file, 'rb' );
-	if( !$fp ){
-		header( 'HTTP/1.1 404 Not Found');
-		die();
+$curr = 0;
+if( $input_mode == 'file' || $input_mode == 'url' ){
+	$seekable = FALSE;
+	if( $input_mode == 'file' ){
+		$fp = @fopen( $send_file, 'rb' );
+		if( !$fp ){
+			header( 'HTTP/1.1 404 Not Found');
+			die();
+		}
+		if( $meta = @stream_get_meta_data($fp) ) $seekable = $meta['seekable'];
+	}else{
+//		$fp = url_open( $send_file, $uds );
+		$seekable = TRUE;
 	}
-
 	if( isset($_SERVER['HTTP_RANGE']) ){
 		list( $start, $end ) = sscanf( $_SERVER['HTTP_RANGE'], "bytes=%d-%d" );
 		if( empty($end) ) $end = $size - 1;
@@ -285,24 +339,20 @@ if( $input_mode == 'file' ){
 			header( 'HTTP/1.1 200 OK' );
 		}
 		if( $start ){
-			if( isset($recorder) ){
-				$curr = 0;
+			if( $seekable && $input_mode == 'file' ) fseek( $fp, $start );
+			else if( ! $seekable ){
 				while( $curr < $start ){
 					$buff = fread( $fp, min( 8192, $start - $curr ) );
 					$curr += min( 8192, $start - $curr );
 				}
-				if( isset($buff) ) unset( $buff );
-			}else{
-				fseek( $fp, $start );
+				unset( $buff );
 			}
 		}
 		$curr = $start;
-		$usleep_time = 0;
 	}else{
 		$curr = 0;
 		$start = 0;
 		$end = $size - 1;
-		$usleep_time = 0;
 		header( 'HTTP/1.1 200 OK' );
 	}
 	if( isset($_GET['download']) ){
@@ -340,7 +390,6 @@ if( $input_mode == 'file' ){
 //	header( 'Connection: close' );
 }else{
 	reclog('sendstream.php::stream='.$pipe_cmd, EPGREC_DEBUG);
-	$usleep_time = 0;
 	header( 'HTTP/1.1 200 OK' );
 }
 if( isset($_GET['download']) && $input_mode == 'file' ){
@@ -350,8 +399,6 @@ if( isset($_GET['download']) && $input_mode == 'file' ){
 	}
 	else if( isset($title) ) $name = $title.'.'.$ext;
 	else $name = 'no_name';
-
-	$usleep_time = 0;
 
 	header('Content-Description: File Transfer');
 	header('Cache-Control: no-cache, must-revalidate');
@@ -363,16 +410,25 @@ if( isset($_GET['download']) && $input_mode == 'file' ){
 
 set_time_limit(0);
 ob_start();
-
-while( !feof($fp) && (connection_status() == 0) ){
-	if( ($input_mode == 'file') ){
-		if( $curr >= $end ) break;
-		print fread( $fp, min( BUFFERS, $end - $curr + 1 ) );
-		$curr += min( BUFFERS, $end - $curr + 1 );
-	}else{
-		print fread( $fp, BUFFERS );
+$eof = FALSE;
+while( !$eof && (connection_status() == 0) ){
+	if( $input_mode !== 'pipe' && $curr >= $end ){
+		$eof = TRUE;
+		break;
 	}
-	usleep( $usleep_time );
+	switch( $input_mode ){
+		case 'pipe':
+			print fread( $fp, BUFFERS );
+			break;
+		case 'file':
+			print fread( $fp, min( BUFFERS, $end - $curr + 1 ) );
+			$curr += min( BUFFERS, $end - $curr + 1 );
+			break;
+		case 'url':
+			print url_get_contents_range($send_file, $uds, $curr, min( BUFFERS, $end - $curr + 1 ));
+			$curr += min( BUFFERS, $end - $curr + 1 );
+			break;
+	}
 	ob_flush();
 }
 

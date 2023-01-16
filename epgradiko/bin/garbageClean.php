@@ -15,44 +15,73 @@ $settings = Settings::factory();
 reclog('garbageClean::処理開始');
 // 不要なプログラムの削除
 $cnt = 0;
-$ts_base_addr = $settings->timeshift == 'tcp' ? 'http://'.$settings->timeshift_address.'/api/timeshift' : '';
-if( $ts_base_addr && @file_get_contents($ts_base_addr) ){
-	$channels_raw = json_decode(file_get_contents($ts_base_addr), TRUE);
-	$channels = array();
-	foreach($channels_raw as $channel_raw){
-		if( $channel_raw['service']['channel']['type'] == 'GR' ){
-			$channel_disc = $channel_raw['service']['channel']['type'].$channel_raw['service']['channel']['channel'].'_'.$channel_raw['service']['serviceId'];
-		}else{
-			$channel_disc = $channel_raw['service']['channel']['type'].'_'.$channel_raw['service']['serviceId'];
-		}
-		$ch_first_starttime[$channel_disc] = strftime("%Y-%m-%d %H:%M:%S", time() - 2 * 24 * 60 * 60);
-		$programs_raw = json_decode(file_get_contents($ts_base_addr.'/'.urlencode($channel_raw['name']).'/records'),TRUE);
-		foreach( $programs_raw as $program_raw ){
-			$program_starttime = strftime("%Y-%m-%d %H:%M:%S", (int)($program_raw['startTime'] / 1000));
-			if( $ch_first_starttime[$channel_disc] > $program_starttime) $ch_first_starttime[$channel_disc] = $program_starttime;
+if( isset( $settings->mirakc_timeshift ) && $settings->mirakc_timeshift !== 'none' ){
+	switch( $settings->mirakc_timeshift ){
+		case 'tcp':
+			$ts_base_addr = 'http://'.$settings->mirakc_timeshift_address.'/api/timeshift';
+			$uds = '';
+			break;
+		case 'uds':
+			$ts_base_addr = 'http://mirakc/api/timeshift';
+			$uds = $settings->mirakc_timeshift_uds;
+			break;
+		default:
+			$ts_base_addr = '';
+			$uds = '';
+	}
+	if( $ts_base_addr || $uds ){
+		$channels_raw = json_decode(url_get_contents($ts_base_addr, $uds), TRUE);
+		$channels = array();
+		foreach($channels_raw as $channel_raw){
+			if( $channel_raw['service']['channel']['type'] == 'GR' ){
+				$channel_disc = $channel_raw['service']['channel']['type'].$channel_raw['service']['channel']['channel'].'_'.$channel_raw['service']['serviceId'];
+			}else{
+				$channel_disc = $channel_raw['service']['channel']['type'].'_'.$channel_raw['service']['serviceId'];
+			}
+			$ch_first_starttime[$channel_disc] = date("Y-m-d H:i:s", time() - 2 * 24 * 60 * 60);
+			$programs_raw = json_decode(url_get_contents($ts_base_addr.'/'.urlencode($channel_raw['name']).'/records', $uds),TRUE);
+			foreach( $programs_raw as $program_raw ){
+				$program_starttime = date("Y-m-d H:i:s", (int)($program_raw['startTime'] / 1000));
+				if( $ch_first_starttime[$channel_disc] > $program_starttime) $ch_first_starttime[$channel_disc] = $program_starttime;
+			}
 		}
 	}
-	$program_obj  = new DBRecord( PROGRAM_TBL );
-	$channel_discs = $program_obj->distinct('channel_disc');
-	foreach( $channel_discs as $channel_disc ){
-		$where_str = "WHERE channel_disc = '".$channel_disc."' AND ";
-		if( isset($ch_first_starttime[$channel_disc])) {
-			$where_str .= "endtime < '".$ch_first_starttime[$channel_disc]."'";
-		}else{
-			$where_str .= "endtime < subdate( now(), 2 )";
-		}
-		$programs = DBRecord::createRecords( PROGRAM_TBL, $where_str );
-		foreach( $programs as $program ){
-			$program->delete();
-			$cnt++;
+}
+if( $settings->ex_tuners && isset($settings->radiko_timeshift) && $settings->radiko_timeshift ){
+	// Get radiko stations
+	$radiko_stations = "http://radiko.jp/v3/station/region/full.xml";
+	$radiko_stations_contents = @file_get_Contents($radiko_stations);
+	if( $radiko_stations_contents !== false ){
+		$regions_stations = simplexml_load_string($radiko_stations_contents);
+		foreach( $regions_stations->stations as $regions ){
+			foreach( $regions->station as $station) {
+				if( $station->timefree == 1 ){
+					$base_date = strtotime("-5 hour");
+					$ch_first_starttime['EX_'.$station->id] = date("Y-m-d", $base_date - 7 * 24 * 3600).' 05:00:00';
+				}
+			}
 		}
 	}
-}else{
-	// 2日以上前のプログラムを消す
-	$arr = array();
-	$arr = DBRecord::createRecords( PROGRAM_TBL, 'WHERE endtime < subdate( now(), 2 )' );
-	foreach( $arr as $val ){
-		$val->delete();
+}
+
+$program_obj  = new DBRecord( PROGRAM_TBL );
+$channel_discs = $program_obj->distinct('channel_disc');
+foreach( $channel_discs as $channel_disc ){
+	$where_str = "WHERE channel_disc = '".$channel_disc."' AND ";
+	if( isset($ch_first_starttime[$channel_disc])) {
+		// タイムシフト保存前のプログラムを消す
+		$where_str .= "endtime <= '".$ch_first_starttime[$channel_disc]."'";
+		if( substr( $channel_disc, 0, 2) == 'EX' ){
+			$where_str .= " OR channel_disc = '".$channel_disc."' AND timeshift = 2"
+					." AND endtime < subdate( now(), 2 )";
+		}
+	}else{
+		// 2日以上前のプログラムを消す
+		$where_str .= "endtime <= subdate( now(), 2 )";
+	}
+	$programs = DBRecord::createRecords( PROGRAM_TBL, $where_str );
+	foreach( $programs as $program ){
+		$program->delete();
 		$cnt++;
 	}
 }

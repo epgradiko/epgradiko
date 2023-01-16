@@ -204,7 +204,7 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 			}
 
 			$reca = $prec->fetch_array( 'channel_id', $ch_id,
-											'endtime>\''.toDatetime($ch_top_time).'\' AND starttime<\''.toDatetime($ch_last_time).'\' ORDER BY starttime ASC' );
+					'endtime>\''.toDatetime($ch_top_time).'\' AND starttime<\''.toDatetime($ch_last_time).'\' ORDER BY starttime ASC' );
 			$num = 0;
 			if( count( $reca )>1 || ( count( $reca )==1 && (string)$reca[0]['title']!=='放送休止' ) ){
 				$ch_num = ( $crec->type==='GR' ? '地上D' : $crec->type ).':'.$crec->channel.'ch';

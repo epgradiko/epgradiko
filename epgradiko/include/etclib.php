@@ -113,6 +113,50 @@ function get_ffmpeg_status( $transcode_id ) {
 	return $return_array;
 }
 
+function url_get_contents( $url , $uds = '' ){
+	$ch = url_open( $url , $uds );
+	$data = curl_exec($ch);
+	curl_close($ch);
+	return $data;
+}
+function url_get_contents_range( $url, $uds = '', $start = 0, $bytes = 0 ) {
+	$writefn = function( $ch, $chunk ) use( $bytes, &$datadump ){
+		static $bytes_sent = 0;
+
+		$chunk_len = strlen( $chunk );
+
+		if( $bytes && $bytes <= $bytes_sent + $chunk_len ){
+			$datadump .= substr( $chunk, 0, $bytes - $bytes_sent);
+			return -1;
+		}else{
+			$datadump .= $chunk;
+			$bytes_sent += $chunk_len;
+		}
+		return $chunk_len;
+	};
+
+	$ch = url_open( $url, $uds );
+	curl_setopt( $ch, CURLOPT_HEADER, FALSE );
+	curl_setopt( $ch, CURLOPT_BINARYTRANSFER, 1 );
+	curl_setopt( $ch, CURLOPT_RANGE, $start."-" );
+	curl_setopt( $ch, CURLOPT_WRITEFUNCTION, $writefn );
+	$data = curl_exec( $ch );
+	curl_close( $ch );
+	return $datadump;
+}
+
+function url_open( $url , $uds = '' ){
+	//curlセッション初期化
+	$ch = curl_init();
+	//URLとオプションを指定する
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	if( $uds !== '' ){
+		curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $uds);
+	}
+	curl_setopt($ch, CURLOPT_URL, $url);
+	return $ch;
+}
+
 class single_Program{
 	private $app_name;
 

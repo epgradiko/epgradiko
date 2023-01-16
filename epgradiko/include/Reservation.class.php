@@ -983,7 +983,7 @@ ob_start();
 				$magic_c = strpos( $filename, '%TITLE' );
 				if( $magic_c !== FALSE ){
 					$tl_num = $filename[$magic_c+6];
-					if( ctype_digit( $tl_num ) && $filename[$magic_c+7]==='%' ){
+					if( ctype_digit( (string) $tl_num ) && $filename[$magic_c+7]==='%' ){
 						if( strpos( $out_title, '/' )!==FALSE ){
 							$split_tls = explode( '/', $out_title );
 							$filename  = mb_str_replace( '%TITLE'.$tl_num.'%', $split_tls[(int)$tl_num-1], $filename );
@@ -1708,9 +1708,9 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 		}
 		return 0;
 	}
-	public static function timeshift_rec(
+	public static function mirakc_timeshift_rec(
 		$recorder,				//
-		$timeshift_id,				//
+		$mirakc_timeshift_id,			//
 		$start_time,				// 開始時間
 		$end_time,				// 終了時間
 		$channel_disc,				// チャンネルdisc
@@ -1765,7 +1765,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				$magic_c = strpos( $filename, '%TITLE' );
 				if( $magic_c !== FALSE ){
 					$tl_num = $filename[$magic_c+6];
-					if( ctype_digit( $tl_num ) && $filename[$magic_c+7]==='%' ){
+					if( ctype_digit( (string) $tl_num ) && $filename[$magic_c+7]==='%' ){
 						if( strpos( $out_title, '/' )!==FALSE ){
 							$split_tls = explode( '/', $out_title );
 							$filename  = mb_str_replace( '%TITLE'.$tl_num.'%', $split_tls[(int)$tl_num-1], $filename );
@@ -2107,11 +2107,13 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				$map_analyze_wait = $settings->former_time + 10; //適当
 				fwrite($pipes[0], '('.$settings->sleep.' '.$map_analyze_wait.' && '.$map_analyze.") &\n" );
 			}
-			fwrite($pipes[0], INSTALL_PATH.'/bin/waitFinish.php '.$recorder." ".$timeshift_id." && \\\n" ); // 
-			$cmd_ts = build_timeshift_rec_cmd(
+			if( $at_start == $end_time ){
+				fwrite($pipes[0], INSTALL_PATH.'/bin/waitFinish.php '.$recorder." ".$mirakc_timeshift_id." && \\\n" ); // 
+			}
+			$cmd_ts = build_mirakc_timeshift_rec_cmd(
 				$crec_->type,
 				$recorder,
-				$timeshift_id,
+				$mirakc_timeshift_id,
 				$rrec->id.'.'.$ext,		// 出力先
 			);
 			fwrite($pipes[0], $cmd_ts."\n" );

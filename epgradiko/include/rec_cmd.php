@@ -13,22 +13,29 @@ if( file_exists(INSTALL_PATH.'/settings/config.xml') ){
 		switch( $obj->mirakurun ){
 			case 'tcp':	
 				$record_cmd_mirakurun = 'http://'.$obj->mirakurun_address;
-				$record_cmd_timeshift = 'http://'.$obj->timeshift_address;
 				break;
 			case 'uds':
 				$record_cmd_mirakurun = '--unix-socket '.$obj->mirakurun_uds.' http://mirakurun';
-				$record_cmd_timeshift = '--unix-socket '.$obj->timeshift_uds.' http://mirakurun';
 				break;
 			default:
 				$record_cmd_mirakurun = '';
-				$record_cmd_timeshift = '';
 		}
 	}else $record_cmd_mirakurun ='';
+	if( isset($obj->mirakc_timeshift) ){
+		switch( $obj->mirakc_timeshift ){
+			case 'tcp':	
+				$record_cmd_mirakc_timeshift = 'http://'.$obj->mirakc_timeshift_address;
+				break;
+			case 'uds':
+				$record_cmd_mirakc_timeshift = '--unix-socket '.$obj->mirakc_timeshift_uds.' http://mirakc';
+				break;
+			default:
+				$record_cmd_mirakc_timeshift = '';
+		}
+	}else $record_cmd_mirakc_timeshift ='';
 
 	$record_cmd['mirakurun'] = array(
-	//	'gr_channels'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/channels/GR', 
 		'gr_channels'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/channels|jq \'map(select( .["type"] == "GR"))\'',
-	//	mirakcはこれ？	   $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/channels|jq \'map(select( .["type"] == "GR"))\''
 		'version'	=> $obj->curl.' -sGN '.$record_cmd_mirakurun.'/api/version',
 	);
 	$record_cmd['GR'] = array(
@@ -61,17 +68,23 @@ if( file_exists(INSTALL_PATH.'/settings/config.xml') ){
 		'type'		=>	'audio',
 		'suffix'	=>	'_HD.aac',
 		'service_rec'	=>	array(
-			'command'	=> RADIKO_CMD,
-		),
+						'command'	=> RADIKO_CMD,
+					),
+		'timeshift_rec'	=>	array(
+						'command'	=> RADIKO_PAST_CMD,
+					),
 	);
 	$record_cmd['timeshft'] = array(
 		'type'		=>	'video',
 		'suffix'	=>	'_FHD.ts',
 		'epg_rec'	=>	array(
-			'command'	=> $obj->curl.' -sGN '.$record_cmd_timeshift.'/api/timeshift/%RECORDER%',
+			'command'	=> $obj->curl.' -sGN '.$record_cmd_mirakc_timeshift.'/api/timeshift/%RECORDER%',
 		),
-		'timeshift_rec' =>	array(
-			'command'	=> $obj->curl.' -sGN '.$record_cmd_timeshift.'/api/timeshift/%RECORDER%/records/%TIMESHIFT_ID%/stream',
+		'mirakc_timeshift_rec'	=>	array(
+			'command'	=> $obj->curl.' -sGN '.$record_cmd_mirakc_timeshift.'/api/timeshift/%RECORDER%/records/%TIMESHIFT_ID%/stream',
+		),
+		'radiko_timeshift_rec'	=>	array(
+			'command'	=> RADIKO_PAST_CMD,
 		),
 	);
 }

@@ -49,8 +49,8 @@ if( $day_mode ){
 	$days[0] = date("Ymd", strtotime( "-5 hour" ));
 }else{
 	for($i = 0; $i < 7; $i++) {
-		$today = date("Y-m-d H:i:s", strtotime( "-5 hour" ));
-		$days[$i] = date("Ymd",strtotime($today . "+" . $i . " day"));
+		$today = date("Y-m-d", strtotime( "-5 hour" ));
+		$days[$i] = date("Ymd",strtotime($today .' '.$i." day"));
 	}
 }
 
@@ -164,6 +164,7 @@ foreach($map as $station => $channel) {
 				}else{
 					$image_url = $program->img;
 				}
+				$timeshift    = (int)$program->ts_in_ng;
 //				$program_disc = md5( $channel_disc . $eid . $starttime . $endtime );	// eidは信じられない局が多々ある。ので、信じない。
 				$program_disc = md5( $channel_disc . $title . $starttime . $endtime );	// eidは信じられない局が多々ある。ので、信じない。
 				// プログラム登録
@@ -319,6 +320,7 @@ foreach($map as $station => $channel) {
 							$wrt_set['program_disc'] = $program_disc;
 							$wrt_set['type']	 = 'EX';
 							$wrt_set['image_url']	 = $image_url;
+							$wrt_set['timeshift']	 = $timeshift;
 							// 初期値のものを間引き
 							if( $sub_genre !== 16 )
 								$wrt_set['sub_genre'] = $sub_genre;
@@ -406,6 +408,9 @@ foreach($map as $station => $channel) {
 					if( (int)($rec['multi_type']) !== $multi_type ){
 						$wrt_set['multi_type'] = $multi_type;
 						$media_chg	       = TRUE;
+					}
+					if( (int)($rec['timeshift']) !== $timeshift ){
+						$wrt_set['timeshift'] = $timeshift;
 					}
 					if( $wrt_set !== FALSE ){
 						$pro_obj->force_update( $rec['id'], $wrt_set );

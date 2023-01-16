@@ -13,7 +13,7 @@ $program_id = isset( $_POST['program_id'] ) ? (int)$_POST['program_id'] : 0;
 $reserve_id = isset( $_POST['reserve_id'] ) ? (int)$_POST['reserve_id'] : 0;
 $recorder = isset( $_POST['recorder'] ) ? $_POST['recorder'] : '';
 $channel_disc = isset( $_POST['channel_disc'] ) ? $_POST['channel_disc'] : '';
-$timeshift_id = isset( $_POST['timeshift_id'] ) ? (int)$_POST['timeshift_id'] : 0;
+$mirakc_timeshift_id = isset( $_POST['mirakc_timeshift_id'] ) ? (int)$_POST['mirakc_timeshift_id'] : 0;
 
 if(!(
    isset($_POST['shour'])       && 
@@ -78,9 +78,9 @@ if( $trans_dir ){
 $rval = 0;
 try{
 	if($recorder){
-		$rval = Reservation::timeshift_rec(
+		$rval = Reservation::mirakc_timeshift_rec(
 				$recorder,
-				$timeshift_id,
+				$mirakc_timeshift_id,
 				$start_time,
 				$end_time,
 				$channel_disc,
