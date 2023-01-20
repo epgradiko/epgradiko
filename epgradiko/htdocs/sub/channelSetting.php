@@ -42,31 +42,43 @@ function get_channels( $type )
 	$disp_channels = array();
 	try{
 		if( $not_physical ){
-			foreach( $map as $map_channel_disc ){
-				$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$map_channel_disc.'\'' );
-				$arr = array();
-				if( $channel ){
-					$arr['id']           = (int)$channel[0]->id;
-					$arr['type']         = $channel[0]->type;
-					$arr['sid']          = $channel[0]->sid;
-					$arr['channel_disc'] = $channel[0]->channel_disc;
-					$arr['channel']      = $channel[0]->channel;
-					$arr['name']         = $channel[0]->name;
-					$arr['del']          = FALSE;
-				}else{
-					$arr['id']           = 0;
-					$arr['type']         = substr($map_channel_disc,0,2);
-					$arr['sid']          = "";
-					$arr['channel_disc'] = $map_channel_disc;
-					$arr['channel']      = "";
-					$arr['name']         = '<font color="red">チャンネルテーブルなし</font>';
-					$arr['del']          = TRUE;
+			if( $map !== NULL ){
+				foreach( $map as $map_channel_disc ){
+					$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$map_channel_disc.'\'' );
+					$arr = array();
+					if( $channel ){
+						$arr['id']           = (int)$channel[0]->id;
+						$arr['type']         = $channel[0]->type;
+						$arr['sid']          = $channel[0]->sid;
+						$arr['channel_disc'] = $channel[0]->channel_disc;
+						$arr['channel']      = $channel[0]->channel;
+						$arr['name']         = $channel[0]->name;
+						$arr['del']          = FALSE;
+					}else{
+						$arr['id']           = 0;
+						$arr['type']         = substr($map_channel_disc,0,2);
+						$arr['sid']          = "";
+						$arr['channel_disc'] = $map_channel_disc;
+						$arr['channel']      = "";
+						$arr['name']         = '<font color="red">チャンネルテーブルなし</font>';
+						$arr['del']          = TRUE;
+					}
+					array_push( $disp_channels, $arr );
 				}
-				array_push( $disp_channels, $arr );
+			}else{
+				array_push( $disp_channels, [
+								'id'	=> 'END',
+								'type'	=> 'END',
+								'sid'	=> 'END',
+								'channel_disc'	=> 'END',
+								'channel'	=> 'END',
+								'name'	=> 'END',
+								'del'	=> FALSE,
+				]);
 			}
 			$channels = DBRecord::createRecords( CHANNEL_TBL );
 			foreach( $channels as $channel ){
-				if( in_array( $channel->channel_disc, $map ) ) continue;
+				if( $map !== NULL && in_array( $channel->channel_disc, $map ) ) continue;
 				$arr = array();
 				$arr['id']           = (int)$channel->id;
 				$arr['type']         = $channel->type;

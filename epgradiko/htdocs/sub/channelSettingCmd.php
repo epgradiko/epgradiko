@@ -173,7 +173,6 @@ function ch_reorder( $type, $ch_order ){
 		}
 		if( !$return_str ){
 			$f_nm      = INSTALL_PATH.'/settings/channels/'.strtolower($type).'_channel.php';
-reclog("ch=".$f_nm);
 			$st_ch     = file( $f_nm, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
 			$order     = explode(',' , $ch_order);
 			if( !$not_physical && count($map) !== count($order) ) $resturn_str = 'Error: orderパラメータが不正です。(ch_reorder '.$ch_order.')';
@@ -182,6 +181,7 @@ reclog("ch=".$f_nm);
 				$array_before = array_slice( $st_ch, 0, 3, TRUE );
 				$array_after = array_slice( $st_ch, -2, null, TRUE );
 				foreach( $order as $ch_disc ){
+					if( $ch_disc == 'END' ) continue;
 					$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$ch_disc.'\'' );
 					if( $not_physical ){
 						$array_point[] = "\t\"".$ch_disc."\",\t// ".$channel[0]->name;
