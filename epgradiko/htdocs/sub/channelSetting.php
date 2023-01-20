@@ -17,7 +17,9 @@ function get_channels( $type )
 	global $BS_CHANNEL_MAP;
 	global $CS_CHANNEL_MAP;
 	global $EX_CHANNEL_MAP;
+	global $IPTV_CHANNEL_MAP;
 
+	$not_physical = FALSE;
 	switch( $type ){
 		case 'GR':
 			$map = $GR_CHANNEL_MAP;
@@ -31,54 +33,96 @@ function get_channels( $type )
 		case 'EX':
 			$map = $EX_CHANNEL_MAP;
 			break;
+		case 'IPTV':
+			$map = $IPTV_CHANNEL_MAP;
+			$not_physical = TRUE;
+			break;
 	}
 	$exist_channels = array();
 	$disp_channels = array();
 	try{
-		foreach( $map as $map_channel_disc => $map_channel ){
-			if( strpos( $map_channel_disc, '_' ) === FALSE ){
-				$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE type=\''.$type.'\' AND channel=\''.$map_channel.'\' ORDER BY sid' );
-			}else{
-				$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE type=\''.$type.'\' AND channel_disc=\''.$map_channel_disc.'\'' );
-			}
-			if( $channel == FALSE ){
+		if( $not_physical ){
+			foreach( $map as $map_channel_disc ){
+				$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$map_channel_disc.'\'' );
 				$arr = array();
-				$arr['id']           = 0;
-				$arr['type']         = $type;
-				$arr['sid']          = "";
-				$arr['channel_disc'] = $map_channel_disc;
-				$arr['channel']      = "";
-				$arr['name']         = '<font color="red">チャンネルテーブルなし</font>';
-				$arr['skip']         = TRUE;
-				$arr['NC']           = TRUE;
-				$arr['pro_cnt']      = '-';
-				$arr['res_cnt']      = '-';
+				if( $channel ){
+					$arr['id']           = (int)$channel[0]->id;
+					$arr['type']         = $channel[0]->type;
+					$arr['sid']          = $channel[0]->sid;
+					$arr['channel_disc'] = $channel[0]->channel_disc;
+					$arr['channel']      = $channel[0]->channel;
+					$arr['name']         = $channel[0]->name;
+					$arr['del']          = FALSE;
+				}else{
+					$arr['id']           = 0;
+					$arr['type']         = substr($map_channel_disc,0,2);
+					$arr['sid']          = "";
+					$arr['channel_disc'] = $map_channel_disc;
+					$arr['channel']      = "";
+					$arr['name']         = '<font color="red">チャンネルテーブルなし</font>';
+					$arr['del']          = TRUE;
+				}
+				array_push( $disp_channels, $arr );
+			}
+			$channels = DBRecord::createRecords( CHANNEL_TBL );
+			foreach( $channels as $channel ){
+				if( in_array( $channel->channel_disc, $map ) ) continue;
+				$arr = array();
+				$arr['id']           = (int)$channel->id;
+				$arr['type']         = $channel->type;
+				$arr['sid']          = $channel->sid;
+				$arr['channel_disc'] = $channel->channel_disc;
+				$arr['channel']      = $channel->channel;
+				$arr['name']         = $channel->name;
 				$arr['del']          = TRUE;
 				array_push( $exist_channels, $arr );
-			}else{
-				foreach( $channel as $ch ){
+			}
+		}else{
+			foreach( $map as $map_channel_disc => $map_channel ){
+				if( strpos( $map_channel_disc, '_' ) === FALSE ){
+					$channels = DBRecord::createRecords( CHANNEL_TBL, 'WHERE type=\''.$type.'\' AND channel=\''.$map_channel.'\' ORDER BY sid' );
+				}else{
+					$channels = DBRecord::createRecords( CHANNEL_TBL, 'WHERE type=\''.$type.'\' AND channel_disc=\''.$map_channel_disc.'\'' );
+				}
+				if( $channels == FALSE ){
 					$arr = array();
-					$arr['id']           = (int)$ch->id;
+					$arr['id']           = 0;
 					$arr['type']         = $type;
-					$arr['sid']          = $ch->sid;
-					$arr['channel_disc'] = $ch->channel_disc;
-					$arr['channel']      = $ch->channel;
-					$arr['name']         = $ch->name;
-					$arr['skip']         = (boolean)$ch->skip;
-					$arr['pro_cnt']      = DBRecord::countRecords( PROGRAM_TBL, 'WHERE channel_id='.$arr['id'] );
-					$arr['res_cnt']      = DBRecord::countRecords( RESERVE_TBL, 'WHERE channel_id='.$arr['id'].' AND Complete = 0' );
-					if( $map_channel !== 'NC' ){
-						if( $arr['pro_cnt'] != 0 ) array_push( $disp_channels, $arr );
-					}else{
-						$arr['NC'] = TRUE;
-					}
+					$arr['sid']          = "";
+					$arr['channel_disc'] = $map_channel_disc;
+					$arr['channel']      = "";
+					$arr['name']         = '<font color="red">チャンネルテーブルなし</font>';
+					$arr['skip']         = TRUE;
+					$arr['NC']           = TRUE;
+					$arr['pro_cnt']      = '-';
+					$arr['res_cnt']      = '-';
+					$arr['del']          = TRUE;
 					array_push( $exist_channels, $arr );
+				}else{
+					foreach( $channels as $channel ){
+						$arr = array();
+						$arr['id']           = (int)$channel->id;
+						$arr['type']         = $type;
+						$arr['sid']          = $channel->sid;
+						$arr['channel_disc'] = $channel->channel_disc;
+						$arr['channel']      = $channel->channel;
+						$arr['name']         = $channel->name;
+						$arr['skip']         = (boolean)$channel->skip;
+						$arr['pro_cnt']      = DBRecord::countRecords( PROGRAM_TBL, 'WHERE channel_id='.$arr['id'] );
+						$arr['res_cnt']      = DBRecord::countRecords( RESERVE_TBL, 'WHERE channel_id='.$arr['id'].' AND Complete = 0' );
+						if( $map_channel !== 'NC' ){
+							if( $arr['pro_cnt'] != 0 ) array_push( $disp_channels, $arr );
+						}else{
+							$arr['NC'] = TRUE;
+						}
+						array_push( $exist_channels, $arr );
+					}
 				}
 			}
 		}
 	}catch( Exception $e ){
 	}
-	return array( $exist_channels, $disp_channels );
+	return array( $exist_channels, $disp_channels, $not_physical );
 }
 
 $type = '';
@@ -111,12 +155,15 @@ if( count($EX_CHANNEL_MAP) ){
 	$arr['name'] = 'ラジオ';
 	array_push( $types, $arr );
 }
-$exist_channels = array();
-$disp_channels = array();
+if( $type == '' ) $type='IPTV';
+$arr['id'] = 'IPTV';
+$arr['name'] = 'IPTV';
+array_push( $types, $arr );
 
 $channels = get_channels( $type );
 $exist_channels = $channels[0];
 $disp_channels = $channels[1];
+$not_physical = $channels[2];
 
 $smarty = new Smarty();
 $smarty->template_dir = INSTALL_PATH . "/templates/";
@@ -125,6 +172,7 @@ $smarty->cache_dir = INSTALL_PATH . "/cache/";
 
 $smarty->assign( 'types',		$types );
 $smarty->assign( 'type',		$type );
+$smarty->assign( 'not_physical',	$not_physical );
 $smarty->assign( 'exist_channels',	$exist_channels );
 $smarty->assign( 'disp_channels',	$disp_channels );
 $smarty->assign( 'return',		'channel' );

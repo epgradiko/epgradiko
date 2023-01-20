@@ -146,8 +146,9 @@ function ch_NC( $type, $ch_disc, $NC ){
 }
 
 function ch_reorder( $type, $ch_order ){
-	global $GR_CHANNEL_MAP, $BS_CHANNEL_MAP, $CS_CHANNEL_MAP, $EX_CHANNEL_MAP, $settings;
+	global $GR_CHANNEL_MAP, $BS_CHANNEL_MAP, $CS_CHANNEL_MAP, $EX_CHANNEL_MAP, $IPTV_CHANNEL_MAP, $settings;
 	$return_str ='';
+	$not_physical = FALSE;
 	try {
 		// xx_channel.phpの編集
 		switch( $type ){
@@ -163,28 +164,37 @@ function ch_reorder( $type, $ch_order ){
 			case 'EX':
 				$map = $EX_CHANNEL_MAP;
 				break;
+			case 'IPTV':
+				$map = $IPTV_CHANNEL_MAP;
+				$not_physical = TRUE;
+				break;
 			default:
 				$return_str = 'Error: typeパラメータが不正です。(ch_reorder '.$type.')';
 		}
 		if( !$return_str ){
 			$f_nm      = INSTALL_PATH.'/settings/channels/'.strtolower($type).'_channel.php';
+reclog("ch=".$f_nm);
 			$st_ch     = file( $f_nm, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
 			$order     = explode(',' , $ch_order);
-			if( count($map) !== count($order) ) $resturn_str = 'Error: orderパラメータが不正です。(ch_reorder '.$ch_order.')';
+			if( !$not_physical && count($map) !== count($order) ) $resturn_str = 'Error: orderパラメータが不正です。(ch_reorder '.$ch_order.')';
 			else{
 				$write_array = array();
 				$array_before = array_slice( $st_ch, 0, 3, TRUE );
 				$array_after = array_slice( $st_ch, -2, null, TRUE );
 				foreach( $order as $ch_disc ){
-					$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE type=\''.$type.'\' AND channel_disc=\''.$ch_disc.'\'' );
-					if( !$channel ){
-						$explode_text = explode('_', $ch_disc);
-						$sid = $explode_text[1];
-						$array_point[] = "\t\"".$ch_disc."\" =>\t\"NC\",\t// ".$map[$ch_disc]."\t".$sid.",\t// NO NAME";
-					}else if( $map[$ch_disc] == 'NC' ){
-						$array_point[] = "\t\"".$ch_disc."\" =>\t\"NC\",\t// ".$map[$ch_disc]."\t".$channel[0]->sid.",\t// ".$channel[0]->name;
+					$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$ch_disc.'\'' );
+					if( $not_physical ){
+						$array_point[] = "\t\"".$ch_disc."\",\t// ".$channel[0]->name;
 					}else{
-						$array_point[] = "\t\"".$ch_disc."\" =>\t\"".$map[$ch_disc]."\",\t// ".$map[$ch_disc]."\t".$channel[0]->sid.",\t// ".$channel[0]->name;
+						if( !$channel ){
+							$explode_text = explode('_', $ch_disc);
+							$sid = $explode_text[1];
+							$array_point[] = "\t\"".$ch_disc."\" =>\t\"NC\",\t// ".$map[$ch_disc]."\t".$sid.",\t// NO NAME";
+						}else if( $map[$ch_disc] == 'NC' ){
+							$array_point[] = "\t\"".$ch_disc."\" =>\t\"NC\",\t// ".$map[$ch_disc]."\t".$channel[0]->sid.",\t// ".$channel[0]->name;
+						}else{
+							$array_point[] = "\t\"".$ch_disc."\" =>\t\"".$map[$ch_disc]."\",\t// ".$map[$ch_disc]."\t".$channel[0]->sid.",\t// ".$channel[0]->name;
+						}
 					}
 				}
 				if( !$return_str ){

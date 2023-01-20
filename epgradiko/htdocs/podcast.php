@@ -7,7 +7,7 @@ include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
 include_once( INSTALL_PATH . '/include/Settings.class.php' );
 include_once( INSTALL_PATH . '/include/etclib.php' );
 
-$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https://' : 'http://';
+$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https://' : 'http://';
 $host = $protocol. $_SERVER["HTTP_HOST"];
 
 $settings = Settings::factory();

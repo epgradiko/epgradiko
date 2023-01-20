@@ -6,7 +6,7 @@ include_once( INSTALL_PATH . '/include/DBRecord.class.php' );
 include_once( INSTALL_PATH . '/Smarty/Smarty.class.php' );
 include_once( INSTALL_PATH . '/include/Settings.class.php' );
 
-function channel_list($channel, $host) {
+function xml_channel_list($channel, $host) {
 	$wherestr = "WHERE channel_id = '".$channel->id."'".
 		" AND starttime <=NOW() AND endtime >= NOW()";
 	$prog = DBRecord::createRecords(PROGRAM_TBL, $wherestr);
@@ -53,12 +53,12 @@ if( isset($IPTV_CHANNEL_MAP)  ){
 	$channel_map_keys = $IPTV_CHANNEL_MAP;
 	for( $i = 0; $i < $count; $i++ ){
 		$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc="'.$channel_map_keys[ $i ].'"' );
-		array_push( $channel_list, channel_list($channel[0], $host));
+		array_push( $channel_list, xml_channel_list($channel[0], $host));
 	}
 } else {
 	$channels = DBRecord::createRecords(CHANNEL_TBL, "WHERE skip = 0 ORDER BY channel");
 	foreach( $channels as $channel ) {
-		array_push( $channel_list, channel_list($channel, $host));
+		array_push( $channel_list, xml_channel_list($channel, $host));
 	}
 }
 $smarty = new Smarty();

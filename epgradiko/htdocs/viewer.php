@@ -133,7 +133,7 @@ if($sendstream_mode){
 		}
 	}
 }
-$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https' : 'http';
+$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https' : 'http';
 
 $host = $_SERVER["HTTP_HOST"];
 $base_address = $host.$target_path;
@@ -176,6 +176,31 @@ if($trans !=='' || $trans_id){
 		header('Location: '.$url, TRUE, 307);
 		echo '<a href="'.$url.'">起動</a>';
 	}else{
+//		echo '<html>';
+//		echo '<head>';
+//		echo '<meta charset="UTF-8">';
+//		echo '<title>'.$name.'</title>';
+//		echo '</head>';
+//		echo '<body style="padding: 0px; margin: 0px; background-color: black;" >';
+//		echo '<script src="/js/mpegts.js"></script>';
+//		echo '<video id="videoElement"></video>';
+//		echo '<script>';
+//		echo '    if (mpegts.getFeatureList().mseLivePlayback) {';
+//		echo '        var videoElement = document.getElementById("videoElement");';
+//		echo '        var player = mpegts.createPlayer({';
+//		echo '            type: "mse",';
+//		echo '            isLive: true,';
+//		echo '            url: "'.$source_url.'"';
+//		echo '        });';
+//		echo '        player.attachMediaElement(videoElement);';
+//		echo '        player.load();';
+//		echo '        player.play();';
+//		echo '    }else{';
+//		echo '        document.write("<p>動画を再生するにはmseをサポートしたブラウザが必要です。</p>")';
+//		echo '    }';
+//		echo '</script>';
+//		echo '</body>';
+//		echo '</html>';
 		header('Expires: Thu, 01 Dec 1994 16:00:00 GMT');
 		header('Last-Modified: '. gmdate('D, d M Y H:i:s'). ' GMT');
 		header('Cache-Control: no-cache, must-revalidate');

@@ -550,7 +550,7 @@ try{
 	}
 
 	if( isset($_COOKIE['podcast_urlscheme']) ){
-		$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https' : 'http';
+		$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https' : 'http';
 
 		$host = $_SERVER['HTTP_HOST'];
 		$target_path = '/podcast.php';

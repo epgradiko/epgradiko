@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="/css/layout.css" type="text/css">
 <script type="text/javascript" src="/js/common.js"></script>
 <script type="text/javascript" src="/js/mdabasic.js"></script>
+<script type="text/javascript" src="/js/Sortable.min.js"></script>
 <script type="text/javascript">
 var PRG = {
 	del_ch:function(type, ch_disc){
@@ -46,7 +47,8 @@ var PRG = {
 	}
 }
 $(function(){
-	$('#channel_sort').sortable({helper: helper1, cursor: "move", opacity: 0.5});
+	$('#channel_sort').sortable({connectWith: '#other_channel_sort', helper: helper1, cursor: "move", opacity: 0.5});
+	$('#other_channel_sort').sortable({connectWith: '#channel_sort', helper: helper1, cursor: "move", opacity: 0.5});
 });
 function helper1(e, tr) {
 	var $originals = tr.children();
@@ -72,6 +74,16 @@ table#channel_table td, table#channel_table th {
     border: solid 1px black;
 }
 
+table#other_channel_table {
+    width: auto;
+    margin: 3;
+    border-collapse: collapse;
+}
+
+table#other_channel_table td, table#other_channel_table th {
+    border: solid 1px black;
+}
+
 -->
 </style>
 {/literal}
@@ -86,22 +98,36 @@ table#channel_table td, table#channel_table th {
     <option value="{$type_sel.id}" {if $type_sel.id == $type}selected{/if}>{$type_sel.name}</option>
   {/foreach}
 </select>
-チャンネル一覧　<small><a href="/maintenance.php?return=channel"><input type="button" value="並べ替えを戻す" /></a></small>
+チャンネル一覧　<small><a href="/maintenance.php?return=channel&type={$type}"><input type="button" value="並べ替えを戻す" /></a></small>
 　<small><input type="button" value="並べ替えを保存" onclick="PRG.order_ch('{$type}');" /></small>
+{if !$not_physical}
  <div><font color="red">対象を × にすると番組表に表示されなくなり、録画もできません。</font></div>
  <div><font color="black">番組表表示を × にすると通常は番組表に表示されなくなり、「チャンネル表示」を押したときに表示されます。録画可能です。</font></div>
+{else}
+ <div><font color="black">表示対象・表示対象外を入れ替えて番組表に表示するチャンネルを選んでください。<font></div>
+{/if}
+ <table><tr valign="top"><td>
  <table id="channel_table">
   <thread>
+{if !$not_physical}
    <tr bgcolor="lightblue">
-    <th align="center">識別子</th>
-    <th align="center">局名</th>
+    <th align="center" width="200px">識別子</th>
+    <th align="center" width="300px">局名</th>
     <th align="center">対象</th>
     <th align="center">番組表表示</th>
     <th align="center">番組数</th>
     <th align="center">予約数</th>
     <th align="center">削除</th>
    </tr>
+{else}
+   <tr>表示対象</tr>
+   <tr bgcolor="lightblue">
+    <th align="center" width="200px">識別子</th>
+    <th align="center" width="250px">局名</th>
+   </tr>
+{/if}
   </thread>
+{if !$not_physical}
   <tbody id="channel_sort">
    {foreach from=$exist_channels item=exist_channel name='channels'}
     <tr id="{$exist_channel.channel_disc}" {if $exist_channel.pro_cnt == 0}class="freeze" {/if}>
@@ -125,7 +151,39 @@ table#channel_table td, table#channel_table th {
     </tr>
    {/foreach}
   </tbody>
+{else}
+  <tbody id="channel_sort">
+   {foreach from=$disp_channels item=disp_channel name='channels'}
+    <tr id="{$disp_channel.channel_disc}">
+     <td style="cursor: pointer;">{$disp_channel.channel_disc}</td>
+     <td>{$disp_channel.name}</td>
+    </tr>
+   {/foreach}
+  </tbody>
+{/if}
  </table>
+ </td>
+{if $not_physical}
+ <td width='100px'></td>
+ <td>
+ <table id="other_channel_table">
+  <thread>
+   <tr>表示対象外</tr>
+   <tr bgcolor="lightgrey">
+    <th align="center" width="200px">識別子</th>
+    <th align="center" width="300px">局名</th>
+   </tr>
+  </thread>
+  <tbody id="other_channel_sort">
+   {foreach from=$exist_channels item=exist_channel name='other_channels'}
+    <tr id="{$exist_channel.channel_disc}">
+     <td style="cursor: pointer;">{$exist_channel.channel_disc}</td>
+     <td>{$exist_channel.name}</td>
+    </tr>
+   {/foreach}
+  </tbody>
+{/if}
+ </tr></table>
 </div>
 </form>
 </body>

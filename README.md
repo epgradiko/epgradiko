@@ -8,13 +8,13 @@ radiko(ラジコ)はスマートフォンやアプリ・パソコンでラジオ
 ・github同梱  
 　epgradiko・・・・・epgrecUNAを改造  
 　epgdump・・・・・・epgrecUNA版epgdumpを改造  
-　tspacketchk・・・・パケットチェック表示オプションを追加（サマリーと詳細の標準出力とエラー出力分け、表示をシンプルにするモード追加）  
-　radish ・・・・・・出力ファイル名の拡張子補完機能を削除  
-　tsreadex ・・・・・そのまま  
+　[tspacketchk](https://github.com/kaikoma-soft/tspacketchk)・・・・パケットチェック表示オプションを追加（サマリーと詳細の標準出力とエラー出力分け、表示をシンプルにするモード追加）  
+　[radish](https://github.com/uru2/radish) ・・・・・・出力ファイル名の拡張子補完機能を削除  
+　[tsreadex](https://github.com/xtne6f/tsreadex) ・・・・・そのまま  
 ・外部のソフトウェア（各自用意のこと）  
 　docker ・・・・・・実行環境整備してください  
-　mysql・・・・・・・utf8mb4データベースが作成可能な環境  
-　mirakurun・・・・・デジタル放送受信が可能な環境（mirakcでも大丈夫。タイムシフトも使える）  
+　mysql・・・・・・・utf8mb4データベースが作成可能な環境（mariadbでも大丈夫）  
+　[mirakurun](https://github.com/Chinachu/Mirakurun)・・・・・デジタル放送受信が可能な環境（[mirakc](https://github.com/mirakc/mirakc)でも大丈夫。タイムシフトも使える）  
   
   
 ## 特徴  
@@ -85,7 +85,7 @@ view_config.php ・・・・・視聴関連のパラメータ設定
 ・html5videoタグによるtsファイルmp4トランスコード視聴  
 ・html5videoタグによるmp4変換ファイルの再生  
 ・視聴設定画面追加、urlスキームによるクライアント視聴対応（端末ごと設定）  
-・IPTV対応（channels.php, xmltv.php）  
+・IPTV対応（mirakurun互換(/api/iptv/)、channels.php, xmltv.php）  
 ・EPG取得時の使用チューナー数を制限可能(EPG取得に使用するチューナーはmirakurunプライオリティで制御)  
 ・UI変更  
 　操作モードはclick mode固定。  
@@ -199,6 +199,7 @@ table_name.php ・・・・・・（新規）旧config.phpより分岐
 airwavesSheep.php・・・・・単チャンネルEPG取得更新スクリプト（sheepdog.php・collie.phpから呼ばれる）  
 collie.php ・・・・・・・・衛星波EPG取得更新管理（shepherd.phpから呼ばれる）  
 gen-thumbnail.sh ・・・・・サムネイル作成。ラジオ番組サムネイル追加対応。  
+cancelReservation.php・・・JavaScriptから呼ばれる予約取り消し。  
 recomplete.php ・・・・・・録画終了処理  
 repairEpg.php・・・・・・・番組構成の乱れ修正・EPG取得更新スクリプト（storeProgram.inc.phpから呼ばれる）  
 scoutEpg.php ・・・・・・・録画前・単チャンネルEPG取得更新スクリプト（ATから呼ばれる）。録画終了時呼び出し対応。  

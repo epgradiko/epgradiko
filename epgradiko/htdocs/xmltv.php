@@ -11,27 +11,22 @@ $host_proto = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off
 $host = $host_proto. $_SERVER["HTTP_HOST"];
 $settings = Settings::factory();
 
-if( isset($_GET['ch_id']) ) {
-    if (is_numeric(substr($_GET['ch_id'],1,2))) $channel_disc = "GR".$channel_disc.$_GET['ch_id'];
-    else $channel_disc = $channel_disc.$_GET['ch_id'];
-    $chs = new DBRecord(CHANNEL_TBL, "channel_disc", $channel_disc);
-} else {
-    $chs = DBRecord::createRecords(CHANNEL_TBL);
-}
-
 $channel = array();
 $program = array();
+$i = 0;
 
-foreach( $chs as $c ) {
+foreach( $IPTV_CHANNEL_MAP as $channel_disc ) {
     $c_arr = array();
 
+    $c = new DBRecord(CHANNEL_TBL, "channel_disc", $channel_disc);
     $c_arr['channel'] = htmlspecialchars($c->channel);
     $c_arr['sid'] = htmlspecialchars($c->sid);
     $c_arr['name'] = htmlspecialchars($c->name);
     $c_arr['channel_disc'] = htmlspecialchars($c->channel_disc);
-
+    $c_arr['logo'] = htmlspecialchars($host.'/logoImage.php?channel_disc='.$c->channel_disc);
+    $c_arr['GuideNumber'] = (string) ($i + 1);
     $wherestr = "WHERE channel_disc = '".$c_arr['channel_disc']."'".
-		"AND endtime >= NOW()".
+		"AND endtime >= now() ".
 		"ORDER BY starttime";
     $progs = DBRecord::createRecords(PROGRAM_TBL, $wherestr);
     if (!empty($progs)) {
@@ -53,6 +48,7 @@ foreach( $chs as $c ) {
 	}
         array_push( $channel, $c_arr );
     }
+    $i++;
 }
 $smarty = new Smarty();
 $smarty->template_dir = INSTALL_PATH . "/templates/";

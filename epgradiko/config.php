@@ -16,6 +16,11 @@ if( check_ch_map( 'gr_channel.php', isset( $GR_CHANNEL_MAP ) ) ){	// 地デジ�
 	unset($GR_CHANNEL_MAP);
 	include_once( INSTALL_PATH.'/settings/channels/gr_channel.php' );
 }
+if( check_ch_map( 'iptv_channel.php', TRUE ) ){			// 選別チャンネルテーブル
+	include( INSTALL_PATH.'/settings/channels/iptv_channel.php' );
+	if( !count($IPTV_CHANNEL_MAP) )
+		unset($IPTV_CHANNEL_MAP);
+}
 if( check_ch_map( 'selected_channel.php', TRUE ) ){			// 選別チャンネルテーブル
 	include( INSTALL_PATH.'/settings/channels/selected_channel.php' );
 	if( !count($SELECTED_CHANNEL_MAP) )

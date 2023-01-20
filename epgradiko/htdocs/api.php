@@ -28,6 +28,53 @@ function not_found() {
 	echo "</body>\n";
 	echo "</html>\n";
 }
+function channel_list($channel, $host, $num) {
+	$channel_arr = array();
+	$channel_arr['GuideNumber']	= (string) ($num + 1);
+	$channel_arr['GuideName']	= $channel->name;
+	$channel_arr['HD']	= 1;
+	$channel_arr['URL']	= $host.'?type='.$channel->type.'&ch='.$channel->channel.'&sid='.$channel->sid;
+	return $channel_arr;
+}
+
+function get_iptv_lineup(){
+	global $path, $paths, $RECORD_MODE;
+	$host = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https://' : 'http://';
+	$host = $host . $_SERVER["HTTP_HOST"];
+	$url = $host.'/sendstream.php';
+	try {
+		// IPTVチャンネルテーブル
+		if( check_ch_map( 'iptv_channel.php', TRUE ) ){
+			include( INSTALL_PATH.'/settings/channels/iptv_channel.php' );
+			if( !count($IPTV_CHANNEL_MAP) ) unset($IPTV_CHANNEL_MAP);
+		}
+		$channel_lists = array();
+		$ch_arr = array();
+		if( isset($IPTV_CHANNEL_MAP) ){
+			$count = count($IPTV_CHANNEL_MAP);
+			$channel_map_keys = $IPTV_CHANNEL_MAP;
+			for( $i = 0; $i < $count; $i++ ){
+				$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc="'.$channel_map_keys[ $i ].'"' );
+				array_push( $channel_lists, channel_list($channel[0], $url, $i));
+			}
+		} else {
+			$channels = DBRecord::createRecords(CHANNEL_TBL, "WHERE skip = 0 ORDER BY channel");
+			foreach( $channels as $channel ) {
+				array_push( $channel_lists, channel_list($channel, $url, $i));
+			}
+		}
+	} catch( Exception $e ) {
+		return ['content_type' => 'err',
+			'content' => [ 
+				'status' => $e->getCode(),
+				'message' => $e->getMessage()
+			]
+		];
+	}
+	return ['content_type' => 'json',
+		'content' => $channel_lists
+		];
+}
 
 function get_recorded() {
 	global $path, $paths, $RECORD_MODE;
@@ -503,6 +550,15 @@ function delete_recorded_encode() {
 		];
 }
 
+function get_iptv() {
+		return ['content_type' => 'err',
+			'content' => [
+				'status' => 400,
+				'message' => 'not supoorted yet'
+			]
+		];
+}
+
 global $path, $paths;
 $path = substr($_SERVER['REDIRECT_URL'], 5);
 $paths = explode('/', $path);
@@ -609,6 +665,63 @@ case 'get:videos':
 	}
 	break;
 
+case 'get:iptv':
+	if( isset($paths[1]) && $paths[1] ) {
+		if( isset($paths[2]) && $paths[2] ) {
+			not_found();
+			exit;
+		}else{
+			switch( $paths[1] ){
+			case 'xmltv':
+				$responce = ['content_type' => 'xml'];
+				break;
+			case 'playlist':
+				$responce = ['content_type' => 'm3u8'];
+				break;
+			case 'lineup.json':
+				$responce = get_iptv_lineup();
+				break;
+			case 'lineup_status.json':
+				$responce = ['content_type' => 'json',
+					'content' => [
+						'ScanInProgress' => 0,
+						'ScanPossible' => 0,
+						'SourceList' => [
+							'Antenna'
+						]
+					]
+				];
+				break;
+			case 'discover.json':
+				$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || isset($_SERVER["HTTP_X_FORWARDED_SSL"]) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https://' : 'http://';
+				$host = $protocol. $_SERVER["HTTP_HOST"];
+
+				$responce = ['content_type' => 'json',
+					'content' => [
+						'FriendlyName' => 'EPGradiko',
+						'ModelNumber' => 'EPGRADIKO',
+						'FirmwareName' => 'epgradiko',
+						'FirmwareVersion' => '0.0.1',
+						'Manufacturer' => 'epgradiko',
+						'DeviceID' => 'epgradiko',
+						'DeviceAuth' => 'epgradiko',
+						'TunerCount' => $settings->gr_tuners + $settings->bs_tuners,
+						'BaseURL' => $host.'/api/iptv',
+						'LineupURL' => $host.'/api/iptv/lineup.json',
+						]
+				];
+				break;
+			default:
+				not_found();
+				exit;
+			}
+		}
+	} else {
+		not_found();
+		exit;
+	}
+	break;
+
 default:
 	not_found();
 	exit;
@@ -652,6 +765,15 @@ case 'application':
 		}while( connection_aborted() == 0 );
 		fclose($fp);
 	}
+	break;
+case 'xml':
+	header('content-type: text/xml; charset=utf-8');
+	require INSTALL_PATH . '/htdocs/xmltv.php';
+	break;
+
+case 'm3u8':
+	header('content-type: application/x-mpegURL; charset=utf-8');
+	require INSTALL_PATH . '/htdocs/channels.php';
 	break;
 
 defaulft:
