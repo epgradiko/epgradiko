@@ -85,7 +85,7 @@ view_config.php ・・・・・視聴関連のパラメータ設定
 ・html5videoタグによるtsファイルmp4トランスコード視聴  
 ・html5videoタグによるmp4変換ファイルの再生  
 ・視聴設定画面追加、urlスキームによるクライアント視聴対応（端末ごと設定）  
-・IPTV対応（mirakurun互換(/api/iptv/)、channels.php, xmltv.php）  
+・IPTV対応（mirakurun互換API(/api/iptv/)、channels.php, xmltv.php）  
 ・EPG取得時の使用チューナー数を制限可能(EPG取得に使用するチューナーはmirakurunプライオリティで制御)  
 ・UI変更  
 　操作モードはclick mode固定。  
@@ -146,9 +146,6 @@ view_config.php ・・・・・視聴関連のパラメータ設定
 ・Windows対応  
 ・番組タイトルの正規化追加（自分の録画範囲でしか考えません）  
 ・docker以外の環境対応/考慮  
-  
-### ヒントをくれたら対応を考える事案  
-・字幕表示  
   
 ## 基本的スタンス  
 使いやすくはしたいですが、今の状態で満足しているので積極的な対応はありません。  
@@ -233,7 +230,7 @@ setChannelInfo.php ・・・・チャンネル情報修正（JavaScriptから呼
 simpleReservation.php・・・簡易予約実行（JavaScriptから呼ばれる）  
 toggleAutorec.php・・・・・自動予約対象切り替え（JavaScriptから呼ばれる）  
 viewer.php ・・・・・・・・ASFヘッダを送るスクリプト。video視聴対応。  
-api.php・・・・・・・・・・（新規）「EPGStaionの録画を見る」対応。  
+api.php・・・・・・・・・・（新規）「EPGStaionの録画を見る」、「mirakurun IPTV」対応。  
 channels.php ・・・・・・・（新規）IPTV用チャンネル一覧プレイリスト作成  
 get_file.php ・・・・・・・（新規）ディレクトリ分離に伴いドキュメントルート配下を外れたデータ取得用  
 logoImage.php・・・・・・・（新規）IPTV用チャンネルロゴ取得  

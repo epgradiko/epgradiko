@@ -146,7 +146,7 @@ function ch_NC( $type, $ch_disc, $NC ){
 }
 
 function ch_reorder( $type, $ch_order ){
-	global $GR_CHANNEL_MAP, $BS_CHANNEL_MAP, $CS_CHANNEL_MAP, $EX_CHANNEL_MAP, $IPTV_CHANNEL_MAP, $settings;
+	global $GR_CHANNEL_MAP, $BS_CHANNEL_MAP, $CS_CHANNEL_MAP, $EX_CHANNEL_MAP, $IPTV_CHANNEL_MAP, $SELECTED_CHANNEL_MAP, $settings;
 	$return_str ='';
 	$not_physical = FALSE;
 	try {
@@ -168,6 +168,10 @@ function ch_reorder( $type, $ch_order ){
 				$map = $IPTV_CHANNEL_MAP;
 				$not_physical = TRUE;
 				break;
+			case 'SELECTED':
+				$map = $SELECTED_CHANNEL_MAP;
+				$not_physical = TRUE;
+				break;
 			default:
 				$return_str = 'Error: typeパラメータが不正です。(ch_reorder '.$type.')';
 		}
@@ -180,11 +184,12 @@ function ch_reorder( $type, $ch_order ){
 				$write_array = array();
 				$array_before = array_slice( $st_ch, 0, 3, TRUE );
 				$array_after = array_slice( $st_ch, -2, null, TRUE );
+				$array_point = array();
 				foreach( $order as $ch_disc ){
 					if( $ch_disc == 'END' ) continue;
 					$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$ch_disc.'\'' );
 					if( $not_physical ){
-						$array_point[] = "\t\"".$ch_disc."\",\t// ".$channel[0]->name;
+						if( $channel ) $array_point[] = "\t\"".$ch_disc."\",\t// ".$channel[0]->name;
 					}else{
 						if( !$channel ){
 							$explode_text = explode('_', $ch_disc);

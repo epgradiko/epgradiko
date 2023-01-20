@@ -94,7 +94,11 @@ if( $type == 'EX' ){
 		$channel_map = $GR_CHANNEL_MAP;
 	}
 }
-if( $type == 'SELECT' ) $selected_channel =TRUE;
+if( $type == 'SELECT' ){
+	$channel_map = $SELECTED_CHANNEL_MAP;
+	$selected_channel =TRUE;
+}
+
 if( !count($channel_map) ){
 	$type = 'GR';
 	$channel_map = $GR_CHANNEL_MAP;
@@ -450,7 +454,7 @@ $smarty->assign( 'transsize_set', $TRANSSIZE_SET );
 $smarty->assign( 'transsize_set_cnt', $num_all_ch );
 $smarty->assign( 'spool_freesize', spool_freesize() );
 
-$sitetitle = ( $type==='SELECT' ? '選別' : ($type==='EX' ? 'ラジオ' : ( $type==='GR' ? '地デジ' : $type )).'番組表'.($single_ch_disc ? '['.$single_ch_name.']' : '') ).' '.
+$sitetitle = ( $type==='SELECT' ? '選別' : ($type==='EX' ? 'ラジオ' : ( $type==='GR' ? '地デジ' : $type ))).'番組表'.($single_ch_disc ? '['.$single_ch_name.']' : '').' '.
 			date( 'Y', $top_time ) . '年' . date( 'm', $top_time ) . '月' . date( 'd', $top_time ) . '日'. date( 'H', $top_time ) .'時～';
 
 $smarty->assign('sitetitle', $sitetitle );

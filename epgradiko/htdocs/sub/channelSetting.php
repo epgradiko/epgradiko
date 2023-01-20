@@ -18,6 +18,7 @@ function get_channels( $type )
 	global $CS_CHANNEL_MAP;
 	global $EX_CHANNEL_MAP;
 	global $IPTV_CHANNEL_MAP;
+	global $SELECTED_CHANNEL_MAP;
 
 	$not_physical = FALSE;
 	switch( $type ){
@@ -37,6 +38,10 @@ function get_channels( $type )
 			$map = $IPTV_CHANNEL_MAP;
 			$not_physical = TRUE;
 			break;
+		case 'SELECTED':
+			$map = $SELECTED_CHANNEL_MAP;
+			$not_physical = TRUE;
+			break;
 	}
 	$exist_channels = array();
 	$disp_channels = array();
@@ -44,7 +49,7 @@ function get_channels( $type )
 		if( $not_physical ){
 			if( $map !== NULL ){
 				foreach( $map as $map_channel_disc ){
-					$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$map_channel_disc.'\'' );
+					$channel = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$map_channel_disc.'\'');
 					$arr = array();
 					if( $channel ){
 						$arr['id']           = (int)$channel[0]->id;
@@ -76,7 +81,7 @@ function get_channels( $type )
 								'del'	=> FALSE,
 				]);
 			}
-			$channels = DBRecord::createRecords( CHANNEL_TBL );
+			$channels = DBRecord::createRecords( CHANNEL_TBL , 'ORDER BY FIELD( type, \'GR\', \'BS\', \'CS\', \'EX\' ), channel_disc');
 			foreach( $channels as $channel ){
 				if( $map !== NULL && in_array( $channel->channel_disc, $map ) ) continue;
 				$arr = array();
@@ -170,6 +175,11 @@ if( count($EX_CHANNEL_MAP) ){
 if( $type == '' ) $type='IPTV';
 $arr['id'] = 'IPTV';
 $arr['name'] = 'IPTV';
+array_push( $types, $arr );
+
+if( $type == '' ) $type='SELECTED';
+$arr['id'] = 'SELECTED';
+$arr['name'] = '選別';
 array_push( $types, $arr );
 
 $channels = get_channels( $type );
