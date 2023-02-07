@@ -29,29 +29,28 @@ if( isset($argv[1]) ){
 	$single_station = $argv[1];
 	$single_mode = TRUE;
 }
-if( isset( $_GET['disc'] ) ){
-	//	single station mode
-	$single_station = $_GET['disc'];
-	$single_mode = TRUE;
-}
-if( isset( $_POST['disc'] ) ){
-	//	single station mode
-	$single_station = $_POST['disc'];
-	$single_mode = TRUE;
-}
 
 $days = array();
-$day_mode = FALSE;
-if( isset($argv[2]) ) $day_mode = TRUE;		// day mode
-if( isset( $_GET['mode'] ) ) $day_mode = TRUE;	// day mode
-if( isset( $_POST['mode'] ) ) $day_mode = TRUE;	// day mode
-if( $day_mode ){
-	$days[0] = date("Ymd", strtotime( "-5 hour" ));
-}else{
-	for($i = 0; $i < 7; $i++) {
-		$today = date("Y-m-d", strtotime( "-5 hour" ));
-		$days[$i] = date("Ymd",strtotime($today .' '.$i." day"));
-	}
+$day_mode = 'normal';
+if( isset($argv[2]) ){
+	if( $argv[2] == 'timeshift' ) $day_mode = 'timeshift';		// day mode
+	else $day_mode = 'single';
+}
+$today = date("Y-m-d", strtotime( "-5 hour" ));
+switch( $day_mode ){
+	case 'single':
+		$days[0] = $today;
+		break;
+	case 'normal':
+		for($i = 0; $i < 7; $i++) {
+			$days[$i] = date("Ymd",strtotime($today .' '.$i." day"));
+		}
+		break;
+	case 'timeshift':
+		for($i = -7; $i < 1; $i++) {
+			$days[$i + 7] = date("Ymd",strtotime($today .' '.$i." day"));
+		}
+		break;
 }
 
 // Get radiko Area ID

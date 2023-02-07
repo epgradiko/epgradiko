@@ -54,8 +54,8 @@ $pager_option = '';
 $full_mode    = FALSE;
 $order        = 'starttime+DESC';
 
-$options = '((type <> \'timeshft\' AND starttime<\''. date('Y-m-d H:i:s').'\') OR '
-		.'(type = \'timeshft\' AND endtime<\''. date('Y-m-d H:i:s').'\'))';
+$options = '((type not in (\'timeshft\',\'timefree\') AND starttime<\''. date('Y-m-d H:i:s').'\') OR '
+		.'(type in (\'timeshft\',\'timefree\') AND endtime<\''. date('Y-m-d H:i:s').'\'))';
 
 $rev_obj = new DBRecord( RESERVE_TBL );
 
@@ -372,7 +372,7 @@ try{
 			$arr['description'] = $r['description'];
 			$thumb_file = $r['id'].'.jpg';
 			if( file_exists(INSTALL_PATH.$settings->thumbs.'/'.$thumb_file) ){
-				$arr['thumb'] = '<img src="/get_file.php?thumb='.$thumb_file.'" width="192px" height="auto"/>';
+				$arr['thumb'] = '<img src="/sub/get_file.php?thumb='.$thumb_file.'" width="192px" height="auto"/>';
 				$trans_set = get_lightest_trans($r['id']);
 				$source_url = '/recorded/trans_id/'.$trans_set[0].'.'.$trans_set[2];
 			}else
@@ -400,7 +400,7 @@ try{
 				switch( $r['complete'] ) {
 				case 0:
 					if( time() > $start_time ){ //延長？失敗？
-						if( $r['type'] !== 'timeshft' ){ //タイムシフト録画中
+						if( $r['type'] !== 'timeshft' && $r['type'] !== 'timefree' ){ //タイムシフト録画中
 							if( !search_recps($r['id']) ){ //録画コマンド実行なし→失敗
 								$wrt_set = array();
 								$wrt_set['complete'] = 2;
@@ -457,7 +457,7 @@ try{
 //				}
 			}else{
 				if( time() > $start_time && time() < $end_time ){ //延長？失敗？
-					if( $r['type'] !== 'timeshft' ){
+					if( $r['type'] !== 'timeshft' && $r['type'] !== 'timefree' ){
 						if( !search_recps($r['id']) ){ //録画コマンド実行なし→失敗
 							$wrt_set = array();
 							$wrt_set['complete'] = 2;
@@ -497,7 +497,7 @@ try{
 								$element = '<a style="background-color: limegreen; color: black"'
 									.'href="'.$arr['asf'].'&trans_id='.$tran_unit['id'].'" target="_blank" title="視聴"> '.$tran_unit['name'].' </a>';
 								$element .= '<br><input type="button" value="Download" title="ダウンロード" onClick="location.href=\'sendstream.php?download&trans_id='.$tran_unit['id'].'\'" style="padding:0;">';
-								$arr['thumb'] = '<video id="id_video_'.$r['id'].'" src="/recorded/trans_id/'.$tran_unit['id'].'.'.pathinfo($RECORD_MODE[$tran_unit['mode']]['tsuffix'], PATHINFO_EXTENSION).'" poster="/get_file.php?thumb='.$thumb_file.
+								$arr['thumb'] = '<video id="id_video_'.$r['id'].'" src="/recorded/trans_id/'.$tran_unit['id'].'.'.pathinfo($RECORD_MODE[$tran_unit['mode']]['tsuffix'], PATHINFO_EXTENSION).'" poster="/sub/get_file.php?thumb='.$thumb_file.
 									'" width="192px" preload="none" />';
 							} else {
 								$arr['view_set'] = '<a><del> '.$RECORD_MODE[$r['mode']]['name'].' </del></a>';

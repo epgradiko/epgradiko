@@ -62,7 +62,7 @@
 			var id_post_title = $('#id_post_title').val();
 			var id_description = $('#id_description').val();
 
-			$.post('/changeReservation.php', { reserve_id: id_reserve_id,
+			$.post('/sub/changeReservation.php', { reserve_id: id_reserve_id,
 							  title: id_title,
 							  description: id_description }, function( data ) {
 				if(data.match(/^error/i)){
@@ -182,7 +182,7 @@
 	}
 
 	function disp_plog(plog_file){
-		$.get('/get_file.php?plog='+plog_file, function(data){
+		$.get('/sub/get_file.php?plog='+plog_file, function(data){
 			$('#floatBox4Dialog').dialog('option', 'title', 'ログ詳細');
 			$('#floatBox4Dialog').html('<pre>' + data + '</pre>');
 			$('#floatBox4Dialog').dialog('open','center');
@@ -324,7 +324,7 @@ select.autokeys option{white-space:pre;}
 
 <body>
 <div id="all">
-{include file='menu_star.tpl'}
+{include file='include/menu_star.tpl'}
 
 <div id="nav_margin" style="margin-top:35px;">
 <fieldset>
@@ -415,10 +415,12 @@ select.autokeys option{white-space:pre;}
   <td style="white-space: pre;">{$rec.view_set}{if isset($rec.ffmpeglog)}{$rec.ffmpeglog}{/if}</td>
   <td><table style="border: 0px; cellpadding: 0px; cellspacing: 0px;">
       <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;">{$rec.mark}</td></tr>
-      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;{if $rec.description|count_characters != $rec.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|count_characters} cursor:pointer" onclick="disp_diag_msg('{$rec.description|escape:'javascript'}');{/if}" id="did_{$rec.id}">{$rec.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|escape}</td></tr>
+      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;
+{if $rec.description|count_characters != $rec.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|count_characters} cursor:pointer"
+ onclick="disp_diag_msg('{$rec.description|escape:'javascript'}');{/if}" id="did_{$rec.id}">{$rec.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|escape}</td></tr>
   </table></td>
   <td style="white-space: nowrap;">
-   {if $rec.key_id }<a href="/programTable.php?keyword_id={$rec.key_id}" title="キーワード編集にジャンプ">自動</a>{else}手動{/if}<br>
+   {if $rec.key_id }<a href="/searchProgram.php?keyword_id={$rec.key_id}" title="キーワード編集にジャンプ">自動</a>{else}手動{/if}<br>
 <input type="checkbox" class="del" name="del[]" id="del{$rec.id}" value="{$rec.id}" onClick="check_shiftclick({$smarty.foreach.loop.iteration},event)"
     title="Check削除用シフトクリックで範囲操作が行なえます">
     <label for="del{$rec.id}" onClick="check_shiftclick({$smarty.foreach.loop.iteration},event)">
@@ -437,7 +439,7 @@ select.autokeys option{white-space:pre;}
   現在、録画済データはありません
 {/if}
 
-{include file='menu_list.tpl' menu_list=$menu_list}
+{include file='include/menu_list.tpl' menu_list=$menu_list}
 </div>
 
 <div id="floatBox4Dialog">jQuery UI Dialog</div>
@@ -446,7 +448,7 @@ select.autokeys option{white-space:pre;}
 {literal}
 <script type="text/javascript">
 var INISet = {
-	prgCancelURL : '/cancelReservation.php'		// 予約キャンセル
+	prgCancelURL : '/sub/cancelReservation.php'		// 予約キャンセル
 }
 </script>
 {/literal}

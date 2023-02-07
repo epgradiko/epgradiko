@@ -85,7 +85,7 @@ view_config.php ・・・・・視聴関連のパラメータ設定
 ・html5videoタグによるtsファイルmp4トランスコード視聴  
 ・html5videoタグによるmp4変換ファイルの再生  
 ・視聴設定画面追加、urlスキームによるクライアント視聴対応（端末ごと設定）  
-・IPTV対応（mirakurun互換API(/api/iptv/)、channels.php, xmltv.php）  
+・IPTV対応（mirakurun互換API(/api/iptv/)としました。m3u8は/api/iptv/playlist,xmltvは/api/iptv/xmltvで呼び出し。mirakcでもplexのDVRにも使えます。）  
 ・EPG取得時の使用チューナー数を制限可能(EPG取得に使用するチューナーはmirakurunプライオリティで制御)  
 ・UI変更  
 　操作モードはclick mode固定。  
@@ -119,10 +119,6 @@ view_config.php ・・・・・視聴関連のパラメータ設定
 ・INSTALL_URL廃止(DocumentRoot=/var/www/localhost/htdocs配下)  
 ・download_file.phpは、sendstream.phpに統合。  
 ・その他色々  
-  
-## 既知の不具合  
-・eit[p/f]更新時に番組マークがなくなってしまう不具合があります。まだ直せていません。  
-  
   
 ### ライセンス  
   オリジナルに準じます。  
@@ -176,82 +172,83 @@ DBRecord.class.php・・・・DBRecordクラス
 　$arr = createRecords( PROGRAM_TBL|CATEGORY_TBL|CHANNEL_TBL|KEYWORD_TBL|RESERVE_TBL[,options] );  
 　　テーブルの全レコードをDBRecordオブジェクト配列として返します（低速）。optionsにSELECT文のWHERE節を追加して絞り込むことが出来ます。optionsは"WHERE ..."と記述してください。  
   
-Keyword.class.php・・・・・キーワードレコードクラス（親：DBRecord）。除外キーワード対応  
-Reservation.class.php・・・予約クラス。静的メソッドsimple()、静的メソッドcustom()。mirakurunチャンネル共有対応。  
-Settings.class.php ・・・・設定の読み出し/保存を行うクラス（親：SimpleXML）。設定項目の追加対応。  
-reclib.php ・・・・・・・・雑多ライブラリ  
-recLog.inc.php ・・・・・・ログテーブルライブラリ  
-storeProgram.inc.php ・・・テレビ番組表格納用関数群  
-tableStruct.inc.php・・・・テーブル初期生成  
-const.php・・・・・・・・・（新規）旧config.phpより分岐  
-epg_const.php・・・・・・・（新規）テレビ番組タイトル用固定項目  
-etclib.php ・・・・・・・・（新規）小間物関数群  
-menu_list.php・・・・・・・（新規）メニュー作成用関数  
-radiko_const.php ・・・・・（新規）ラジオ番組タイトル用固定項目  
-rec_cmd.php・・・・・・・・（新規）旧config.phpより分岐  
-security.php ・・・・・・・（新規）旧config.phpより分岐  
-table_name.php ・・・・・・（新規）旧config.phpより分岐  
+Keyword.class.php ・・・・・キーワードレコードクラス（親：DBRecord）。除外キーワード対応  
+Reservation.class.php ・・・予約クラス。静的メソッドsimple()、静的メソッドcustom()。mirakurunチャンネル共有対応。  
+Settings.class.php・・・・・設定の読み出し/保存を行うクラス（親：SimpleXML）。設定項目の追加対応。  
+reclib.php・・・・・・・・・雑多ライブラリ  
+recLog.inc.php・・・・・・・ログテーブルライブラリ  
+storeProgram.inc.php・・・・テレビ番組表格納用関数群  
+tableStruct.inc.php ・・・・テーブル初期生成  
+const.php ・・・・・・・・・（新規）旧config.phpより分岐  
+epg_const.php ・・・・・・・（新規）テレビ番組タイトル用固定項目  
+etclib.php・・・・・・・・・（新規）小間物関数群  
+menu_list.php ・・・・・・・（新規）メニュー作成用関数  
+radiko_const.php・・・・・・（新規）ラジオ番組タイトル用固定項目  
+rec_cmd.php ・・・・・・・・（新規）旧config.phpより分岐  
+security.php・・・・・・・・（新規）旧config.phpより分岐  
+table_name.php・・・・・・・（新規）旧config.phpより分岐  
+channels.php・・・・・・・・（新規）IPTV用チャンネル一覧プレイリスト作成  
+xmltv.php ・・・・・・・・・（新規）IPTV用番組情報作成  
   
 ### binディレクトリ  
-airwavesSheep.php・・・・・単チャンネルEPG取得更新スクリプト（sheepdog.php・collie.phpから呼ばれる）  
-collie.php ・・・・・・・・衛星波EPG取得更新管理（shepherd.phpから呼ばれる）  
-gen-thumbnail.sh ・・・・・サムネイル作成。ラジオ番組サムネイル追加対応。  
-cancelReservation.php・・・JavaScriptから呼ばれる予約取り消し。  
-recomplete.php ・・・・・・録画終了処理  
-repairEpg.php・・・・・・・番組構成の乱れ修正・EPG取得更新スクリプト（storeProgram.inc.phpから呼ばれる）  
-scoutEpg.php ・・・・・・・録画前・単チャンネルEPG取得更新スクリプト（ATから呼ばれる）。録画終了時呼び出し対応。  
-sheepdog.php ・・・・・・・地上波EPG取得更新管理（shepherd.phpから呼ばれる）  
-shepherd.php ・・・・・・・並列受信EPG取得更新管理スクリプト管理。並列数制限・radiko番組表呼び出し対応。  
-trans_manager.php・・・・・トランスコード管理スクリプト（recomplete.phpから呼ばれる）  
-waitFinish.php ・・・・・・（新規）タイムシフトデータ保存時に録画終了待機スクリプト  
-radikoProgram.php・・・・・（新規）radiko番組表取得  
-daily_task.php ・・・・・・（新規）日次処理の起動。起動される日次処理は/settings/daily_tasksディレクトリに配置。  
-radikoStation.php・・・・・（新規）radiko放送局取得（日次処理）  
-optimizeTable.php・・・・・（新規）mysqlテーブルの最適化（日次処理）  
-garbageClean.php ・・・・・（新規）番組表・ログデータ削除（日次処理）  
+airwavesSheep.php ・・・・・単チャンネルEPG取得更新スクリプト（sheepdog.php・collie.phpから呼ばれる）  
+collie.php・・・・・・・・・衛星波EPG取得更新管理（shepherd.phpから呼ばれる）  
+gen-thumbnail.sh・・・・・・サムネイル作成。ラジオ番組サムネイル追加対応。  
+recomplete.php・・・・・・・録画終了処理  
+repairEpg.php ・・・・・・・番組構成の乱れ修正・EPG取得更新スクリプト（storeProgram.inc.phpから呼ばれる）  
+scoutEpg.php・・・・・・・・録画前・単チャンネルEPG取得更新スクリプト（ATから呼ばれる）。録画終了時呼び出し対応。  
+sheepdog.php・・・・・・・・地上波EPG取得更新管理（shepherd.phpから呼ばれる）  
+shepherd.php・・・・・・・・並列受信EPG取得更新管理スクリプト管理。並列数制限・radiko番組表呼び出し対応。  
+trans_manager.php ・・・・・トランスコード管理スクリプト（recomplete.phpから呼ばれる）  
+waitFinish.php・・・・・・・（新規）タイムシフトデータ保存時に録画終了待機スクリプト  
+radikoProgram.php ・・・・・（新規）radiko番組表取得  
+daily_task.php・・・・・・・（新規）日次処理の起動。起動される日次処理は/settings/daily_tasksディレクトリに配置。  
+radikoStation.php ・・・・・（新規）radiko放送局取得（日次処理）  
+optimizeTable.php ・・・・・（新規）mysqlテーブルの最適化（日次処理）  
+garbageClean.php・・・・・・（新規）番組表・ログデータ削除（日次処理）  
   
 ### htdocsディレクトリ  
-cancelReservationForm.php・予約削除フォーム  
-cancelReservation.php・・・予約削除処理  
-customReservation.php・・・詳細予約実行（JavaScriptから呼ばれる）  
-deleteKeyword.php・・・・・キーワードの削除実行（keywordTable.phpから呼ばれる）  
-index.php・・・・・・・・・トップページ（番組表）  
-keywordTable.php ・・・・・キーワードの管理ページ。除外キーワード対応。  
-logViewer.php・・・・・・・ログ参照ページ  
-maintenance.php・・・・・・（全変更）各種設定画面  
-podcast.php・・・・・・・・podcast連携用RSS作成  
-programTable.php ・・・・・番組検索ページ。除外キーワード対応。  
-recordedTable.php・・・・・録画済み一覧ページ。レイアウト変更。video視聴対応  
-reservationform.php・・・・詳細予約のフォームを返す（JavaScriptから呼ばれる）  
-reservationTable.php ・・・予約一覧ページ。レイアウト変更。  
-revchartTable.php・・・・・予約遷移番組表ページ  
-sendstream.php ・・・・・・ストリーミングを流すスクリプト  
-setChannelInfo.php ・・・・チャンネル情報修正（JavaScriptから呼ばれる）  
-simpleReservation.php・・・簡易予約実行（JavaScriptから呼ばれる）  
-toggleAutorec.php・・・・・自動予約対象切り替え（JavaScriptから呼ばれる）  
-viewer.php ・・・・・・・・ASFヘッダを送るスクリプト。video視聴対応。  
-api.php・・・・・・・・・・（新規）「EPGStaionの録画を見る」、「mirakurun IPTV」対応。  
-channels.php ・・・・・・・（新規）IPTV用チャンネル一覧プレイリスト作成  
-get_file.php ・・・・・・・（新規）ディレクトリ分離に伴いドキュメントルート配下を外れたデータ取得用  
-logoImage.php・・・・・・・（新規）IPTV用チャンネルロゴ取得  
-singleEpg.php・・・・・・・（新規）単局EPG情報取得。radiko対応  
-xmltv.php・・・・・・・・・（新規）IPTV用番組情報作成  
-timeshiftTable.php ・・・・（新規）タイムシフト録画番組表  
+index.php ・・・・・・・・・トップページ（番組表）  
+keywordTable.php・・・・・・キーワードの管理ページ。除外キーワード対応。  
+logViewer.php ・・・・・・・ログ参照ページ  
+maintenance.php ・・・・・・（全変更）各種設定画面  
+podcast.php ・・・・・・・・podcast連携用RSS作成  
+searchProgram.php ・・・・・programTable.phpからファイル名変更。番組検索ページ。除外キーワード対応。  
+recordedTable.php ・・・・・録画済み一覧ページ。レイアウト変更。video視聴対応  
+reservationTable.php・・・・予約一覧ページ。レイアウト変更。  
+revchartTable.php ・・・・・予約遷移番組表ページ  
+sendstream.php・・・・・・・ストリーミングを流すスクリプト  
+viewer.php・・・・・・・・・ASFヘッダを送るスクリプト。video視聴対応。  
+api.php ・・・・・・・・・・（新規）「EPGStaionの録画を見る」、「mirakurun IPTV」対応。  
+timeshiftTable.php・・・・・（新規）タイムシフト録画番組表  
+  
+### htdocs/maintenanceディレクトリ  
+commandSetting.php・・・・・（再編）コマンドパス設定ページ  
+directorySetting.php・・・・（再編）ディレクトリ設定ページ  
+mysqlSetting.php・・・・・・（再編）MySQL設定ページ  
+programSetting.php・・・・・（再編）番組表設定ページ  
+recordingSetting.php・・・・（再編）録画設定ページ  
+tunerSetting.php・・・・・・（再編）チューナー設定ページ  
+channelSetting.php・・・・・（新規）チャンネル設定ページ  
+epgSetting.php・・・・・・・（新規）EPG取得ページ  
+grSetting.php ・・・・・・・（新規）地上波設定ページ  
+initialSetting.php・・・・・（新規）初期設定処理ページ  
+viewSetting.php ・・・・・・（新規）視聴設定ページ  
   
 ### htdocs/subディレクトリ  
-commandSetting.php ・・・・（再編）コマンドパス設定ページ  
-directorySetting.php ・・・（再編）ディレクトリ設定ページ  
-diskUsage.php・・・・・・・（再編）メンテナンス(ディスク使用量)ページ  
-mysqlSetting.php ・・・・・（再編）MySQL設定ページ  
-programSetting.php ・・・・（再編）番組表設定ページ  
-recordingSetting.php ・・・（再編）録画設定ページ  
-tunerSetting.php ・・・・・（再編）チューナー設定ページ  
-channelSettingCmd.php・・・（新規）チャンネル設定処理（JavaScriptから呼ばれる）  
-channelSetting.php ・・・・（新規）チャンネル設定ページ  
-epgSetting.php ・・・・・・（新規）EPG取得ページ  
-grSetting.php・・・・・・・（新規）地上波設定ページ  
-initialSetting.php ・・・・（新規）初期設定処理ページ  
-viewSetting.php・・・・・・（新規）視聴設定ページ  
+cancelReservationForm.php ・（移動）予約削除フォーム  
+cancelReservation.php ・・・（移動）予約削除処理  
+customReservation.php ・・・（移動）詳細予約実行（JavaScriptから呼ばれる）  
+deleteKeyword.php ・・・・・（移動）キーワードの削除実行（keywordTable.phpから呼ばれる）  
+reservationform.php ・・・・（移動）詳細予約のフォームを返す（JavaScriptから呼ばれる）  
+setChannelInfo.php・・・・・（移動）チャンネル情報修正（JavaScriptから呼ばれる）  
+simpleReservation.php ・・・（移動）簡易予約実行（JavaScriptから呼ばれる）  
+toggleAutorec.php ・・・・・（移動）自動予約対象切り替え（JavaScriptから呼ばれる）  
+get_file.php・・・・・・・・（新規）ディレクトリ分離に伴いドキュメントルート配下を外れたデータ取得用  
+logoImage.php ・・・・・・・（新規）IPTV用チャンネルロゴ取得  
+singleEpg.php ・・・・・・・（新規）単局EPG情報取得。radiko対応  
+channelSettingCmd.php ・・・（新規）チャンネル設定処理（JavaScriptから呼ばれる）  
+diskUsage.php ・・・・・・・（再編）メンテナンス(ディスク使用量)ページ  
   
 ### htdocs/cssディレクトリ  
 　html/startより移行  
@@ -263,35 +260,39 @@ viewSetting.php・・・・・・（新規）視聴設定ページ
 　html/imgsより移行  
   
 ### templatesディレクトリ  
-cancelReservationForm.html・予約削除ページSmartyテンプレート  
 index.html・・・・・・・・・トップページSmartyテンプレート  
 keywordTable.html ・・・・・キーワード一覧ページSmartyテンプレート  
 logTable.html ・・・・・・・ログ表示ページSmartyテンプレート  
 maintenance.html・・・・・・（全変更）各種設定画面Smartyテンプレート  
-programTable.html ・・・・・番組検索ページSmartyテンプレート  
+searchProgram.html・・・・・programTable.htmlからファイル名変更。番組検索ページSmartyテンプレート  
 recordedTable.html・・・・・録画済み一覧ページSmartyテンプレート  
-reservationform.html・・・・詳細予約フォームのSmartyテンプレート  
 reservationTable.html ・・・予約一覧ページページSmartyテンプレート  
 revchartTable.html・・・・・予約遷移番組表ページSmartyテンプレート  
-channels.m3u8 ・・・・・・・（新規）IPTV用チャンネル一覧プレイリストSmartyテンプレート  
-menu_list.tpl ・・・・・・・（新規）メニュー用Smartyテンプレート  
-menu_star.tpl ・・・・・・・（新規）メニュー上段表示Smartyテンプレート  
 podcast.xml ・・・・・・・・（新規）podcast連携用RSS Smartyテンプレート  
-xmltv.xml ・・・・・・・・・（新規）IPTV用番組情報Smartyテンプレート  
 timeshiftTable.php・・・・・（新規）タイムシフト録画番組表テンプレート  
   
+### templates/includeディレクトリ  
+channels.m3u8 ・・・・・・・（新規）IPTV用チャンネル一覧プレイリストSmartyテンプレート  
+xmltv.xml ・・・・・・・・・（新規）IPTV用番組情報Smartyテンプレート  
+menu_list.tpl ・・・・・・・（新規）メニュー用Smartyテンプレート  
+menu_star.tpl ・・・・・・・（新規）メニュー上段表示Smartyテンプレート  
+  
+### templates/maintenanceディレクトリ  
+commandSetting.php・・・・・（再編）コマンドパス設定ページSmartyテンプレート  
+directorySetting.php・・・・（再編）ディレクトリ設定ページSmartyテンプレート  
+mysqlSetting.php・・・・・・（再編）MySQL設定ページSmartyテンプレート  
+programSetting.php・・・・・（再編）番組表設定ページSmartyテンプレート  
+recordingSetting.php・・・・（再編）録画設定ページSmartyテンプレート  
+tunerSetting.php・・・・・・（再編）チューナー設定ページSmartyテンプレート  
+channelSetting.php・・・・・（新規）チャンネル設定ページSmartyテンプレート  
+epgSetting.php・・・・・・・（新規）EPG取得ページSmartyテンプレート  
+grSetting.php ・・・・・・・（新規）地上波設定ページSmartyテンプレート  
+viewSetting.php ・・・・・・（新規）視聴設定ページSmartyテンプレート  
+  
 ### templates/subディレクトリ  
-commandSetting.php ・・・・（再編）コマンドパス設定ページSmartyテンプレート  
-directorySetting.php ・・・（再編）ディレクトリ設定ページSmartyテンプレート  
-diskUsage.php・・・・・・・（再編）ディスク使用量ページSmartyテンプレート  
-mysqlSetting.php ・・・・・（再編）MySQL設定ページSmartyテンプレート  
-programSetting.php ・・・・（再編）番組表設定ページSmartyテンプレート  
-recordingSetting.php ・・・（再編）録画設定ページSmartyテンプレート  
-tunerSetting.php ・・・・・（再編）チューナー設定ページSmartyテンプレート  
-channelSetting.php ・・・・（新規）チャンネル設定ページSmartyテンプレート  
-epgSetting.php ・・・・・・（新規）EPG取得ページSmartyテンプレート  
-grSetting.php・・・・・・・（新規）地上波設定ページSmartyテンプレート  
-viewSetting.php・・・・・・（新規）視聴設定ページSmartyテンプレート  
+diskUsage.php ・・・・・・・（再編）ディスク使用量ページSmartyテンプレート  
+cancelReservationForm.html・（移動）予約削除ページSmartyテンプレート  
+reservationform.html・・・・（移動）詳細予約フォームのSmartyテンプレート  
   
 ### initialディレクトリ  
 　初期設定データ  

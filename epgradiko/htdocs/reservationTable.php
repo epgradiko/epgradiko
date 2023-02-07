@@ -31,8 +31,8 @@ if( isset($_REQUEST['order']) ){
 
 try{
 	$res_obj = new DBRecord( RESERVE_TBL );
-	$rvs     = $res_obj->fetch_array( null, null, "(type <> 'timeshft' AND complete=0 AND now() <= starttime) ".
-							"OR (type = 'timeshft' AND complete=0 AND now() <= endtime) ORDER BY ".str_replace( '+', ' ', $order ));
+	$rvs     = $res_obj->fetch_array( null, null, "(type not in ('timeshft','timefree') AND complete=0 AND now() <= starttime) ".
+							"OR (type in ('timeshft','timefree') AND complete=0 AND now() <= endtime) ORDER BY ".str_replace( '+', ' ', $order ));
 	$res_cnt = count( $rvs );
 
 	if( ( SEPARATE_RECORDS_RESERVE===FALSE && SEPARATE_RECORDS<1 ) || ( SEPARATE_RECORDS_RESERVE!==FALSE && SEPARATE_RECORDS_RESERVE<1 ) )	// "<1"にしているのはフェイルセーフ
@@ -84,14 +84,14 @@ try{
 						$source    = '<br>番組予約:<br><small><small>'.sprintf('%d%05d%05d', $ch_network_id[$r['channel_id']], $ch_sid[$r['channel_id']], $prg->eid).'</small></small>';
 					}else{
 						$source    = '<br>時刻予約:<br>';
-						if($r['type'] !== 'timeshft') $source .= $r['channel_disc'];
+						if($r['type'] !== 'timeshft' && $r['type'] !== 'timefree') $source .= $r['channel_disc'];
 						else $source .= "timeshift";
 					}
 				}catch( exception $e ) {
 					reclog( 'reservationTable.php::予約ID:'.$r['id'].'  '.$e->getMessage(), EPGREC_ERROR );
 					$sub_genre = 16;
 					$source    = '<br>時刻予約:<br>';
-					if($r['type'] !== 'timeshft') $source .= $r['channel_disc'];
+					if($r['type'] !== 'timeshft' && $r['type'] !== 'timefree') $source .= $r['channel_disc'];
 					else $source .= "timeshift";
 				}
 			}else{

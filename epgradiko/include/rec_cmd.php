@@ -68,22 +68,20 @@ if( file_exists(INSTALL_PATH.'/settings/config.xml') ){
 		'type'		=>	'audio',
 		'suffix'	=>	'_HD.aac',
 		'service_rec'	=>	array(
-						'command'	=> RADIKO_CMD,
-					),
-		'timeshift_rec'	=>	array(
-						'command'	=> RADIKO_PAST_CMD,
-					),
+			'command'	=> RADIKO_CMD,
+		),
 	);
 	$record_cmd['timeshft'] = array(
 		'type'		=>	'video',
 		'suffix'	=>	'_FHD.ts',
-		'epg_rec'	=>	array(
-			'command'	=> $obj->curl.' -sGN '.$record_cmd_mirakc_timeshift.'/api/timeshift/%RECORDER%',
-		),
-		'mirakc_timeshift_rec'	=>	array(
+		'rec'		=>	array(
 			'command'	=> $obj->curl.' -sGN '.$record_cmd_mirakc_timeshift.'/api/timeshift/%RECORDER%/records/%TIMESHIFT_ID%/stream',
 		),
-		'radiko_timeshift_rec'	=>	array(
+	);
+	$record_cmd['timefree'] = array(
+		'type'		=>	'audio',
+		'suffix'	=>	'_HD.aac',
+		'rec'		=>	array(
 			'command'	=> RADIKO_PAST_CMD,
 		),
 	);

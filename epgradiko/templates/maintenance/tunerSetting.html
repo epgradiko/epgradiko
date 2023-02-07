@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<script type="text/javascript" src="/js/messages_ja.js"></script>
+
+<script type="text/javascript">
+<!--
+{literal}
+
+function back(){
+	event.preventDefault();
+	window.open('/maintenance.php?return=initial&initial_step=3', '_self');
+}
+
+function tuner(){
+	event.preventDefault();
+	if($("#form_tuner").valid()){
+		var mirakurun         = $('input[name=mirakurun]:checked').val();
+		var mirakurun_address = $('#id_mirakurun_address').val();
+		var mirakurun_uds     = $('#id_mirakurun_uds').val();
+		var mirakc_timeshift  = $('input[name=mirakc_timeshift]:checked').val();
+		var mirakc_timeshift_address = $('#id_mirakc_timeshift_address').val();
+		var gr_tuners         = $('#id_gr_tuners').val();
+		var gr_epg_max        = $('#id_gr_epg_max').val();
+		var bs_tuners         = $('#id_bs_tuners').val();
+		var bs_epg_max        = $('#id_bs_epg_max').val();
+		var cs_rec_flg        = $('#id_cs_rec_flg').val();
+		var ex_tuners         = $('#id_ex_tuners').val();
+		$.post('/maintenance/tunerSetting.php', {
+			mirakurun: mirakurun,
+			mirakurun_address: mirakurun_address,
+			mirakurun_uds: mirakurun_uds,
+			mirakc_timeshift: mirakc_timeshift,
+			mirakc_timeshift_address: mirakc_timeshift_address,
+			gr_tuners: gr_tuners,
+			gr_epg_max: gr_epg_max,
+			bs_tuners: bs_tuners,
+			bs_epg_max: bs_epg_max,
+			cs_rec_flg: cs_rec_flg,
+			ex_tuners: ex_tuners
+		}, function(message){
+			if( message.match(/^error/i) ){
+				alert( message );
+			}else{
+				if( $('#id_return').val() == 'initial' ){
+					window.open('/maintenance.php?return=initial&initial_step=5', '_self');
+				}else{
+					alert( message );
+				}
+			}
+		});
+	}
+}
+
+$(document).ready(function(){
+	$("#form_tuner").validate();
+});
+
+$(function() {
+	$("[name='mirakurun']").click(function(){
+		var mirakurun = $("[name='mirakurun']:checked").val();
+		if ( mirakurun == 'tcp' ){
+			$("#id_mirakurun_address").prop("disabled", false);
+			$("#id_mirakurun_uds").prop("disabled", true);
+		}else{
+			if ( mirakurun == 'uds' ){
+				$("#id_mirakurun_address").prop("disabled", true);
+				$("#id_mirakurun_uds").prop("disabled", false);
+			}else{
+				$("#id_mirakurun_address").prop("disabled", true);
+				$("#id_mirakurun_uds").prop("disabled", true);
+			}
+		}
+	}),
+	$("[name='mirakc_timeshift']").click(function(){
+		var mirakc_timeshift = $("[name='mirakc_timeshift']:checked").val();
+		if ( mirakc_timeshift == 'tcp' ){
+			$("#id_mirakc_timeshift_address").prop("disabled", false);
+		}else{
+			$("#id_mirakc_timeshift_address").prop("disabled", true);
+		}
+	});
+});
+
+{/literal}
+
+-->
+</script>
+
+
+<style type="text/css">
+<!--
+{literal}
+
+body {padding:4px;margin:0;font-size:10pt;}
+a {text-decoration:none;}
+
+.bold {font-weight:bold;}
+.small {font-size:75%;}
+
+div.setting { padding: 0px; margin-left: 20px; margin-bottom: 20px;}
+
+form label.error, label.err { color: red; }
+
+{/literal}
+-->
+</style>
+</head>
+<body>
+<div>
+<form id="form_tuner">
+ {if $return == 'initial'}
+ <font color="red">mirakurunの設定を確認をします。</font>
+ {/if}
+ <input type="hidden" name="return" id="id_return" value="{$return}">
+ <fieldset>
+  <legend><h2>チューナー設定</h2></legend>
+
+  <h3>mirakurun接続設定(通常録画時のチューナー分配サーバを指定します。mirakc接続時もここに記載)</h3>
+  <div class="setting">
+   <div class="caption">mirakurun接続方式を選び、アドレス／ソケットを指定してください。テレビ録画しない場合、「なし」にしてください。</div>
+    <table>
+     <tr>
+      <td><input type="radio" name="mirakurun" value="tcp"{if $settings->mirakurun == "tcp"} checked{/if}>TCP/IP(アドレス:ポートを指定)</td>
+      <td><input type="radio" name="mirakurun" value="uds"{if $settings->mirakurun == "uds"} checked{/if}>socket(ソケットパスを指定)</td>
+      <td><input type="radio" name="mirakurun" value="none"{if $settings->mirakurun == "none"} checked{/if}>なし</td>
+     </tr>
+     <tr>
+      <td><input type="text" name="mirakurun_address" id="id_mirakurun_address"
+            value="{$settings->mirakurun_address}" size="30" class="required"{if $settings->mirakurun != "tcp"} disabled{/if} /></td>
+      <td><input type="text" name="mirakurun_uds" id="id_mirakurun_uds"
+            value="{$settings->mirakurun_uds}" size="30" class="required"{if $settings->mirakurun != "uds"} disabled{/if} /></td>
+     </tr>
+    </table>
+  </div>
+  <h3>mirakc_timeshift利用設定</h3>
+  <div class="setting">
+   <div class="caption">mirakc_timeshiftサーバのアドレスを指定してください。mirakc_timeshiftを利用しない場合、「なし」にしてください。</div>
+    <table>
+     <tr>
+      <td><input type="radio" name="mirakc_timeshift" value="tcp"{if $settings->mirakc_timeshift == "tcp"} checked{/if}>TCP/IP(アドレス:ポートを指定)</td>
+      <td><input type="radio" name="mirakc_timeshift" value="none"{if $settings->mirakc_timeshift == "none"} checked{/if}>なし</td>
+     </tr>
+     <tr>
+      <td><input type="text" name="mirakc_timeshift_address" id="id_mirakc_timeshift_address"
+            value="{$settings->mirakc_timeshift_address}" size="30" class="required"{if $settings->mirakc_timeshift != "tcp"} disabled{/if} /></td>
+     </tr>
+    </table>
+  </div>
+
+  <h3>地デジチューナーの台数</h3>
+  <div class="setting">
+   <div class="caption">サーバーに接続されている地デジチューナーの台数を設定してください。地デジチューナーを持っていない場合、0にします。</div>
+   <input type="text" name="gr_tuners" id="id_gr_tuners" value="{$settings->gr_tuners}" size="3" class="required digits" />
+   EPG取得台数<input type="text" name="gr_epg_max" id="id_gr_epg_max" value="{$settings->gr_epg_max}" size="3" class="required digits" >
+  </div>
+
+  <h3>BSチューナーの台数</h3>
+  <div class="setting">
+   <div class="caption">サーバーに接続されているBSチューナーの台数を設定してください。BSチューナーを持っていない場合、0にします。</div>
+   <input type="text" name="bs_tuners" id="id_bs_tuners" value="{$settings->bs_tuners}" size="3" class="required digits" />
+   EPG取得台数<input type="text" name="bs_epg_max" id="id_bs_epg_max" value="{$settings->bs_epg_max}" size="3" class="required digits" />
+  </div>
+
+  <h3>CS録画の有無</h3>
+  <div class="setting">
+   <div class="caption">この設定を「行う」にするとCS放送を加味した動作となります。CS放送を使用しない方は「使わない」に設定してください。</div>
+   <select name="cs_rec_flg" id="id_cs_rec_flg" >
+    <option value="0" {if $settings->cs_rec_flg == 0} selected {/if}>行わない</option>
+    <option value="1" {if $settings->cs_rec_flg == 1} selected {/if}>行う</option>
+   </select>
+  </div>
+
+  <h3>radiko録音</h3>
+  <div class="setting">
+   <select name="ex_tuners" id="id_ex_tuners">
+    <option value="0" {if $settings->ex_tuners == 0}" selected {/if}>しない</option>
+    <option value="1" {if $settings->ex_tuners != 0}" selected {/if}>する</option>
+   </select>
+  </div>
+ </fieldset>
+
+ {if $return == 'initial'}
+ <input type="submit" value="戻る" onclick="back()" />
+ {/if}
+ <input type="submit" value={if $return == 'initial'}"次へ"{else}"設定"{/if} onclick="tuner()" />
+</form>
+</div>
+</body>
+</html>

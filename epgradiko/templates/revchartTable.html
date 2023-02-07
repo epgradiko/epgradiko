@@ -90,7 +90,7 @@
 			if( endTime > new Date() )
 				str += '<a href="javascript:PRG.toggleautorec(' + revID + ',' + prgID + ')" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">自動予約' + (autorec ? '禁止':'許可') + '</a><a>  </a>';
 			if( keyID > 0 )
-				str += '<a href="/programTable.php?keyword_id=' + keyID + '" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">自動キーワード編集</a><a>  </a>';
+				str += '<a href="/searchProgram.php?keyword_id=' + keyID + '" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">自動キーワード編集</a><a>  </a>';
 			str += '<a href="' + TG.children('.prg_keyword').html() + '" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">番組検索</a></div>';
 			$('#floatBox4Dialog').html(str);
 			$('#floatBox4Dialog').dialog('open', 'center');
@@ -175,7 +175,7 @@
 		toggleautorec:function(id,prg_id){
 			var TG = $('#prgID_' + id).children('.prg_dummy');
 			var autorec = parseInt(TG.children('.prg_autorec').html());
-			$.get('/toggleAutorec.php', { program_id: prg_id, bef_auto: autorec }, function() {
+			$.get('/sub/toggleAutorec.php', { program_id: prg_id, bef_auto: autorec }, function() {
 				if( autorec ){
 					autorec = '0';
 					$('#prgID_' + id).addClass('freeze');
@@ -481,7 +481,7 @@ h2 {padding: 4px}
 <div id="float_titles" style="width: {math equation="x + 60" x=$chs_width }px;">
 <div id="float_follows">
 
-{include file='menu_star.tpl'}
+{include file='include/menu_star.tpl'}
 
  <br style="clear:left;">
 
@@ -624,7 +624,7 @@ h2 {padding: 4px}
   {/foreach}
  </div>
 </div>
-{include file='menu_list.tpl' menu_list=$menu_list}
+{include file='include/menu_list.tpl' menu_list=$menu_list}
 </div>
 
 <div id="floatBox4Dialog">jQuery UI Dialog</div>
@@ -635,7 +635,7 @@ h2 {padding: 4px}
 <script type="text/javascript">
 var INISet = {
 {/literal}
-	prgCancelURL : '/cancelReservation.php',		// 予約キャンセル
+	prgCancelURL : '/sub/cancelReservation.php',		// 予約キャンセル
 	dotMin : {$height_per_min},
 	tableStartTime : '{$top_time}',
 	tableEndTime : '{$last_time}',

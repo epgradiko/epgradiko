@@ -56,7 +56,7 @@ table#reservation_table td {
 
 <body>
 <div id="all">
-{include file='menu_star.tpl'}
+{include file='include/menu_star.tpl'}
 
 <div id="nav_margin" style="margin-top:30px;">
 {if count($keywords)}
@@ -92,7 +92,7 @@ table#reservation_table td {
    <td rowspan="2" style="margin: 0;padding: 0;"><small>予約可能数:{$keyword.res_able_cnt}</small><br>
 						       {if $keyword.res_cnt}予約数:{$keyword.res_cnt}<br>{/if}
 						       {if $keyword.rec_cnt}<a href="/recordedTable.php?key={$keyword.id}" title="自動キーワードIDで絞り込んで録画済一覧にジャンプ">録画数:{$keyword.rec_cnt}</a><br>{/if}
-				<br><input type="button" value="編集" onClick="location.href='/programTable.php?keyword_id={$keyword.id}{if !$keyword.rec_cnt}&norec{/if}'" style="padding:0;">
+				<br><input type="button" value="編集" onClick="location.href='/searchProgram.php?keyword_id={$keyword.id}{if !$keyword.rec_cnt}&norec{/if}'" style="padding:0;">
   				    <input type="button" value="削除" onClick="javascript:PRG.delkey('{$keyword.id}')" style="padding:0;"></td>
   </tr>
   <tr class="{if !$keyword.k_type}freeze{/if}">
@@ -107,15 +107,15 @@ table#reservation_table td {
   キーワードはありません
 {/if}
 </div>
-<input type="button" value="キーワード登録" onClick="location.href='/programTable.php'">
-{include file='menu_list.tpl' menu_list=$menu_list}
+<input type="button" value="キーワード登録" onClick="location.href='/searchProgram.php'">
+{include file='include/menu_list.tpl' menu_list=$menu_list}
 </div>
 <div id="pagetop" style="right:60px;"><img src="/imgs/b_pagetop.png" alt="TOP"></div>
 
 {literal}
 <script type="text/javascript">
 var INISet = {
-	prgDelKeyURL : '/deleteKeyword.php'		// キーワード削除
+	prgDelKeyURL : '/sub/deleteKeyword.php'		// キーワード削除
 }
 </script>
 {/literal}

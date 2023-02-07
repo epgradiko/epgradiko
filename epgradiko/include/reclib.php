@@ -595,7 +595,7 @@ function putProgramHtml( $src, $type, $channel_id, $genre, $sub_genre ){
 				$keyword[0] = $out_title;
 		}else
 			$keyword[0] = $out_title;
-		return 'programTable.php?search='.rawurlencode(str_replace( ' ', '%', $keyword[0] )).'&type='.$type.'&station='.$channel_id.'&category_id='.$genre.'&sub_genre='.$sub_genre;
+		return 'searchProgram.php?search='.rawurlencode(str_replace( ' ', '%', $keyword[0] )).'&type='.$type.'&station='.$channel_id.'&category_id='.$genre.'&sub_genre='.$sub_genre;
 	}else
 		return '';
 }
@@ -887,21 +887,14 @@ function exe_start( $cmd, $wait_lp, $start_wt=0, $rst_view=TRUE ){
 //radikoタイムフリー視聴時のコマンド組み立て
 function build_pastradiko_cmd( $recorder, $ft, $to){
         global $record_cmd;
-	if( isset($record_cmd['EX']['timeshift_rec']['command']) ) $rec_mode = 'service_rec';
-	else return "";
-	switch( $rec_mode ){
-		case 'service_rec':
-			if( (!isset($recorder)|| !isset($ft)|| !isset($to))
-			 	||($recorder == ''|| $ft == ''|| $to == '') ) return "";
-			break;
-		default:
-			return "";
-	}
+	if( !isset($record_cmd['timefree']['rec']['command']) ) return "";
+	if( (!isset($recorder)|| !isset($ft)|| !isset($to))
+	 	||($recorder == ''|| $ft == ''|| $to == '') ) return "";
 	$str_rep = array( '%SID%'	=>	$recorder,
 		'%STARTTIME%'	=>	$ft,
 		'%ENDTIME%'	=>	$to,
 	);
-	$return_str = strtr( $record_cmd['EX']['timeshift_rec']['command'], $str_rep );
+	$return_str = strtr( $record_cmd['timefree']['rec']['command'], $str_rep );
 	$return_str .= ' 2>/dev/null';
 	return $return_str;
 }
@@ -1054,7 +1047,7 @@ function build_service_rec_cmd( $type, $channel, $sid, $priority, $duration, $ou
 //タイムシフト保存時のコマンド組み立て
 function build_mirakc_timeshift_rec_cmd( $type, $recorder, $mirakc_timeshift_id, $output ){
         global $settings, $record_cmd;
-	if( !isset($record_cmd[$type]['service_rec']) ) return "";
+	if( !isset($record_cmd['timeshft']['rec']) ) return "";
 	if( (!isset($type)|| !isset($recorder)|| !isset($mirakc_timeshift_id)|| !isset($output))
 	  ||($type ==''|| $recorder == ''|| $mirakc_timeshift_id == ''|| $output =='') ){
 		return "";
@@ -1063,7 +1056,23 @@ function build_mirakc_timeshift_rec_cmd( $type, $recorder, $mirakc_timeshift_id,
 		'%RECORDER%'		=>	$recorder,
 		'%TIMESHIFT_ID%'	=>	$mirakc_timeshift_id,
 	);
-	$return_str = $settings->timeout.' 0 '.strtr( $record_cmd['timeshft']['mirakc_timeshift_rec']['command'], $str_rep )
+	$return_str = $settings->timeout.' 0 '.strtr( $record_cmd['timeshft']['rec']['command'], $str_rep )
+			.' 1>'."'".$output."'";
+
+	$return_str .= ' 2>/dev/null';
+	return $return_str;
+}
+//radikoタイムフリー保存時のコマンド組み立て
+function build_pastradiko_rec_cmd( $recorder, $ft, $to, $output ){
+        global $settings, $record_cmd;
+	if( !isset($record_cmd['timefree']['rec']['command']) ) return "";
+	if( (!isset($recorder)|| !isset($ft)|| !isset($to))
+	 	||($recorder == ''|| $ft == ''|| $to == '') ) return "";
+	$str_rep = array( '%SID%'	=>	$recorder,
+		'%STARTTIME%'	=>	$ft,
+		'%ENDTIME%'	=>	$to,
+	);
+	$return_str = $settings->timeout.' 0 '.strtr( $record_cmd['timefree']['rec']['command'], $str_rep )
 			.' 1>'."'".$output."'";
 
 	$return_str .= ' 2>/dev/null';

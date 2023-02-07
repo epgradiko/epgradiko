@@ -16,7 +16,7 @@
 	var PRG = {
 
 		cancelform:function(id, a_id){
-			$.get('/cancelReservationForm.php', { reserve_id: id, autorec: a_id }, function(data) {
+			$.get('/sub/cancelReservationForm.php', { reserve_id: id, autorec: a_id }, function(data) {
 				if(data.match(/^error/i)){
 					$('#floatBox4Dialog').dialog('close');
 					alert(data);
@@ -35,7 +35,7 @@
 			var tmp_disc = $('#id_autorec').prop('checked');
 			var id_autorec = tmp_disc ? 1 : 0;
 
-			$.get('/cancelReservation.php', { reserve_id: id_reserve_id,
+			$.get('/sub/cancelReservation.php', { reserve_id: id_reserve_id,
 							autorec: id_autorec }, function(data) {
 				if(data.match(/^error/i)){
 					$('#floatBox4Dialog').dialog('close');
@@ -64,7 +64,7 @@
 			var id_title = $('#id_title').val();
 			var id_description = $('#id_description').val();
 
-			$.post('/changeReservation.php', { reserve_id: id_reserve_id,
+			$.post('/sub/changeReservation.php', { reserve_id: id_reserve_id,
 							  title: id_title,
 							  description: id_description }, function( data ) {
 				if(data.match(/^error/i)){
@@ -138,7 +138,7 @@ table#reservation_table td {
 
 <body>
 <div id="all">
-{include file='menu_star.tpl'}
+{include file='include/menu_star.tpl'}
 
 <div id="nav_margin" style="margin-top:30px;">
 {if $pager != ''}{$pager}{/if}
@@ -172,10 +172,13 @@ table#reservation_table td {
   <td style="text-align: center; white-space: pre;">{$reserve.mode}{$reserve.trans_mode}</td>
   <td><table style="border: 0px; cellpadding: 0px; cellspacing: 0px;">
       <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;">{$reserve.mark}</td></tr>
-      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;{if $reserve.description|count_characters != $reserve.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|count_characters} cursor:pointer" onclick="disp_diag_msg('{$reserve.description|escape:'javascript'}');{/if}" id="did_{$reserve.id}">{$reserve.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|escape}</td></tr>
+      <tr style="border: 0px; cellpadding: 0px; cellspacing: 0px;"><td style="text-align: left; border: 0px; cellpadding: 0px; cellspacing: 0px;
+{if $reserve.description|count_characters != $reserve.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|count_characters} cursor:pointer"
+ onclick="disp_diag_msg('{$reserve.description|escape:'javascript'}');{/if}"
+ id="did_{$reserve.id}">{$reserve.description|mb_strimwidth:0:$smarty.const.DESC_LEN:'…':'UTF-8'|escape}</td></tr>
   </table></td>
   <td style="text-align: center;white-space: nowrap;">
-  {if $reserve.autorec}<a href="/programTable.php?keyword_id={$reserve.autorec}" title="キーワード予約にジャンプ">自動</a>{else}手動{/if}<br>
+  {if $reserve.autorec}<a href="/searchProgram.php?keyword_id={$reserve.autorec}" title="キーワード予約にジャンプ">自動</a>{else}手動{/if}<br>
   予約ID:<br>{$reserve.id}<br><input type="button" value="変更" onClick="javascript:PRG.editdialog('{$reserve.id}')" style="padding:0;">
   <input type="button" value="削除" onClick="javascript:PRG.cancelform('{$reserve.id}','{$reserve.autorec}')" style="padding:0;">
  </tr>
@@ -185,7 +188,7 @@ table#reservation_table td {
 {else}
   現在、予約はありません
 {/if}
-{include file='menu_list.tpl' menu_list=$menu_list}
+{include file='include/menu_list.tpl' menu_list=$menu_list}
 </div>
 <div id="floatBox4Dialog">jQuery UI Dialog</div>
 <div id="pagetop" style="right:140px;"><img src="imgs/b_pagetop.png" alt="TOP"></div>
@@ -194,7 +197,7 @@ table#reservation_table td {
 {literal}
 <script type="text/javascript">
 var INISet = {
-	prgCancelURL : '/cancelReservation.php'		// 予約キャンセル
+	prgCancelURL : '/sub/cancelReservation.php'		// 予約キャンセル
 }
 </script>
 {/literal}

@@ -24,35 +24,42 @@ class Keyword extends DBRecord {
 		}
 	}
 
-	static public function search(  $keyword = '', 
-									$use_regexp = false,
-									$collate_ci = FALSE,
-									$ena_title = FALSE,
-									$ena_desc = FALSE,
-									$search_marks = '',
-									$keyword_ex = '',
-									$use_regexp_ex = false,
-									$collate_ci_ex = FALSE,
-									$ena_title_ex = FALSE,
-									$ena_desc_ex = FALSE,
-									$search_exmarks = '',
-									$free = FALSE,
-									$typeGR = FALSE,
-									$typeBS = FALSE,
-									$typeCS = FALSE,
-									$typeEX = FALSE,
-									$category_id = 0,
-									$channel_id = 0,
-									$weekofday = 0x7f,
-									$prgtime = 24,
-									$period = 1,
-									$duration_from = '',
-									$duration_to = '',
-									$sub_genre = 16,
-									$first_genre = 1,
-									$limit = 300 ){
-		// ちょっと先を検索する
-		$options = 'WHERE endtime>now()';
+	static public function search(  $mode = '', 
+					$keyword = '', 
+					$use_regexp = false,
+					$collate_ci = FALSE,
+					$ena_title = FALSE,
+					$ena_desc = FALSE,
+					$search_marks = '',
+					$keyword_ex = '',
+					$use_regexp_ex = false,
+					$collate_ci_ex = FALSE,
+					$ena_title_ex = FALSE,
+					$ena_desc_ex = FALSE,
+					$search_exmarks = '',
+					$free = FALSE,
+					$typeGR = FALSE,
+					$typeBS = FALSE,
+					$typeCS = FALSE,
+					$typeEX = FALSE,
+					$category_id = 0,
+					$channel_id = 0,
+					$weekofday = 0x7f,
+					$prgtime = 24,
+					$period = 1,
+					$duration_from = '',
+					$duration_to = '',
+					$sub_genre = 16,
+					$first_genre = 1,
+					$limit = 300,
+	){
+		if( $mode !='timeshift' ){
+			// ちょっと先を検索する
+			$options = 'WHERE endtime>now()';
+		}else{
+			// 過去を検索する
+			$options = 'WHERE starttime<now()';
+		}
 
 		if( $keyword != '' ){
 			if( $ena_title ){
@@ -277,7 +284,7 @@ class Keyword extends DBRecord {
 		if( $this->__id == 0 ) return false;
 		$recs = array();
 		try {
-			$recs = self::search( $this->keyword, $this->use_regexp, $this->collate_ci, $this->ena_title, $this->ena_desc, $this->search_marks,
+			$recs = self::search( '', $this->keyword, $this->use_regexp, $this->collate_ci, $this->ena_title, $this->ena_desc, $this->search_marks,
 						$this->keyword_ex, $this->use_regexp_ex, $this->collate_ci_ex, $this->ena_title_ex, $this->ena_desc_ex, $this->search_exmarks,
 						$this->free, $this->typeGR, $this->typeBS, $this->typeCS, $this->typeEX, $this->category_id, $this->channel_id, $this->weekofdays,
 						$this->prgtime, $this->period, $this->duration_from, $this->duration_to, $this->sub_genre, $this->first_genre );

@@ -42,7 +42,6 @@ try{
 	$rrec = new DBRecord( RESERVE_TBL, 'id' , $reserve_id );
 	$rev_id = '[予約ID:'.$rrec->id;
 	$rev_ds = $rrec->channel_disc.'(T'.$rrec->tuner.'-'.$rrec->channel.') '.$rrec->starttime.' 『'.$rrec->title.'』';
-//	$ts_path = INSTALL_PATH .$settings->spool . '/'. $rrec->path;
 	$explode_text = explode('.', $record_cmd[$rrec->type]['suffix']);
 	$ext = end($explode_text);
 	$ts_path = INSTALL_PATH .$settings->spool . '/'. $rrec->id.'.'.$ext;
@@ -52,7 +51,7 @@ try{
 	$autorec    = (int)$rrec->autorec;
 	$program_id = (int)$rrec->program_id;
 	$get_time   = time();
-	if( $rrec->type !== 'timeshft' && $get_time < toTimestamp($rrec->endtime) - 30 ){
+	if( $rrec->type !== 'timeshft' && $rrec->type !== 'timefree' && $get_time < toTimestamp($rrec->endtime) - 30 ){
 		if( $autorec>=0 && $program_id>0 && storage_free_space( $ts_path )>TS_STREAM_RATE ){
 			// PID付き手動予約も制限付きで対応
 			$prg = new DBRecord( PROGRAM_TBL, 'id', $program_id );
@@ -150,7 +149,7 @@ try{
 //		if( (int)trim(exec("stat -c %s '".$ts_path."'")) )
 		if( filesize( $ts_path ) ) {
 			$rec_success = TRUE;
-			if( $rrec->type !== 'timeshft' ){
+			if( $rrec->type !== 'timeshft' && $rrec->type !== 'timefree' ){
 				if( !$rrec->program_id ){
 					$rrec->endtime = toDatetime( $get_time );
 					if( $get_time < toTimestamp($rrec->endtime) ){
@@ -254,7 +253,6 @@ try{
 	}else{
 		// 予約実行失敗
 		reclog( $rev_id.' 録画失敗] 録画ファイルが存在しません。'.$rev_ds, EPGREC_ERROR );
-		$rrec->delete();
 	}
 }
 catch( exception $e ) {

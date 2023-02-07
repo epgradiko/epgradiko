@@ -768,12 +768,12 @@ case 'application':
 	break;
 case 'xml':
 	header('content-type: text/xml; charset=utf-8');
-	require INSTALL_PATH . '/htdocs/xmltv.php';
+	require INSTALL_PATH . '/include/xmltv.php';
 	break;
 
 case 'm3u8':
 	header('content-type: application/x-mpegURL; charset=utf-8');
-	require INSTALL_PATH . '/htdocs/channels.php';
+	require INSTALL_PATH . '/include/channels.php';
 	break;
 
 defaulft:

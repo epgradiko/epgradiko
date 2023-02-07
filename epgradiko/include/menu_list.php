@@ -1,62 +1,25 @@
 <?php
-function link_menu_create( $mode = 'none' )
+function link_menu_create()
 {
-	global $settings,$NET_AREA,$SELECTED_CHANNEL_MAP;
-	// メニュー一覧
-	$MENU_LIST = array(
-		array(
-			'name' => '予約一覧　　　　　　　　',
-			'url'  => '/reservationTable.php',
-		),
-		array(
-			'name' => '予約遷移表　　　　　　　',
-			'url'  => '/revchartTable.php',
-		),
-		array(
-			'name' => '録画済一覧　　　　　　　',
-			'url'  => '/recordedTable.php',
-		),
-		array(
-			'name' => '番組検索　　　　　　　　',
-			'url'  => '/programTable.php',
-		),
-		array(
-			'name' => 'キーワード管理　　　　　',
-			'url'  => '/keywordTable.php',
-		),
-		array(
-			'name' => '動作ログ　　　　　　　　',
-			'url'  => '/logViewer.php',
-		),
-		array(
-			'name' => 'メンテナンス　　　　　　',
-			'url'  => '/maintenance.php',
-		),
-	);
-
-	if( $mode !== 'INDEX' ){
-		$link_add = array();
-		if( (int)$settings->gr_tuners > 0 )
-			$link_add[] = array( 'name' => '地デジ番組表　　　　　　', 'url' => 'index.php' );
-		if( (int)$settings->bs_tuners > 0 ){
-			$link_add[] = array( 'name' => 'BS番組表　　　　　　　　', 'url' => 'index.php?type=BS' );
-			if( (boolean)$settings->cs_rec_flg )
-				$link_add[] = array( 'name' => 'CS番組表　　　　　　　　', 'url' => 'index.php?type=CS' );
-		}
-		if( (int)$settings->ex_tuners > 0 )
-			$link_add[] = array( 'name' => 'ラジオ番組表　　　　　　', 'url' => 'index.php?type=EX' );
-		if( isset($SELECTED_CHANNEL_MAP) )
-			$link_add[] = array( 'name' => '選別番組表　　　　　　　', 'url' => 'index.php?type=SELECT' );
-		$MENU_LIST = array_merge( $link_add, $MENU_LIST );
+	global $settings,$SELECTED_CHANNEL_MAP;
+	$program_menu = array();
+	$timeshift_menu = array();
+	if( isset($SELECTED_CHANNEL_MAP) )
+		$program_menu[] = array( 'name' => '選別番組表　　　', 'url' => 'index.php?type=SELECT' );
+	if( (int)$settings->gr_tuners > 0 )
+		$program_menu[] = array( 'name' => '地デジ番組表　　', 'url' => 'index.php' );
+	if( (int)$settings->bs_tuners > 0 ){
+		$program_menu[] = array( 'name' => 'BS番組表　　　　', 'url' => 'index.php?type=BS' );
+		if( (boolean)$settings->cs_rec_flg )
+			$program_menu[] = array( 'name' => 'CS番組表　　　　', 'url' => 'index.php?type=CS' );
 	}
+	if( (int)$settings->ex_tuners > 0 )
+		$program_menu[] = array( 'name' => 'ラジオ番組表　　', 'url' => 'index.php?type=EX' );
 
-	if( $settings->mirakc_timeshift !== 'none' || $settings->radiko_timeshift !== 'none' ){
-		$link_add = array();
-		$link_add[] = array( 'name' => 'Timeshift　　　　　　　', 'url' => 'timeshiftTable.php');
-		$MENU_LIST = array_merge( $link_add, $MENU_LIST );
+	if( isset($settings->mirakc_timeshift) && $settings->mirakc_timeshift != 'none' || isset($settings->radiko_timeshift) && $settings->radiko_timeshift != 'none' ){
+		$timeshift_menu[] = array( 'name' => 'Timeshift番組表', 'url' => 'timeshiftTable.php' );
+		$timeshift_menu[] = array( 'name' => 'Timeshift検索　', 'url' => 'searchProgram.php?mode=timeshift' );
 	}
-
-	return $MENU_LIST;
+	return array($program_menu, $timeshift_menu);
 }
-
 ?>

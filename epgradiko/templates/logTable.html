@@ -42,7 +42,7 @@ table#reservation_table td.errorlevel3 {background-color: blue;}
 
 <body>
 <div id="all">
-{include file='menu_star.tpl'}
+{include file='include/menu_star.tpl'}
 
 <div id="nav_margin" style="margin-top:30px;">
 <div style="text-align: left;float:left;display:inline;">
@@ -73,7 +73,7 @@ table#reservation_table td.errorlevel3 {background-color: blue;}
  </tr>
 {/foreach}
 </table>
-{include file='menu_list.tpl' menu_list=$menu_list}
+{include file='include/menu_list.tpl' menu_list=$menu_list}
 </div>
 {if $pager != ''}{$pager}{/if}
 <div id="pagetop"><img src="/imgs/b_pagetop.png" alt="TOP"></div>

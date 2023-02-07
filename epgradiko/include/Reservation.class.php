@@ -167,12 +167,12 @@ class Reservation {
 				// 同一番組予約チェック
 				if( $program_id ){
 					if( (int)$keyword->split_time === 0 ){
-						$num = DBRecord::countRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND program_id='.$program_id.' AND autorec='.$autorec );
+						$num = DBRecord::countRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\', \'timefree\') AND program_id='.$program_id.' AND autorec='.$autorec );
 						if( $num === 0 ){
 							if( !$overlap ){
-								$num = DBRecord::countRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND program_id='.$program_id );
+								$num = DBRecord::countRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\', \'timefree\') AND program_id='.$program_id );
 								if( $num ){
-									$del_revs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND program_id='.$program_id.' AND priority<'.$priority );
+									$del_revs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\', \'timefree\') AND program_id='.$program_id.' AND priority<'.$priority );
 									$num     -= count( $del_revs );
 									if( $num <= 0 ){
 										foreach( $del_revs as $rr )
@@ -181,11 +181,11 @@ class Reservation {
 									}
 								}
 							}else
-								$num = DBRecord::countRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND program_id='.$program_id.' AND overlap=0 AND priority>='.$priority );
+								$num = DBRecord::countRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\', \'timefree\') AND program_id='.$program_id.' AND overlap=0 AND priority>='.$priority );
 						}
 					}else{
 						// 分割予約
-						$num = DBRecord::countRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND program_id='.$program_id.' AND autorec='.$autorec.
+						$num = DBRecord::countRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\', \'timefree\') AND program_id='.$program_id.' AND autorec='.$autorec.
 																		' AND starttime>="'.$starttime.'" AND endtime<="'.$endtime.'"' );
 					}
 					if( $num ){
@@ -253,7 +253,7 @@ class Reservation {
 //			$end_str  = toDatetime( $end_time+$ed_tm_sft_chk );
 			$stt_str  = toDatetime( $start_time );
 			$end_str  = toDatetime( $end_time );
-			$battings = DBRecord::countRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND '.$type_str.
+			$battings = DBRecord::countRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\',\'timefree\') AND complete=0 AND '.$type_str.
 									' AND channel<>\''.$crec->channel.'\''.
 									' AND starttime<=\''.$end_str.'\''.
 									' AND endtime>=\''.$stt_str.'\''
@@ -265,7 +265,7 @@ class Reservation {
 				$prev_trecs = array();
 //				while( 1 ){
 //					try{
-//						$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.' type<>\'timeshft\''.
+//						$prev_trecs = $res_obj->fetch_array( 'complete', 0, $type_str.' type not in (\'timeshft\', \'timefree\')'.
 //										' AND channel<>\''.$crec->channel.'\''.
 //										' AND starttime<\''.$stt_str.'\''.
 //										' AND endtime>=\''.$stt_str.'\' ORDER BY starttime ASC' );
@@ -790,14 +790,14 @@ ob_start();
 			}else{
 				//単純予約
 				try {
-					$tuner_0 = DBRecord::countRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND '.$type_str.
+					$tuner_0 = DBRecord::countRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\',\'timefree\') AND complete=0 AND '.$type_str.
 											' AND channel=\''.$crec->channel.'\''.
 											' AND starttime<\''.$end_str.'\''.
 											' AND endtime>\''.$stt_str.'\''
 					);
 					if( $tuner_0 == 0 ) $tuner = 0;
 					else{
-						$tuner_no = DBRecord::createRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND '.$type_str.
+						$tuner_no = DBRecord::createRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\',\'timefree\') AND complete=0 AND '.$type_str.
 											' AND channel=\''.$crec->channel.'\''.
 											' AND starttime<\''.$end_str.'\''.
 											' AND endtime>\''.$stt_str.'\''.
@@ -805,7 +805,7 @@ ob_start();
 						);		//チューナー番号取得
 						$tuner = $tuner_no[0]->tuner;
 					}
-					$sub_tuner_0 = DBRecord::countRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND '.$type_str.
+					$sub_tuner_0 = DBRecord::countRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\',\'timefree\') AND complete=0 AND '.$type_str.
 											' AND tuner='.$tuner.
 											' AND starttime<\''.$end_str.'\''.
 											' AND endtime>\''.$stt_str.'\''.
@@ -813,13 +813,13 @@ ob_start();
 					);
 					if( $sub_tuner_0 == 0 ) $sub_tuner = 0;
 					else{
-						$sub_tuner_no = DBRecord::createRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND '.$type_str.
+						$sub_tuner_no = DBRecord::createRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\',\'timefree\') AND complete=0 AND '.$type_str.
 											' AND tuner='.$tuner.
 											' AND starttime<=\''.$end_str.'\''.
 											' AND endtime>=\''.$stt_str.'\''.
 											' AND (sub_tuner + 1) not in '.
 											' (SELECT sub_tuner FROM '.$settings->tbl_prefix.RESERVE_TBL.
-											' WHERE type<>\'timeshft\' AND complete=0 AND '.$type_str.
+											' WHERE type not in (\'timeshft\',\'timefree\') AND complete=0 AND '.$type_str.
 											' AND tuner='.$tuner.
 											' AND starttime<\''.$end_str.'\''.
 											' AND endtime>\''.$stt_str.'\')'.
@@ -1594,7 +1594,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 						}
 					}
 					//コントローラの無いチューナへの汎用処理
-					if( $reserve['type'] == 'timeshft' ) $atpidfile = '/tmp/timeshift_'.$reserve['id'];
+					if( $reserve['type'] == 'timeshft' || $reserve['type'] == 'timefree' ) $atpidfile = '/tmp/pastrec_'.$reserve['id'];
 					else $atpidfile = '/tmp/tuner_'.$reserve['id'];
 					if( file_exists($atpidfile) ){
 						//録画停止
@@ -1670,11 +1670,10 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 		$post_title = NULL,			// タイトル
 		$description = NULL,			// 概要
 		$category_id = NULL,			// カテゴリID
-		$mode = NULL,				// 録画モード
+		$record_mode = NULL,			// 録画モード
 		$discontinuity = NULL,			// 隣接禁止フラグ
 		$dirty = NULL,				// ダーティフラグ
-		$man_priority = NULL,			// 優先度
-		$add_dir = NULL,				// ディレクトリ
+		$rec_dir = NULL,			// ディレクトリ
 	){
 		$settings = Settings::factory();
 		try{
@@ -1685,9 +1684,8 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			if( !is_null($post_title) ) $reserve->post_title = $post_title;
 			if( !is_null($description) ) $reserve->description = $description;
 			if( !is_null($category_id) ) $reserve->category_id = $category_id;
-			if( !is_null($mode) ) $reserve->mode = $mode;
+			if( !is_null($record_mode) ) $reserve->mode = $record_mode;
 			if( !is_null($discontinuity) ) $reserve->discontinuity = $discontinuity;
-			if( !is_null($man_priority) ) $reserve->man_priority = $man_priority;
 			if( !is_null($add_dir) ){
 				// 文字コード変換
 				if( defined( 'FILESYSTEM_ENCODING' ) ){
@@ -1699,7 +1697,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				$filename = basename( $reserve->path );
 				$reserve->path = $add_dir.'/'.$filename;
 			}
-			$reserve->update;
+			$reserve->update();
 			return $reserve->job.':0';			// 成功
 		}
 		catch( Exception $e ) {
@@ -1708,7 +1706,8 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 		}
 		return 0;
 	}
-	public static function mirakc_timeshift_rec(
+	public static function past_rec(
+		$mode,
 		$recorder,				//
 		$mirakc_timeshift_id,			//
 		$start_time,				// 開始時間
@@ -1721,7 +1720,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 		$category_id = 0,			// カテゴリID
 		$program_id = 0,			// 番組ID
 		$autorec = 0,				// 自動録画ID
-		$mode = 0,				// 録画モード
+		$record_mode = 0,			// 録画モード
 		$discontinuity, 			// 隣接短縮可否
 		$dirty = 0,				// ダーティフラグ
 		$priority,				// 優先度
@@ -1742,15 +1741,43 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 		$at_start   = $end_time > $now_time ? $end_time : $now_time;
 		$rec_start = $now_time;		// 即開始
 		$duration = $end_time - $start_time;
-		if( $autorec )
-			$keyword = new DBRecord( KEYWORD_TBL, 'id', $autorec );
-		$resolution = 0;
-		$video_type = 0;
-		$audio_type = 0;
-		$multi_type = 0;
-		$eid	    = 0;
-		$sub_genre  = 16;
-		$image_url  = "";
+		if( $program_id ){
+			$prg = new DBRecord( PROGRAM_TBL, 'id', $program_id );
+			$resolution = (int)(($prg->video_type & 0xF0) >> 4 );
+			$aspect     = (int)$prg->video_type & 0x0F;
+			$video_type = (int)$prg->video_type;
+			$audio_type = (int)$prg->audio_type;
+			$multi_type = (int)$prg->multi_type;
+			$eid        = (int)$prg->eid;
+			$sub_genre  = (int)$prg->sub_genre;
+			$image_url  = $prg->image_url;
+			if( $autorec )
+				$keyword = new DBRecord( KEYWORD_TBL, 'id', $autorec );
+			$prg->key_id = 0;	// 自動予約禁止解除
+			$prg->update();
+		}else{
+			$programs = DBRecord::createRecords( PROGRAM_TBL, 'WHERE channel_id='.$channel_id.
+								' AND starttime<=\''.toDatetime( $start_time ).'\' AND endtime>=\''.toDatetime( $start_time ).'\'' );
+			if( count( $programs ) ){
+				$resolution = (int)(($programs[0]->video_type & 0xF0) >> 4 );
+				$aspect     = (int)$programs[0]->video_type & 0x0F;
+				$video_type = (int)$programs[0]->video_type;
+				$audio_type = (int)$programs[0]->audio_type;
+				$multi_type = (int)$programs[0]->multi_type;
+				$eid        = (int)$programs[0]->eid;
+				$sub_genre  = (int)$programs[0]->sub_genre;
+				$image_url  = $programs[0]->image_url;
+			}else{
+				$resolution = 0;
+				$aspect     = 0;
+				$video_type = 0;
+				$audio_type = 0;
+				$multi_type = 0;
+				$eid        = 0;
+				$sub_genre  = 16;
+				$image_url  = "";
+			}
+		}
 		$rrec = null;
 		try {
 			// ここからファイル名生成
@@ -2046,8 +2073,11 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			$rrec->channel_disc  = $crec_->channel_disc;
 			$rrec->channel_id    = $crec_->id;
 			$rrec->program_id    = $program_id;
-//			$rrec->type	     = $crec_->type;
-			$rrec->type	     = 'timeshft';
+			if( $mode == 'T' ){
+				$rrec->type  = 'timeshft';
+			}else{
+				$rrec->type  = 'timefree';
+			}
 			$rrec->channel	     = $crec_->channel;
 			$rrec->title	     = $title;
 			$rrec->pre_title     = $pre_title;
@@ -2062,7 +2092,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 			$rrec->video_type    = $video_type;
 			$rrec->audio_type    = $audio_type;
 			$rrec->multi_type    = $multi_type;
-			$rrec->mode	     = $mode;
+			$rrec->mode	     = $record_mode;
 			$rrec->tuner	     = $tuner;
 			$rrec->sub_tuner     = $sub_tuner;
 			$rrec->priority      = $priority;
@@ -2095,7 +2125,7 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				reclog( 'atの実行に失敗した模様', EPGREC_ERROR);
 				throw new Exception('AT実行エラー');
 			}
-			fwrite($pipes[0], 'echo $$ >/tmp/timeshift_'.$rrec->id."\n" );	//ATジョブのPID保存ファイルの作成
+			fwrite($pipes[0], 'echo $$ >/tmp/pastrec_'.$rrec->id."\n" );	//ATジョブのPID保存ファイルの作成
 			if( $settings->use_thumbs == 1 ){
 				$gen_thumbnail = defined( 'GEN_THUMBNAIL' ) ? GEN_THUMBNAIL : INSTALL_PATH.'/bin/gen-thumbnail.sh';
 				$gen_thumbnail_wait = $settings->former_time + 10; //適当
@@ -2107,21 +2137,35 @@ file_put_contents( '/tmp/debug.txt', $process_log."\n", FILE_APPEND );
 				$map_analyze_wait = $settings->former_time + 10; //適当
 				fwrite($pipes[0], '('.$settings->sleep.' '.$map_analyze_wait.' && '.$map_analyze.") &\n" );
 			}
-			if( $at_start == $end_time ){
-				fwrite($pipes[0], INSTALL_PATH.'/bin/waitFinish.php '.$recorder." ".$mirakc_timeshift_id." && \\\n" ); // 
+			if( $mode == 'T' ){
+				if( $at_start == $end_time ){
+					fwrite($pipes[0], INSTALL_PATH.'/bin/waitFinish.php '.$recorder." ".$mirakc_timeshift_id."\n" ); // 
+				}
+				$cmd_ts = build_mirakc_timeshift_rec_cmd(
+					$crec_->type,
+					$recorder,
+					$mirakc_timeshift_id,
+					$rrec->id.'.'.$ext,		// 出力先
+				);
+			}else{
+				$ft = date( 'YmdHis', $start_time );
+				$to = date( 'YmdHis', $end_time );
+				if( $at_start == $end_time ){
+					fwrite($pipes[0], $settings->sleep.' 60'."\n" ); // 
+				}
+				$cmd_ts = build_pastradiko_rec_cmd(
+					substr($channel_disc, 3),
+					$ft,
+					$to,
+					$rrec->id.'.'.$ext,		// 出力先
+				);
 			}
-			$cmd_ts = build_mirakc_timeshift_rec_cmd(
-				$crec_->type,
-				$recorder,
-				$mirakc_timeshift_id,
-				$rrec->id.'.'.$ext,		// 出力先
-			);
 			fwrite($pipes[0], $cmd_ts."\n" );
 			if( $settings->use_thumbs == 1 ) {
 				fwrite($pipes[0], $gen_thumbnail."\n" );
 			}
 			fwrite($pipes[0], COMPLETE_CMD.' '.$rrec->id."\n" );
-			fwrite($pipes[0], 'rm /tmp/timeshift_'.$rrec->id."\n" );	//ATジョブのPID保存ファイルを削除
+			fwrite($pipes[0], 'rm /tmp/pastrec_'.$rrec->id."\n" );	//ATジョブのPID保存ファイルを削除
 			fclose($pipes[0]);
 			// 標準エラーを取る
 			$rstring = stream_get_contents( $pipes[2] );

@@ -9,9 +9,8 @@ include_once( INSTALL_PATH . '/include/Settings.class.php' );
 include_once( INSTALL_PATH . '/include/epg_const.php' );
 include_once( INSTALL_PATH . '/include/menu_list.php' );
 
-function ch_collect( $type, $select_ch, $sort_calm='sid' )
+function ch_collect( $type, $select_ch, $map )
 {
-	$crec = DBRecord::createRecords( CHANNEL_TBL, 'WHERE type=\''.$type.'\' AND skip=0 ORDER BY '.$sort_calm );
 	$single_ch_selects = array();
 	if( strncmp( $type, $select_ch, 2 ) !== 0 )
 		$single_ch_selects[] = array(
@@ -19,11 +18,13 @@ function ch_collect( $type, $select_ch, $sort_calm='sid' )
 			'channel_disc' => '#',
 			'selected'     => '',
 		);
-	foreach( $crec as $val ) {
+	foreach( $map as $channel_disc ) {
+		$crec = DBRecord::createRecords( CHANNEL_TBL, 'WHERE channel_disc=\''.$channel_disc.'\' AND skip=0' );
+		if( !$crec ) continue;
 		array_push( $single_ch_selects, array(
-			'name'         => $val->name,
-			'channel_disc' => $val->channel_disc,
-			'selected'     => ( $select_ch===$val->channel_disc ? ' selected' : '' ),
+			'name'         => $crec[0]->name,
+			'channel_disc' => $crec[0]->channel_disc,
+			'selected'     => ( $select_ch===$crec[0]->channel_disc ? ' selected' : '' ),
 		));
 	}
 	return $single_ch_selects;
@@ -66,14 +67,14 @@ if( isset($_GET['ch']) ){
 	$type           = strtoupper( substr($_GET['ch'], 0, 2) );
 	// チャンネルセレクタ
 	if( $settings->gr_tuners != 0 )
-		$single_gr_selects = ch_collect( 'GR', $type==='GR' ? $single_ch_disc : FALSE, 'id' );
+		$single_gr_selects = ch_collect( 'GR', $type==='GR' ? $single_ch_disc : FALSE, array_keys($GR_CHANNEL_MAP) );
 	if( $settings->bs_tuners != 0 ){
-		$single_bs_selects = ch_collect( 'BS', $type==='BS' ? $single_ch_disc : FALSE );
+		$single_bs_selects = ch_collect( 'BS', $type==='BS' ? $single_ch_disc : FALSE, array_keys($BS_CHANNEL_MAP) );
 		if( $settings->cs_rec_flg != 0 )
-			$single_cs_selects = ch_collect( 'CS', $type==='CS' ? $single_ch_disc : FALSE );
+			$single_cs_selects = ch_collect( 'CS', $type==='CS' ? $single_ch_disc : FALSE, array_keys($CS_CHANNEL_MAP) );
 	}
 	if( $settings->ex_tuners != 0 )
-		$single_ex_selects = ch_collect( 'EX', $type==='EX' ? $single_ch_disc : FALSE );
+		$single_ex_selects = ch_collect( 'EX', $type==='EX' ? $single_ch_disc : FALSE, array_keys($EX_CHANNEL_MAP) );
 }
 if( $type == 'GR' ){
 	if($settings->gr_tuners > 0) $channel_map = $GR_CHANNEL_MAP;
@@ -180,7 +181,7 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 			}
 		}
 		foreach( $chd as $crec ){
-			if( $channel_map[(string)$crec->channel_disc] == 'NC' ) continue;
+			if( $type != 'SELECT' && $channel_map[(string)$crec->channel_disc] == 'NC' ) continue;
 			$num_all_ch++;
 			$prev_end = $top_time + $ch_full_duration;
 			$programs[$st]['id']   = $ch_id = $crec->id;
@@ -190,8 +191,8 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 			$programs[$st]['sid'] = $crec->sid;
 			$programs[$st]['ch_hash'] = md5($crec->channel_disc);
 			$programs[$st]['channel'] = $crec->channel;
-			if( isset($record_cmd[$type]['suffix']) ){
-				$ext = $record_cmd[$type]['suffix'];
+			if( isset($record_cmd[$crec->type]['suffix']) ){
+				$ext = $record_cmd[$crec->type]['suffix'];
 				$explode_text = explode('.', $ext);
 				$programs[$st]['type'] = end($explode_text);
 			}
@@ -326,6 +327,14 @@ $get_param2 = $single_ch_disc ? $_SERVER['SCRIPT_NAME'].'?ch='.$single_ch_disc :
 // タイプ選択
 $types = array();
 $i = 0;
+if( isset($SELECTED_CHANNEL_MAP) ){
+	$types[$i]['selected'] = $type==='SELECT' ? 'class="selected"' : '';
+	$types[$i]['link']     = $_SERVER['SCRIPT_NAME'] . '?type=SELECT&length='.$program_length.'&time='.date( 'YmdH', $top_time);
+	$types[$i]['link2']    = $_SERVER['SCRIPT_NAME'] . '?type=SELECT&length='.$program_length;
+	$types[$i]['name']     = '選別';
+	$types[$i]['chs']      = array();
+	$i++;
+}
 if( $settings->gr_tuners != 0 ) {
 	$types[$i]['selected'] = $type==='GR' ? 'class="selected"' : '';
 	$types[$i]['link']     = $_SERVER['SCRIPT_NAME'] . '?type=GR&length='.$program_length.'&time='.date( 'YmdH', $top_time);
@@ -357,14 +366,6 @@ if( $settings->ex_tuners != 0 ) {
 	$types[$i]['link']     = $_SERVER['SCRIPT_NAME'] . '?type=EX&length='.$program_length.'&time='.date( 'YmdH', $top_time);
 	$types[$i]['link2']    = $_SERVER['SCRIPT_NAME'] . '?type=EX&length='.$program_length;
 	$types[$i]['name']     = 'ラジオ';
-	$types[$i]['chs']      = $single_ex_selects;
-	$i++;
-}
-if( isset($SELECTED_CHANNEL_MAP) ){
-	$types[$i]['selected'] = $type==='SELECT' ? 'class="selected"' : '';
-	$types[$i]['link']     = $_SERVER['SCRIPT_NAME'] . '?type=SELECT&length='.$program_length.'&time='.date( 'YmdH', $top_time);
-	$types[$i]['link2']    = $_SERVER['SCRIPT_NAME'] . '?type=SELECT&length='.$program_length;
-	$types[$i]['name']     = '選別';
 	$types[$i]['chs']      = $single_ex_selects;
 	$i++;
 }
@@ -450,6 +451,7 @@ $smarty->assign( 'REALVIEW', REALVIEW);
 $smarty->assign( 'TRANSCODE_STREAM', $transcode ? 1 : 0 );
 $smarty->assign( 'TRANS_SCRN_ADJUST', $transcode&&TRANS_SCRN_ADJUST ? 1 : 0 );
 $smarty->assign( 'realview_cmd', 'viewer.php' );
+$smarty->assign( 'type', $type );
 $smarty->assign( 'transsize_set', $TRANSSIZE_SET );
 $smarty->assign( 'transsize_set_cnt', $num_all_ch );
 $smarty->assign( 'spool_freesize', spool_freesize() );
@@ -461,7 +463,7 @@ $smarty->assign('sitetitle', $sitetitle );
 
 $smarty->assign('top_time', str_replace( '-', '/' ,toDatetime($top_time)) );
 $smarty->assign('last_time', str_replace( '-', '/' ,toDatetime($last_time)) );
-$smarty->assign( 'menu_list', link_menu_create('INDEX') );
+$smarty->assign( 'menu_list', link_menu_create() );
 
 
 $smarty->display('index.html');

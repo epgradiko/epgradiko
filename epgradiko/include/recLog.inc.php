@@ -8,7 +8,7 @@ define( 'EPGREC_DEBUG', 3 );
 
 
 function autoid_button( $autoid ){
-	return '<input type="button" value="自動ID:'.$autoid.'" onClick="location.href=\'programTable.php?keyword_id='.$autoid.'\'" style="padding:0;"> ';
+	return '<input type="button" value="自動ID:'.$autoid.'" onClick="location.href=\'searchProgram.php?keyword_id='.$autoid.'\'" style="padding:0;"> ';
 }
 
 

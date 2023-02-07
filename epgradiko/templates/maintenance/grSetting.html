@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<script type="text/javascript" src="/js/messages_ja.js"></script>
+
+<script type="text/javascript">
+<!--
+{literal}
+
+function back(){
+	event.preventDefault();
+	window.open('/maintenance.php?return=initial&initial_step=4', '_self');
+}
+
+function set_mirak_grch(){
+	event.preventDefault();
+	if($("#form_gr").valid()){
+		$.post('/maintenance/grSetting.php', { cmd: 'set_mirak_grch' }, function(message){
+			if(message.match(/error/i)){
+				alert(message);
+			}else{
+				if( $('#id_return').val() == 'initial' ){
+					window.open('/maintenance.php?return=initial&initial_step=6', '_self');
+				}else{
+					alert( message );
+				}
+			}
+		});
+	}
+}
+
+$(document).ready(function(){
+	$("#form_gr").validate();
+});
+
+{/literal}
+
+-->
+</script>
+
+
+<style type="text/css">
+<!--
+{literal}
+
+body {padding:4px;margin:0;font-size:10pt;}
+a {text-decoration:none;}
+
+.bold {font-weight:bold;}
+.small {font-size:75%;}
+
+div.setting { padding: 0px; margin-left: 20px; margin-bottom: 20px;}
+
+form label.error, label.err { color: red; }
+
+{/literal}
+-->
+</style>
+</head>
+<body>
+<div>
+<form id="form_gr">
+ {if $return == 'initial'}
+ <font color="red">地デジチャンネルの設定をします。mirakurunの初回チャンネルスキャンが済んでから実行してください。</font>
+ {/if}
+ <input type="hidden" name="return" id="id_return" value="{$return}">
+ <input type="hidden" name="initial_step" value="{$settings->initial_step}">
+ <fieldset>
+  <legend><h2>地デジ設定</h2></legend>
+
+  <div class="setting">
+   <div class="caption">
+    地デジ設定をmirakurunチャンネル設定より取り込む場合、取り込むボタンを押してください。(取り消せません）<br>
+    mirakurunチャンネル設定にはワンセグやＧガイドなど本ソフトで番組表時や録画不可のチャンネルが含まれる場合があります。<br>
+    いったんmirakurunチャンネルを取り込み、EPG受信後、チャンネル設定画面で削除して問題ありません。(削除ボタンが出てきます)<br><br>
+    なお、従来の"GRnn"=>"nn"の形式はチャンネル設定画面で取り扱えません。</div>
+    <table cellspacing="1" border="1">
+     <tr bgcolor="lightblue"><th>現在のチャンネル設定</th><th>mirakurunチャンネル設定</th></tr>
+     <tr valign="top">
+      <td id="id_physical_channels">
+      {foreach from=$physical_channels item=p_channel}
+       {$p_channel}<br>
+      {/foreach}
+      </td>
+      <td>
+      {foreach from=$mirak_channels item=m_channel}
+       {$m_channel}<br>
+      {/foreach}
+      </td>
+     </tr>
+    </table>
+  </div>
+  現状チャンネル設定に問題なければ、取り込む必要ありません。<br>
+ </fieldset>
+
+ {if $return == 'initial'}
+ <input type="submit" value="戻る" onclick="back()" />
+ {/if}
+ <input type="submit" value={if $return == 'initial'}"取り込んで次へ"{else}"取り込む"{/if} onclick="set_mirak_grch()" />
+</form>
+</div>
+</body>
+</html>

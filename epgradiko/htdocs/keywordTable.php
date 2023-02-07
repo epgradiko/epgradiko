@@ -33,6 +33,9 @@ for( $i=0 ; $i < 25; $i++ ) {
 	$prgtimes[$i] = $i == 24 ? 'なし' : $i.'時';
 }
 
+if( isset($_GET['mode']) ) $mode = $_GET['mode'];
+else $mode = '';
+
 // 新規キーワードがポストされた
 
 if( isset($_POST['add_keyword']) ) {
@@ -106,11 +109,11 @@ if( isset($_POST['add_keyword']) ) {
 			else
 				$keyword_id = $rec->id;
 			// transcode
-			$mode = $_POST['autorec_mode'];
+			$auto_mode = $_POST['autorec_mode'];
 			$cnt = 0;
 			for( $loop=0; $loop<TRANS_SET_KEYWD; $loop++ ){
 				$pool = DBRecord::createRecords( TRANSEXPAND_TBL, 'WHERE key_id='.$keyword_id.' AND type_no='.$loop );
-				if( isset($RECORD_MODE[$mode]['tsuffix']) ){
+				if( isset($RECORD_MODE[$auto_mode]['tsuffix']) ){
 					if( count($pool) ){
 						$trans_ex = $pool[0];
 					}else{
@@ -118,7 +121,7 @@ if( isset($_POST['add_keyword']) ) {
 						$trans_ex->key_id = $keyword_id;
 					}
 					$trans_ex->type_no = $cnt++;
-					$trans_ex->mode    = $mode;
+					$trans_ex->mode    = $auto_mode;
 //					$trans_ex->dir     = word_chk( $_POST['k_transdir'.$loop] );
 					$trans_ex->dir     = word_chk_DQ( $_POST['k_transdir'.$loop] );
 					$trans_ex->ts_del  = isset( $_POST['k_auto_del'] );
@@ -154,8 +157,8 @@ if( isset($_POST['add_keyword']) ) {
 				$cnt = 0;
 				for( $loop=0; $loop<TRANS_SET_KEYWD; $loop++ ){
 					$pool = DBRecord::createRecords( TRANSEXPAND_TBL, 'WHERE key_id='.$keyword_id.' AND type_no='.$loop );
-					$mode = $_POST['autorec_mode'];
-					if( isset($RECORD_MODE[$mode]['tsuffix']) ){
+					$auto_mode = $_POST['autorec_mode'];
+					if( isset($RECORD_MODE[$auto_mode]['tsuffix']) ){
 						if( count($pool) ){
 							$pool[0]->delete();
 						}
@@ -340,7 +343,7 @@ try {
 		}
 		$arr['res_cnt'] = DBRecord::countRecords( RESERVE_TBL, 'WHERE complete = 0 AND autorec='.$arr['id'] );
 		$arr['rec_cnt'] = DBRecord::countRecords( RESERVE_TBL, 'WHERE complete > 0 AND autorec='.$arr['id'] );
-		$precs = Keyword::search( $rec->keyword, $rec->use_regexp, $rec->collate_ci, $rec->ena_title, $rec->ena_desc, $rec->search_marks,
+		$precs = Keyword::search( $mode, $rec->keyword, $rec->use_regexp, $rec->collate_ci, $rec->ena_title, $rec->ena_desc, $rec->search_marks,
 				$rec->keyword_ex, $rec->use_regexp_ex, $rec->collate_ci_ex, $rec->ena_title_ex, $rec->ena_desc_ex, $rec->search_exmarks,
 				$rec->free, $rec->typeGR, $rec->typeBS, $rec->typeCS, $rec->typeEX, $rec->category_id, $rec->channel_id, $rec->weekofdays,
 				$rec->prgtime, $rec->period, $rec->duration_from, $rec->duration_to, $rec->sub_genre, $rec->first_genre );

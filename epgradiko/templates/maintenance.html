@@ -39,27 +39,27 @@ $(function() {
 <body>
 <div id="all">
 
-{include file='menu_star.tpl'}
+{include file='include/menu_star.tpl'}
 
 <div id="nav_margin" style="margin-top:35px;">
 <div id="maintenance">
 	<ul>
-		<li><a href="/sub/mysqlSetting.php">MySQL</a></li>
-		<li><a href="/sub/directorySetting.php">ディレクトリ</a></li>
-		<li><a href="/sub/commandSetting.php">コマンド</a></li>
-		<li><a href="/sub/tunerSetting.php">チューナー</a></li>
-		<li><a href="/sub/recordingSetting.php">録画関連</a></li>
-		<li><a href="/sub/programSetting.php">番組表表示</a></li>
-		<li><a href="/sub/viewSetting.php">視聴</a></li>
-		<li><a href="/sub/grSetting.php">地デジ</a></li>
-		<li><a href="/sub/epgSetting.php">EPG</a></li>
-		<li><a href="/sub/channelSetting.php{if isset($type)}?type={$type}"{/if}>チャンネル</a></li>
-		{if !isset($settings->initial_done)}<li><a href="/sub/initialSetting.php?initial_step={$settings->initial_step}">初期設定</a></li>{/if}
+		<li><a href="/maintenance/mysqlSetting.php">MySQL</a></li>
+		<li><a href="/maintenance/directorySetting.php">ディレクトリ</a></li>
+		<li><a href="/maintenance/commandSetting.php">コマンド</a></li>
+		<li><a href="/maintenance/tunerSetting.php">チューナー</a></li>
+		<li><a href="/maintenance/recordingSetting.php">録画関連</a></li>
+		<li><a href="/maintenance/programSetting.php">番組表表示</a></li>
+		<li><a href="/maintenance/viewSetting.php">視聴</a></li>
+		<li><a href="/maintenance/grSetting.php">地デジ</a></li>
+		<li><a href="/maintenance/epgSetting.php">EPG</a></li>
+		<li><a href="/maintenance/channelSetting.php{if isset($type)}?type={$type}"{/if}>チャンネル</a></li>
+		{if !isset($settings->initial_done)}<li><a href="/maintenance/initialSetting.php?initial_step={$settings->initial_step}">初期設定</a></li>{/if}
 	</ul>
 
 </div>
 </div>
-{include file='menu_list.tpl' menu_list=$menu_list}
+{include file='include/menu_list.tpl' menu_list=$menu_list}
 </div>
 <div id="pagetop"><img src="/imgs/b_pagetop.png" alt="TOP"></div>
 

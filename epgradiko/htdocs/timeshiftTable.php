@@ -63,7 +63,7 @@ $single_ch_disc = $single_ch_sid = $single_ch_name = $single_ch = null;
 $single_gr_selects = $single_bs_selects = $single_cs_selects = $single_ex_selects = null;
 $channels = array();
 $mirakc_types = 0;
-if( isset( $settings->mirakc_timeshift ) && $settings->mirakc_timeshift !== 'none' ){
+if( isset( $settings->mirakc_timeshift ) && $settings->mirakc_timeshift != 'none' ){
 	switch( $settings->mirakc_timeshift ){
 		case 'tcp':
 			$ts_base_addr = 'http://'.$settings->mirakc_timeshift_address.'/api/timeshift';
@@ -100,7 +100,6 @@ if( isset( $settings->mirakc_timeshift ) && $settings->mirakc_timeshift !== 'non
 					"sid" => $channel_raw['service']['serviceId'],
 					"skip" => '0',
 					"network_id" => $channel_raw['service']['networkId'],
-//					"ts_id" => $channel_raw['service']['transportStreamId'],
 					"logo" => '',
 					"starttime" => date("m/d H:i:s", (int)($channel_raw['startTime'] / 1000)),
 					"duration" => $ch_duration_dhm,
@@ -140,7 +139,6 @@ if( $settings->ex_tuners && isset($settings->radiko_timeshift) && $settings->rad
 									"sid" => $station->id,
 									"skip" => '0',
 									"network_id" => 0,
-//									"ts_id" => 0,
 									"logo" => '',
 									"starttime" => $db_programs[0]->starttime,
 									"duration" => 0,
@@ -317,7 +315,6 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 								$audio_type = $db_programs[0]->audio_type;
 								$multi_type = $db_programs[0]->multi_type;
 								$program_disc = $db_programs[0]->program_disc;
-								$key_id = $db_programs[0]->key_id;
 								$key_id = 1;
 								$tuner = '1';
 								$split_time = $db_programs[0]->split_time;
@@ -420,7 +417,7 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 									"pre_title" => $program->pre_title,
 									"post_title" => $program->post_title,
 									"image_url" => $program->image_url,
-									"recording" => (bool) strtotime($program_starttime)<=time()&&strtotime($program_endtime)>time(),
+									"recording" => (bool) strtotime($program->starttime)<=time()&&strtotime($program->endtime)>time(),
 						]);
 					}
 				}
@@ -449,7 +446,6 @@ for( $i = 0; $i < $lp_lmt; $i++ ){
 			if ( $single_ch_disc ) {
 				$single_date = date("Y-m-d H:i:s", $top_time + 24 * 3600 * $i);
 				$single_ch      = $programs[$st]['channel'];
-				$single_ch_sid  = $programs[$st]['sid'];
 				$single_ch_name = $programs[$st]['station_name'];
 				$programs[$st]['_day']        = date('d', $ch_top_time );
 				$programs[$st]['start_time']  = date('m', $ch_top_time );
@@ -699,6 +695,7 @@ $smarty->assign( 'REALVIEW', REALVIEW);
 $smarty->assign( 'TRANSCODE_STREAM', $transcode ? 1 : 0 );
 $smarty->assign( 'TRANS_SCRN_ADJUST', $transcode&&TRANS_SCRN_ADJUST ? 1 : 0 );
 $smarty->assign( 'realview_cmd', 'viewer.php' );
+$smarty->assign( 'type', $type );
 $smarty->assign( 'transsize_set', $TRANSSIZE_SET );
 $smarty->assign( 'transsize_set_cnt', $num_all_ch );
 $smarty->assign( 'spool_freesize', spool_freesize() );

@@ -194,7 +194,7 @@ function storeProgram( $type, $xmlfile ) {
 					$del_id = $rec->id;
 					// 予約キャンセル
 					try{
-						$revs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND channel_id='.$del_id );
+						$revs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\',\'timefree\') AND complete=0 AND channel_id='.$del_id );
 						foreach( $revs as $rev )
 							Reservation::cancel( $rev->id );
 					}catch( Exception $e ){
@@ -246,7 +246,7 @@ function storeProgram( $type, $xmlfile ) {
 						$map_chg           = TRUE;
 						if( !((boolean)$rec->skip)  ){
 							// 既予約の物理チャンネル番号を変更
-							$revs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND channel_id='.$rec->id );
+							$revs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type not in (\'timeshft\',\'timefree\') AND complete=0 AND channel_id='.$rec->id );
 							foreach( $revs as $rev ){
 								if( (int)$rev->autorec ){
 									// 自動キーワードはキャンセルのみ
@@ -1192,7 +1192,7 @@ NEXT_SUB:;
 							$prg_st = toTimestamp( $rec['starttime'] );
 							$prg_ed = toTimestamp( $rec['endtime'] );
 							try {
-								$prev_recs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND program_id='.$rec['id'].' AND starttime > \''.$now_time.'\' ORDER BY starttime DESC', FALSE );
+								$prev_recs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type not in(\'timeshft\',\'timefree\') AND complete=0 AND program_id='.$rec['id'].' AND starttime > \''.$now_time.'\' ORDER BY starttime DESC', FALSE );
 								foreach( $prev_recs as $reserve ){
 									$rev_st    = $reserve->starttime;
 									$rec_start = toTimestamp( $rev_st );
@@ -1295,7 +1295,7 @@ NEXT_SUB:;
 						$reco = DBRecord::createRecords( PROGRAM_TBL, 'WHERE channel_id='.$channel_id.' AND eid='.$eid.' AND program_disc!=\''.$program_disc.'\'' );
 						foreach( $reco as $del_pro ){
 							$prg_st    = toTimestamp( $del_pro->starttime );
-							$prev_recs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND program_id='.$del_pro->id.' AND starttime > \''.$now_time.'\' ORDER BY starttime DESC' );
+							$prev_recs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type not in(\'timeshft\',\'timefree\') AND complete=0 AND program_id='.$del_pro->id.' AND starttime > \''.$now_time.'\' ORDER BY starttime DESC' );
 							foreach( $prev_recs as $reserve ){
 								if( (int)($reserve->autorec) === 0 ){
 									// 手動予約の退避
@@ -1385,12 +1385,18 @@ NEXT_SUB:;
 				// 番組内容更新
 				$genre_chg = $media_chg = $desc_chg = $free_CA_mode_chg = FALSE;
 				$wrt_set   = FALSE;
-				if( strcmp( $rec['title'], $title ) != 0 ){
+				if( strcmp( $rec['title'], $title ) != 0 || strcmp( $rec['pre_title'], $pre_title ) != 0 || strcmp( $rec['post_title'], $post_title ) != 0 ){
 					$title_old        = $rec['title'];
+					$pre_title_old    = $rec['pre_title'];
+					$post_title_old   = $rec['post_title'];
 					$wrt_set['title'] = $title;
+					$wrt_set['pre_title'] = $pre_title;
+					$wrt_set['post_title'] = $post_title;
 					$title_chg        = TRUE;
 				}else{
 					$title_old = $title;
+					$pre_title_old = $pre_title;
+					$post_title_old = $post_title;
 					$title_chg = FALSE;
 				}
 				if( (int)($rec['free_CA_mode']) !== $free_CA_mode ){
@@ -1439,7 +1445,7 @@ NEXT_SUB:;
 					$pro_obj->force_update( $rec['id'], $wrt_set );
 					if( $genre_chg || $title_chg || $media_chg || $desc_chg ){
 						try {
-							$prev_recs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type<>\'timeshft\' AND complete=0 AND program_id='.$rec['id'].' ORDER BY starttime ASC', FALSE );
+							$prev_recs = DBRecord::createRecords( RESERVE_TBL, 'WHERE type not in(\'timeshft\',\'timefree\') AND complete=0 AND program_id='.$rec['id'].' ORDER BY starttime ASC', FALSE );
 							foreach( $prev_recs as $reserve ){
 								if( !(boolean)$reserve->dirty && time()<toTimestamp( $reserve->starttime )-$ed_tm_sft ){
 									// dirtyが立っていない録画予約であるなら
@@ -1476,6 +1482,8 @@ NEXT_SUB:;
 										$elememts = '';
 										if( $title_chg ){
 											$reserve->title = $title;
+											$reserve->pre_title = $pre_title;
+											$reserve->post_title = $post_title;
 											$elememts = 'タイトル';
 										}
 										if( $desc_chg ){

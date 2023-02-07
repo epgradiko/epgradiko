@@ -93,10 +93,10 @@
 			}
 			{if isset($transsize_set)}
 			if( channelID.substr(0,3) == 'EX_' ){
-				str += '　<a href="/viewer.php?recorder=' + channelID.substr(3)  + '&starttime=' + mirakcTimeshiftID + '&name=' + title + '&trans=0" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">視聴</a>';
+				str += '　<a href="/viewer.php?recorder=' + channelID.substr(3)  + '&starttime=' + mirakcTimeshiftID + '&trans=0' + '&name=' + title + '" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">視聴</a>';
 			}else{
 				var trans_size = document.top_navi_form.trans_size.selectedIndex;
-				str += '　<a href="/viewer.php?recorder=' + channelID + '&mirakc_timeshift_id=' + mirakcTimeshiftID + '&name=' + title + '&trans=' + trans_size +'" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">視聴</a>';
+				str += '　<a href="/viewer.php?recorder=' + channelID + '&mirakc_timeshift_id=' + mirakcTimeshiftID + '&trans=' + trans_size +'&name=' + title +'" target="_blank" class="ui-state-default ui-corner-all ui-dialog-buttonpane button">視聴</a>';
 			}
 			{/if}
 			if( channelID.substr(0,3) == 'EX_' ){
@@ -162,7 +162,7 @@
 		},
 		customform:function(recorder, mirakc_timeshift_id, program_id = 0){
 			$('#floatBox4Dialog').dialog('close');
-			$.get('/reservationform.php', { recorder: recorder, mirakc_timeshift_id: mirakc_timeshift_id, pgm_id: program_id }, function(data) {
+			$.get('/sub/reservationform.php', { recorder: recorder, mirakc_timeshift_id: mirakc_timeshift_id, pgm_id: program_id }, function(data) {
 				if(data.match(/^error/i)){
 					alert(data);
 				}
@@ -176,6 +176,7 @@
 			});
 		},
 		customrec:function() {
+			var id_mode = $('#id_mode').val();
 			var id_syear = $('#id_syear').val();
 			var id_smonth = $('#id_smonth').val();
 			var id_sday = $('#id_sday').val();
@@ -209,7 +210,8 @@
 			tmp_disc = $('#id_ts_del').prop('checked');
 			var id_ts_del = tmp_disc ? 1 : 0;
 
-			$.post('/customReservation.php', { syear: id_syear,
+			$.post('/sub/customReservation.php', { mode: id_mode,
+							  syear: id_syear,
 							  smonth: id_smonth,
 							  sday: id_sday,
 							  shour: id_shour,
@@ -433,6 +435,12 @@
 		setTimeout( "timebar_start()", (60*1000)-now%(60*1000) );
 		CTG.INI();
 		MDA.SCR.INI();	// 番組表の位置保存
+
+		var date = new Date();
+		date.setTime( date.getTime() + 365 * 60 * 60 * 24 * 1000 );
+		document.cookie = 'program_url=timeshiftTable.php; path=/; expires='+date.toUTCString();
+		document.cookie = 'program_type={$type}; path=/; expires='+date.toUTCString();
+
 	});
 </script>
 
@@ -510,7 +518,7 @@ h2 {padding: 4px}
 #tvtable div.prg_subtitle {font-size:80%;}
 #tvtable div.prg_desc {font-size:80%;}
 
-#tvtable div.prg_start, #tvtable div.prg_duration, #tvtable div.prg_channel, #tvtable div.mirakc_timeshift_id, #tvtable div.prg_id, #tvtable div.prg_key_id, #tvtable div.prg_tuner, #tvtable div.prg_channel_id, #tvtable div.prg_genre, #tvtable div.prg_sub_genre, #tvtable div.prg_keyword {display: none;}
+#tvtable div.prg_start, #tvtable div.prg_duration, #tvtable div.prg_channel, #tvtable div.mirakc_timeshift_id, #tvtable div.prg_id, #tvtable div.prg_tuner, #tvtable div.prg_channel_id, #tvtable div.prg_genre, #tvtable div.prg_sub_genre, #tvtable div.prg_keyword {display: none;}
 
 #tvtable div.ctg-hide,            #category_select a.ctg-hide        {background-color: #F8F8F8; color:#888;}
 #tvtable div.ctg-hide .prg_title, #category_select a.ctg-hide .prg_title{color:#666;}
@@ -591,7 +599,7 @@ h2 {padding: 4px}
 <div id="float_titles" style="width: {math equation="x + 60" x=$chs_width }px;">
 <div id="float_follows">
 <div id="top_nav" style="width:calc(100vw - 20px)">
-{include file='menu_star.tpl' menu_list=$menu_list}
+{include file='include/menu_star.tpl' menu_list=$menu_list}
 </div>
 
 <div class="set ctg_sel" id="category_select" style="margin-top: 35px;">
@@ -752,7 +760,6 @@ h2 {padding: 4px}
           <div class="prg_id">{$item.id}</div>
           <div class="mirakc_timeshift_id">{$item.rec_id}</div>
           <div class="prg_tuner">{$item.tuner}</div>
-          <div class="prg_key_id">{$item.key_id}</div>
           <div class="prg_channel_id">{$item.channel_id}</div>
           <div class="prg_channel">{$item.channel}</div>
           <div class="prg_genre">{$item.genre}</div>
@@ -782,14 +789,14 @@ h2 {padding: 4px}
 <div id="floatBox4Dialog">jQuery UI Dialog</div>
 <div id="channelDialog">jQuery UI Dialog</div>
 <div id="pagetop"><img src="/imgs/b_pagetop.png" alt="TOP"></div>
-{include file='menu_list.tpl' menu_list=$menu_list}
+{include file='include/menu_list.tpl' menu_list=$menu_list}
 </div>
 {literal}
 <script type="text/javascript">
 var INISet = {
 {/literal}
-	prgRecordURL : '/simpleReservation.php',		// 簡易予約
-	prgCancelURL : '/cancelReservation.php',		// 予約キャンセル
+	prgRecordURL : '/sub/simpleReservation.php',		// 簡易予約
+	prgCancelURL : '/sub/cancelReservation.php',		// 予約キャンセル
 	dotMin : {$height_per_min},
 	tableStartTime : '{$top_time}',
 	tableEndTime : '{$last_time}',
