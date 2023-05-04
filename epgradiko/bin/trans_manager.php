@@ -72,6 +72,7 @@ while(1){
 		$transing_cnt = 0;
 	}
 	if( $transing_cnt < TRANS_PARA ){
+		sleep(1);
 		$pending_trans = $trans_obj->fetch_array( null, null, 'status=0 ORDER BY '.$trans_order_txt.', rec_endtime, id desc' );
 		if( count( $pending_trans ) ){
 			$tran_start	  = $pending_trans[0];

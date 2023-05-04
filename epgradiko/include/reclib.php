@@ -930,7 +930,7 @@ function build_realview_cmd( $type, $channel, $sid ){
 		'%PRIORITY%'	=>	$priority,
 	);
 	$return_str = strtr( $record_cmd[$type][$rec_mode]['command'], $str_rep );
-	if( $record_cmd[$type]['type'] == 'video' ) $return_str .= '|tsreadex -x 18/38/39 -n -1 -a 13 -b 5 -c 1 -u 1 -d 13 -';
+	//if( $record_cmd[$type]['type'] == 'video' ) $return_str .= '|tsreadex -x 18/38/39 -n -1 -a 13 -b 5 -c 1 -u 1 -d 13 -';
 	$return_str .= ' 2>/dev/null';
 	return $return_str;
 }
