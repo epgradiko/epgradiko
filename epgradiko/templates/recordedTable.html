@@ -328,7 +328,14 @@ select.autokeys option{white-space:pre;}
 
 <div id="nav_margin" style="margin-top:35px;">
 <fieldset>
-<legend><b>絞り込み</b></legend>
+<legend><b>絞り込み自動キーワード</b>
+  <select class="autokeys" onChange="popJump(this)">
+  <option value="/recordedTable.php">指定なし</option>
+{foreach from=$keys item=record}
+    <option value="/recordedTable.php?key={$record.id}"{$record.selected}>{$record.name|truncate:40:'...':true:true}</option>
+{/foreach}
+  </select>
+</legend>
 <form method="post" name="select" action="/recordedTable.php" >
 {if $key_id!==false}
   <input type="hidden" name="key" value="{$key_id}">
@@ -339,20 +346,13 @@ select.autokeys option{white-space:pre;}
   {foreach from=$stations item=st}
     <option value="{$st.id}" {$st.selected}>{$st.name}{if $st.count}({$st.count}){/if}</option>
   {/foreach}
-  </select>
+</select>
 <b>ジャンル</b><select name="category_id">
   {foreach from=$cats item=cat}
     <option value="{$cat.id}" {$cat.selected}>{$cat.name}{if $cat.count}({$cat.count}){/if}</option>
   {/foreach}
-  </select>
-<input type="submit" value="絞り込む">
-<b>自動キーワード</b>
-<select class="autokeys" onChange="popJump(this)">
-<option value="/recordedTable.php">指定なし</option>
-{foreach from=$keys item=record}
-  <option value="/recordedTable.php?key={$record.id}"{$record.selected}>{$record.name|truncate:40:'...':true:true}</option>
-{/foreach}
 </select>
+<input type="submit" value="絞り込む">
 <input type="button" value="クリア" onClick="location.href='/recordedTable.php'">
 </form>
 </fieldset>
