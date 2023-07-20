@@ -1,4 +1,4 @@
-ARG ALPINE_VER=3.16
+ARG ALPINE_VER=3.18
 # epgdump
 FROM docker.io/alpine:$ALPINE_VER as epgdump
 COPY ./epgdump /tmp/epgdump
@@ -130,14 +130,14 @@ COPY ./root_fs /
 COPY ./epgradiko /var/www/localhost/
 # php8 packages
 RUN apk add --update --no-cache s6-overlay apache2 at curl libxml2-utils \
-                     php8 php8-ctype php8-mysqli php8-apache2 php8-mbstring php8-simplexml php8-fileinfo \
-                     php8-posix php8-shmop php8-sysvsem php8-sysvshm php8-pcntl php8-curl php8-iconv \
+                     php81 php81-ctype php81-mysqli php81-apache2 php81-mbstring php81-simplexml php81-fileinfo \
+                     php81-posix php81-shmop php81-sysvsem php81-sysvshm php81-pcntl php81-curl php81-iconv \
 		     ca-certificates curl libstdc++ jq && \
     rm -rf /var/cache/apk/* && \
     addgroup -g 1000 -S epgradiko && \
     adduser -u 1000 -S epgradiko -G epgradiko && \
-    sed -i -e "s/;date.timezone *=.*$/date.timezone = Asia\/Tokyo/" /etc/php8/php.ini && \
-    sed -i -e "s/memory_limit = 128M/memory_limit = 256M/" /etc/php8/php.ini && \
+    sed -i -e "s/;date.timezone *=.*$/date.timezone = Asia\/Tokyo/" /etc/php81/php.ini && \
+    sed -i -e "s/memory_limit = 128M/memory_limit = 256M/" /etc/php81/php.ini && \
     echo epgradiko >> /etc/at.allow && \
     rm -fr /tmp/* && \
     sed -i -e "s/User .*$/User epgradiko/" /etc/apache2/httpd.conf && \
@@ -152,11 +152,11 @@ RUN apk add --update --no-cache s6-overlay apache2 at curl libxml2-utils \
     sed -i -e "s/#LoadModule rewrite_module modules\/mod_rewrite.so/LoadModule rewrite_module modules\/mod_rewrite.so/" /etc/apache2/httpd.conf && \
     sed -i -e "260,280s/AllowOverride None/AllowOverride All/" /etc/apache2/httpd.conf && \
 # for noisy log
-    sed -i -e "/SetEnvIf X-Forwarded-User /a SetEnvIf Request_URI \"sub\/get_file\.php$\" nolog" /etc/apache2/httpd.conf && \
+    sed -i -e "/SetEnvIf X-Forwarded-User /a SetEnvIf Request_URI \"\/sub\/get_file\.php$\" nolog" /etc/apache2/httpd.conf && \
     sed -i -e "s/    CustomLog logs\/access\.log combined/    CustomLog logs\/access.log combined env=!nolog/" /etc/apache2/httpd.conf && \
 # for ts mime
     sed -i -e "s/# video\/mp2t.*$/video\/mp2t\t\t\t\t\tts/" /etc/apache2/mime.types && \
-    ln -sf /usr/bin/php8 /usr/bin/php && \
+    ln -sf /usr/bin/php81 /usr/bin/php && \
 # http-dir
     rm -f /var/www/localhost/htdocs/index.html && \
     rm -fr /var/www/localhost/cgi-bin && \

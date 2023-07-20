@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bash
+
+# remove temporary files
+
+rm -fr /tmp/*

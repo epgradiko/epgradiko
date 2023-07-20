@@ -204,7 +204,7 @@ function killtree( $pid, $force=TRUE, $safe_pid=0 )
 {
 	$ps_output = shell_exec( PS_CMD );		// .'ww'
 	$rarr = explode( "\n", $ps_output );
-	if( !posix_kill( $pid, 19 ) ) return FALSE;		// 一時停止
+	if( !posix_kill( (int)$pid, 19 ) ) return FALSE;		// 一時停止
 	foreach( $rarr as $cc ){
 		$ps = ps_tok( $cc );
 		if( (int)$ps->pid==$pid ) continue;

@@ -20,7 +20,7 @@ RUN apk --update add git gcc g++ make && \
 FROM alpine:$ALPINE_VER as tsreadex
 WORKDIR /tmp
 COPY ./tsreadex /tmp/tsreadex
-RUN apk add git gcc g++ make cmake && \
+RUN apk add git gcc g++ make cmake linux-headers && \
     cd /tmp && \
     cd tsreadex && \
     cmake . && \
@@ -120,8 +120,8 @@ RUN apk add --update --no-cache pcre \
                      mesa-va-gallium \
                      openssl \
                      opus \
-                     x264-dev \
-                     x265-dev && \
+                     x264-libs \
+                     x265-libs && \
     ln -s /usr/local/bin/ffmpeg /usr/bin/
 COPY --from=epgdump /usr/local /usr/local
 COPY --from=tspacketchk /usr/local /usr/local
@@ -152,7 +152,7 @@ RUN apk add --update --no-cache s6-overlay apache2 at curl libxml2-utils \
     sed -i -e "s/#LoadModule rewrite_module modules\/mod_rewrite.so/LoadModule rewrite_module modules\/mod_rewrite.so/" /etc/apache2/httpd.conf && \
     sed -i -e "260,280s/AllowOverride None/AllowOverride All/" /etc/apache2/httpd.conf && \
 # for noisy log
-    sed -i -e "/SetEnvIf X-Forwarded-User /a SetEnvIf Request_URI \"get_file\.php$\" nolog" /etc/apache2/httpd.conf && \
+    sed -i -e "/SetEnvIf X-Forwarded-User /a SetEnvIf Request_URI \"sub\/get_file\.php$\" nolog" /etc/apache2/httpd.conf && \
     sed -i -e "s/    CustomLog logs\/access\.log combined/    CustomLog logs\/access.log combined env=!nolog/" /etc/apache2/httpd.conf && \
 # for ts mime
     sed -i -e "s/# video\/mp2t.*$/video\/mp2t\t\t\t\t\tts/" /etc/apache2/mime.types && \
