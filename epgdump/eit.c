@@ -124,9 +124,9 @@ void rep_flg_title( char *src )
  							};
 	static char		*bracketsL[] =	{ "〈", "(",  "（", "【", "＜", "《", "≪", "［", "〔", "<", "[", "[", "［", "＜", "＜" };
 	static char		*bracketsR[] =	{ "〉", ")",  "）", "】", "＞", "》", "≫", "］", "〕", ">", "]" , "］", "]", "版＞", ">" };
-	static int		mv_any_flg[] = 	{ 0,    0,    0,    1,    0,    0,    0,    1,    0,   0,   0,   1,   1,  1 };
-	static int		mv_1st_flg[] = 	{ 0,    0,    0,    0,    1,    1,    1,    0,    1,   0,   1,   0,   0,  0 };
-	static int		mv_last_flg[] =	{ 0,    0,    0,    0,    1,    1,    1,    0,    1,   1,   1,   0,   0,  0 };
+	static int		mv_any_flg[] = 	{ 0,    0,    0,    1,    0,    0,    0,    1,    0,   0,   0,   1,   1,  1 , 0 };
+	static int		mv_1st_flg[] = 	{ 0,    0,    0,    0,    1,    1,    1,    0,    1,   0,   1,   0,   0,  0 , 1 };
+	static int		mv_last_flg[] =	{ 0,    0,    0,    0,    1,    1,    1,    0,    1,   1,   1,   0,   0,  0 , 1 };
 	static char		*rmv_mk[] =	{ "【", "◆", "▼", "▽", "※" };
 	int			lp;
 	int			cls_lp;
@@ -244,8 +244,20 @@ void rep_flg_title( char *src )
 			str_len++;
 		}
 	}
+	if( memcmp( src, "土曜ゴールデンシアター ", 34 ) == 0){
+                memmove( src, src+34, strlen( src+34 )+1 );
+                strcat( stockMark, "[映]" );
+        }
+	if( memcmp( src, "ミッドナイトシネマ ", 28 ) == 0){
+                memmove( src, src+28, strlen( src+28 )+1 );
+                strcat( stockMark, "[映]" );
+        }
 	if( memcmp( src, "よる８銀座シネマ ", 25 ) == 0){
                 memmove( src, src+25, strlen( src+25 )+1 );
+                strcat( stockMark, "[映]" );
+        }
+	if( memcmp( src, "よる8銀座シネマ ", 23 ) == 0){
+                memmove( src, src+23, strlen( src+23 )+1 );
                 strcat( stockMark, "[映]" );
         }
 	if( memcmp( src, "タイ◆", 9 ) == 0){

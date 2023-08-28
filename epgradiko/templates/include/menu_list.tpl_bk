@@ -140,6 +140,11 @@
      <b>&nbsp;　予約一覧　　　　　　</b>
     </font>
    </a><br>
+   <a href="/revchartTable.php" style="text-decoration:none;line-height:22px;">
+    <font color="blue" onMouseOver="menulist_mouseover(this,'on', 0);" onMouseOut="menulist_mouseover(this,'off', 0);">
+     <b>&nbsp;　予約遷移表　　　　　</b>
+    </font>
+   </a><br>
    <a href="/recordedTable.php" style="text-decoration:none;line-height:22px;">
     <font color="blue" onMouseOver="menulist_mouseover(this,'on', 0);" onMouseOut="menulist_mouseover(this,'off', 0);">
      <b>&nbsp;　録画済一覧　　　　　</b>
@@ -155,6 +160,7 @@
      <b>&nbsp;　キーワード管理　　　</b>
     </font>
    </a><br>
+{if count($menu_list[1]) > 0}
 {if count($menu_list[1]) > 1}
    <a href="/selectTimeshift.php" style="text-decoration:none;line-height:22px;">
     <font color="blue" onMouseOver="menulist_mouseover(this,'on', 2);" onMouseOut="menulist_mouseover(this,'off', 0);">
@@ -167,6 +173,7 @@
      <b>&nbsp;　{$menu_list[1][0].name}</b>
     </font>
    </a><br>
+{/if}
 {/if}
    <a href="/logViewer.php" style="text-decoration:none;line-height:22px;">
     <font color="blue" onMouseOver="menulist_mouseover(this,'on', 0);" onMouseOut="menulist_mouseover(this,'off', 0);">

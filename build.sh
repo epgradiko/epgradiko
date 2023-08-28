@@ -1,1 +1,1 @@
-podman build --no-cache -t epgradiko .
+sudo podman build --no-cache -t epgradiko .

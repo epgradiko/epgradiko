@@ -15,6 +15,7 @@ function link_menu_create()
 	}
 	if( (int)$settings->ex_tuners > 0 )
 		$program_menu[] = array( 'name' => 'ラジオ番組表　　', 'url' => 'index.php?type=EX' );
+	$program_menu[] = array( 'name' => '録画予約番組表　', 'url' => 'revchartTable.php' );
 
 	if( isset($settings->mirakc_timeshift) && $settings->mirakc_timeshift != 'none' || isset($settings->radiko_timeshift) && $settings->radiko_timeshift != 'none' ){
 		$timeshift_menu[] = array( 'name' => 'Timeshift番組表', 'url' => 'timeshiftTable.php' );
