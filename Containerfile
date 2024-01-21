@@ -37,6 +37,7 @@ ENV LD_PRELOAD /usr/bin/lib/preloadable_libiconv.so
 RUN apk add --update --no-cache --virtual=dev \
   autoconf \
   automake \
+  bash \
   build-base \
   curl \
   fontconfig-dev \
@@ -76,7 +77,7 @@ RUN apk add --update --no-cache --virtual=dev \
 #    git clone https://github.com/0p1pp1/FFmpeg.git ffmpeg && \
     git clone https://git.ffmpeg.org/ffmpeg.git && \
     cd /tmp/ffmpeg && \
-    git checkout release/5.1 && \
+    git checkout release/6.1 && \
 # Compile ffmpeg.
     ./configure \
         --extra-version=epgradiko0.1 \
@@ -101,8 +102,12 @@ RUN apk add --update --no-cache --virtual=dev \
         --extra-ldflags="-L${PREFIX}/lib" \
         --extra-libs="-lpthread -lm" \
         --prefix="${PREFIX}" && \
-    make && make install && make distclean
-
+    make && make install && make distclean && \
+    cd /tmp && \
+    git clone --recursive https://github.com/rigaya/tsreplace.git && \
+    cd tsreplace && \
+    ./configure && \
+    make && make install
 # ベースイメージを定義
 FROM docker.io/alpine:$ALPINE_VER
 # Primery packages
@@ -152,7 +157,7 @@ RUN apk add --update --no-cache s6-overlay apache2 at curl libxml2-utils \
     sed -i -e "s/#LoadModule rewrite_module modules\/mod_rewrite.so/LoadModule rewrite_module modules\/mod_rewrite.so/" /etc/apache2/httpd.conf && \
     sed -i -e "260,280s/AllowOverride None/AllowOverride All/" /etc/apache2/httpd.conf && \
 # for noisy log
-    sed -i -e "/SetEnvIf X-Forwarded-User /a SetEnvIf Request_URI \"\/sub\/get_file\.php$\" nolog" /etc/apache2/httpd.conf && \
+    sed -i -e "/SetEnvIf X-Forwarded-User /a SetEnvIf Request_URI \"\/sub\/get_file\\.php$\" nolog" /etc/apache2/httpd.conf && \
     sed -i -e "s/    CustomLog logs\/access\.log combined/    CustomLog logs\/access.log combined env=!nolog/" /etc/apache2/httpd.conf && \
 # for ts mime
     sed -i -e "s/# video\/mp2t.*$/video\/mp2t\t\t\t\t\tts/" /etc/apache2/mime.types && \

@@ -9,12 +9,12 @@ radiko(ラジコ)はスマートフォンやアプリ・パソコンでラジオ
 　epgradiko・・・・・epgrecUNAを改造  
 　epgdump・・・・・・epgrecUNA版epgdumpを改造  
 　[tspacketchk](https://github.com/kaikoma-soft/tspacketchk)・・・・パケットチェック表示オプションを追加（サマリーと詳細の標準出力とエラー出力分け、表示をシンプルにするモード追加）  
-　[radish](https://github.com/uru2/radish) ・・・・・・出力ファイル名の拡張子補完機能を削除  
 　[tsreadex](https://github.com/xtne6f/tsreadex) ・・・・・そのまま  
 ・外部のソフトウェア（各自用意のこと）  
-　docker ・・・・・・実行環境整備してください  
+　docker ・・・・・・実行環境整備してください（podmanでもOK）  
 　mysql・・・・・・・utf8mb4データベースが作成可能な環境（mariadbでも大丈夫）  
 　[mirakurun](https://github.com/Chinachu/Mirakurun)・・・・・デジタル放送受信が可能な環境（[mirakc](https://github.com/mirakc/mirakc)でも大丈夫。タイムシフトも使える）  
+  [RadioServer](https://github.com/epgradiko/RadioServer.git)・・・・radikoストリーミングサーバー
   
   
 ## 特徴  
@@ -65,7 +65,7 @@ view_config.php ・・・・・視聴関連のパラメータ設定
 ・php8対応（自分の使っている範囲でワーニングメッセージ出ないようにした）  
 ・利用ライブラリの最新化（でも、jquery uiもう終わっちゃったみたい）  
 ・docker環境化  
-・radiko対応(EXチューナー定義（スカパー対応廃止)を利用)。  
+・radiko対応(EXチューナー定義（スカパー対応廃止)を利用)。タイムシフトも対応  
 →スカパー使えません。greatpyrenees.php廃止  
 ・mirakcタイムシフト再生対応。  
 ・トランスコード変換を1本のみにしました。（チューナー消費しないので、それぞれ予約を作ってください）  
@@ -135,7 +135,6 @@ view_config.php ・・・・・視聴関連のパラメータ設定
   
 ### とりあえずやらない事案  
 ・スカパー対応  
-・radikoタイムフリー対応  
 ・radiko動的番組延長・短縮対応  
 ・radikoの本来ジャンル対応  
 ・地デジ・BS・CS共有チューナー対応  

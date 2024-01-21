@@ -76,7 +76,7 @@ RUN apk add --update --no-cache --virtual=dev \
 #    git clone https://github.com/0p1pp1/FFmpeg.git ffmpeg && \
     git clone https://git.ffmpeg.org/ffmpeg.git && \
     cd /tmp/ffmpeg && \
-    git checkout release/5.1 && \
+    git checkout release/6.1 && \
 # Compile ffmpeg.
     ./configure \
         --extra-version=epgradiko0.1 \

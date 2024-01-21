@@ -199,7 +199,7 @@
 
 <div class="subMenu2" onClick="submenu_close();">
 {if count($menu_list[1]) > 1}
- <div class="subMenu2Section" style="text-align: left; position: fixed; top: 183px; left: 145px; width: 150px; background: #e0e0e0;">
+ <div class="subMenu2Section" style="text-align: left; position: fixed; top: 163px; left: 145px; width: 150px; background: #e0e0e0;">
   <div class="subMenu2-Text" style="font-size: 14px;">
 {foreach from=$menu_list[1] item=record}
    <a href="{$record.url}" style="text-decoration:none;line-height:22px;">

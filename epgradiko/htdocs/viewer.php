@@ -51,6 +51,7 @@ if($reserve_id){
 		$rrec = new DBRecord( RESERVE_TBL, 'id', $reserve_id );
 		if($rrec){
 			$name     = htmlspecialchars(str_replace(array("\r\n","\r","\n"), '', $rrec->title),ENT_QUOTES);
+			# 謎対応
 			$abstract = htmlspecialchars(str_replace(array("\r\n","\r","\n"), '', $rrec->description),ENT_QUOTES);
 			$start_time = toTimestamp($rrec->starttime);
 			$end_time = toTimestamp($rrec->endtime );
@@ -133,7 +134,7 @@ if($sendstream_mode){
 		}
 	}
 }
-$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on' ? 'https' : 'http';
+$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) !== 'off' ? 'https' : 'http';
 
 $host = $_SERVER["HTTP_HOST"];
 $base_address = $host.$target_path;
