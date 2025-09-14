@@ -29,6 +29,7 @@ function command(){
 		var cmd_epgdump     = $('#id_cmd_epgdump').val();
 		var cmd_ffmpeg      = $('#id_cmd_ffmpeg').val();
 		var cmd_tspacketchk = $('#id_cmd_tspacketchk').val();
+		var cmd_tsreadex    = $('#id_cmd_tsreadex').val();
 		$.post('/maintenance/commandSetting.php', {
 			cmd_at: cmd_at,
 			cmd_atrm: cmd_atrm,
@@ -37,7 +38,8 @@ function command(){
 			cmd_curl: cmd_curl,
 			cmd_epgdump: cmd_epgdump,
 			cmd_ffmpeg: cmd_ffmpeg,
-			cmd_tspacketchk: cmd_tspacketchk
+			cmd_tspacketchk: cmd_tspacketchk,
+			cmd_tsreadex: cmd_tsreadex
 		}, function(message){
 			if( message.match(/^error/i) ){
 				alert( message );
@@ -101,6 +103,7 @@ form label.error, label.err { color: red; }
     <tr><td><b>epgdump：</b></td><td><input type="text" id="id_cmd_epgdump" name="epgdump" value="{$settings->epgdump}" size="30" class="required" /></td></tr>
     <tr><td><b>ffmpeg：</b></td><td><input type="text" id="id_cmd_ffmpeg" name="ffmpeg" value="{$settings->ffmpeg}" size="30" {if $settings->use_thumbs == '1'}class="required" {/if}/></td></tr>
     <tr><td><b>tspacketchk：</b></td><td><input type="text" id="id_cmd_tspacketchk" name="tspacketchk" value="{$settings->tspacketchk}" size="30" {if $settings->use_plogs == '1'}class="required" {/if}/></td></tr>
+    <tr><td><b>tsreadex：</b></td><td><input type="text" id="id_cmd_tsreadex" name="tsreadex" value="{$settings->tsreadex}" size="30" {if $settings->use_plogs == '1'}class="required" {/if}/></td></tr>
    </table>
   </div>
  </fieldset>

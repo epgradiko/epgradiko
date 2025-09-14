@@ -1,4 +1,4 @@
-ARG ALPINE_VER=3.18
+ARG ALPINE_VER=3.22
 # epgdump
 FROM docker.io/alpine:$ALPINE_VER as epgdump
 COPY ./epgdump /tmp/epgdump
@@ -102,12 +102,7 @@ RUN apk add --update --no-cache --virtual=dev \
         --extra-ldflags="-L${PREFIX}/lib" \
         --extra-libs="-lpthread -lm" \
         --prefix="${PREFIX}" && \
-    make && make install && make distclean && \
-    cd /tmp && \
-    git clone --recursive https://github.com/rigaya/tsreplace.git && \
-    cd tsreplace && \
-    ./configure && \
-    make && make install
+    make && make install && make distclean
 # ベースイメージを定義
 FROM docker.io/alpine:$ALPINE_VER
 # Primery packages
@@ -135,14 +130,14 @@ COPY ./root_fs /
 COPY ./epgradiko /var/www/localhost/
 # php8 packages
 RUN apk add --update --no-cache s6-overlay apache2 at curl libxml2-utils \
-                     php81 php81-ctype php81-mysqli php81-apache2 php81-mbstring php81-simplexml php81-fileinfo \
-                     php81-posix php81-shmop php81-sysvsem php81-sysvshm php81-pcntl php81-curl php81-iconv \
+                     php84 php84-ctype php84-mysqli php84-apache2 php84-mbstring php84-simplexml php84-fileinfo \
+                     php84-posix php84-shmop php84-sysvsem php84-sysvshm php84-pcntl php84-curl php84-iconv \
 		     ca-certificates curl libstdc++ jq && \
     rm -rf /var/cache/apk/* && \
     addgroup -g 1000 -S epgradiko && \
     adduser -u 1000 -S epgradiko -G epgradiko && \
-    sed -i -e "s/;date.timezone *=.*$/date.timezone = Asia\/Tokyo/" /etc/php81/php.ini && \
-    sed -i -e "s/memory_limit = 128M/memory_limit = 256M/" /etc/php81/php.ini && \
+    sed -i -e "s/;date.timezone *=.*$/date.timezone = Asia\/Tokyo/" /etc/php84/php.ini && \
+    sed -i -e "s/memory_limit = 128M/memory_limit = 256M/" /etc/php84/php.ini && \
     echo epgradiko >> /etc/at.allow && \
     rm -fr /tmp/* && \
     sed -i -e "s/User .*$/User epgradiko/" /etc/apache2/httpd.conf && \
@@ -161,7 +156,7 @@ RUN apk add --update --no-cache s6-overlay apache2 at curl libxml2-utils \
     sed -i -e "s/    CustomLog logs\/access\.log combined/    CustomLog logs\/access.log combined env=!nolog/" /etc/apache2/httpd.conf && \
 # for ts mime
     sed -i -e "s/# video\/mp2t.*$/video\/mp2t\t\t\t\t\tts/" /etc/apache2/mime.types && \
-    ln -sf /usr/bin/php81 /usr/bin/php && \
+    ln -sf /usr/bin/php84 /usr/bin/php && \
 # http-dir
     rm -f /var/www/localhost/htdocs/index.html && \
     rm -fr /var/www/localhost/cgi-bin && \

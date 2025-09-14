@@ -50,6 +50,7 @@ class Settings extends SimpleXMLElement {
 			$xml->epgdump = self::command_get('/usr/local/bin/epgdump');			// epgdump
 			$xml->ffmpeg = self::command_get('/usr/bin/ffmpeg');				// ffmpeg
 			$xml->tspacketchk = self::command_get('/usr/local/bin/tspacketchk');		// tspacketchk
+			$xml->tsreadex = self::command_get('/usr/local/bin/tsreadex');			// tsreadex
 			// 使用コマンドのパス設定
 			$xml->mirakurun = 'tcp';							// mirakurun接続設定
 			$xml->mirakurun_address = 'mirakurun:40772';					// mirakurun TCP/IP

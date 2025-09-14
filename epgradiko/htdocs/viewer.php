@@ -134,7 +134,7 @@ if($sendstream_mode){
 		}
 	}
 }
-$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) !== 'off' ? 'https' : 'http';
+$protocol = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off' || isset($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) !== 'off' || isset($_SERVER['HTTP_X_SSL']) && strtolower($_SERVER['HTTP_X_SSL']) !== 'off' ? 'https' : 'http';
 
 $host = $_SERVER["HTTP_HOST"];
 $base_address = $host.$target_path;

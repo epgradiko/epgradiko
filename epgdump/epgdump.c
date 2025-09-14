@@ -1258,8 +1258,17 @@ int main(int argc, char *argv[])
 				unsigned int	node = type==0 ? 0 : ( svtcur->transport_stream_id & 0x01f0U ) >> 4;
 				unsigned int	slot = type==0 ? 0 : svtcur->transport_stream_id & 0x0007U;
 
-				if( type==1 && ( svtcur->transport_stream_id==0x40f1U || svtcur->transport_stream_id==0x40f2U ) )
-					slot--;
+				if( type==1 ){
+					if( node == 15 ) // BS1
+						slot--;
+					else{
+						if( svtcur->transport_stream_id == 16530 ) // BS12
+							slot = 1;
+						else
+							if( svtcur->transport_stream_id == 18803 ) // BS松竹東急
+								slot = 2;
+					}
+				}
 				fprintf( outfile,
 					"i:%i;a:8:{"
 					"s:2:\"id\";s:%i:\"%s\";"

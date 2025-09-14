@@ -37,6 +37,7 @@ define( "RESERVE_STRUCT",
 	"dirty boolean not null default '0',".				// ダーティフラグ
 	"discontinuity boolean not null default '0',".			// 隣接録画禁止フラグ 禁止なら1
 	"image_url varchar(512) default '',".				// 画像情報
+	"archive boolean not null default '0',".			// アーカイブ
 	"index reserve_chid_idx (channel_id,complete,starttime),".	// インデックス
 	"index reserve_pid_idx (program_id,complete,starttime),".
 	"index reserve_pri_idx (program_id,priority),".
@@ -159,6 +160,7 @@ define( "KEYWORD_STRUCT",
 	"rest_alert integer not null default '1',".			// 放送休止警報
 	"smart_repeat boolean not null default '1',".			// 
 	"sort_order integer not null default '0',".			// 
+	"archive boolean not null default '0',".			// アーカイブ
 	"index keyword_pri_idx (priority)".
 	""
 );

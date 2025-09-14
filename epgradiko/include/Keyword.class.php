@@ -345,17 +345,17 @@ class Keyword extends DBRecord {
 	public function reservation( $wave_type ){
 		if( $this->__id == 0 ) return;
 
-		$sem_key	= sem_get_surely( SEM_KW_START );
-		$shm_id		= shmop_open_surely();
+//		$sem_key	= sem_get_surely( SEM_KW_START );
+//		$shm_id		= shmop_open_surely();
 
-		if( $shm_id !== false )
-			$this->keyid_acquire( $shm_id, $sem_key );	// keyword_id占有
+//		if( $shm_id !== false )
+//			$this->keyid_acquire( $shm_id, $sem_key );	// keyword_id占有
 		$precs = array();
 		try {
 			$precs = $this->getPrograms();
 		}
 		catch( Exception $e ){
-			$this->keyid_release();	// keyword_id開放
+//			$this->keyid_release();	// keyword_id開放
 			throw $e;
 		}
 		if( count( $precs ) > 0 ){
@@ -403,8 +403,8 @@ class Keyword extends DBRecord {
 					break;
 			}
 		}
-		$this->keyid_release();	// keyword_id開放
-		shmop_close( $shm_id );
+//		$this->keyid_release();	// keyword_id開放
+//		shmop_close( $shm_id );
 	}
 
 	// キーワード編集対応にて下の関数より分離

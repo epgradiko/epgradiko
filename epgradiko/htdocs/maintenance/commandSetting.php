@@ -14,7 +14,7 @@ function getPerm( $file ) {
 	return sprintf('%o', ($ss['mode'] & 000777));
 }
 
-function check_command( $cmd_at, $cmd_atrm, $cmd_sleep, $cmd_timeout, $cmd_curl, $cmd_epgdump, $cmd_ffmpeg, $cmd_tspacketchk ){
+function check_command( $cmd_at, $cmd_atrm, $cmd_sleep, $cmd_timeout, $cmd_curl, $cmd_epgdump, $cmd_ffmpeg, $cmd_tspacketchk, $cmd_tsreadex ){
 	global $settings;
 	$return_str ='';
 	// パーミッションチェック
@@ -28,6 +28,7 @@ function check_command( $cmd_at, $cmd_atrm, $cmd_sleep, $cmd_timeout, $cmd_curl,
 		"epgdump"	=>	$cmd_epgdump,
 		"ffmpeg"	=>	$cmd_ffmpeg,
 		"tspacketchk"	=>	$cmd_tspacketchk,
+		"tsreadex"	=>	$cmd_tsreadex,
 	);
 
 	foreach($command_files as $command => $file ) {
@@ -44,7 +45,8 @@ function check_command( $cmd_at, $cmd_atrm, $cmd_sleep, $cmd_timeout, $cmd_curl,
 
 if( isset($_POST['cmd_at']) && isset($_POST['cmd_atrm']) && isset($_POST['cmd_sleep']) && 
 	isset($_POST['cmd_timeout']) && isset($_POST['cmd_curl']) && isset($_POST['cmd_epgdump']) && 
-	isset($_POST['cmd_ffmpeg']) && isset($_POST['cmd_tspacketchk']) ){
+	isset($_POST['cmd_ffmpeg']) && isset($_POST['cmd_tspacketchk']) &&
+	isset($_POST['cmd_tsreadex']) ){
 	$exit_str = '';
 	if( $_POST['cmd_at'] === '' )		$exit_str .= 'Error:atコマンド未設定。';
 	if( $_POST['cmd_atrm'] === '' )		$exit_str .= 'Error:atrmコマンド未設定。';
@@ -53,9 +55,10 @@ if( isset($_POST['cmd_at']) && isset($_POST['cmd_atrm']) && isset($_POST['cmd_sl
 	if( $_POST['cmd_curl'] === '' )		$exit_str .= 'Error:cmd_curlコマンド未設定。';
 	if( $_POST['cmd_epgdump'] === '' )	$exit_str .= 'Error:cmd_epgdumpコマンド未設定。';
 	if( $settings->use_thumbs && $_POST['cmd_ffmpeg'] === '' )	$exit_str .= 'Error:cmd_epgdumpコマンド未設定。';
-	if( $settings->use_plogs && $_POST['cmd_tspacketchk'] === '' )	$exit_str .= 'Error:cmd_epgdumpコマンド未設定。';
+	if( $settings->use_plogs && $_POST['cmd_tspacketchk'] === '' )	$exit_str .= 'Error:cmd_tspacketchkコマンド未設定。';
+	if( $_POST['cmd_tsreadex'] === '' )	$exit_str .= 'Error:cmd_tsreadexコマンド未設定。';
 	if( !$exit_str ) $exit_str = check_command( $_POST['cmd_at'], $_POST['cmd_atrm'], $_POST['cmd_sleep'], $_POST['cmd_timeout'],
-		 $_POST['cmd_curl'], $_POST['cmd_epgdump'], $_POST['cmd_ffmpeg'], $_POST['cmd_tspacketchk'] );
+		 $_POST['cmd_curl'], $_POST['cmd_epgdump'], $_POST['cmd_ffmpeg'], $_POST['cmd_tspacketchk'], $_POST['cmd_tsreadex'] );
 	if( !$exit_str ){
 		$settings->at	       = $_POST['cmd_at'];
 		$settings->atrm        = $_POST['cmd_atrm'];
@@ -65,6 +68,7 @@ if( isset($_POST['cmd_at']) && isset($_POST['cmd_atrm']) && isset($_POST['cmd_sl
 		$settings->epgdump     = $_POST['cmd_epgdump'];
 		$settings->ffmpeg      = $_POST['cmd_ffmpeg'];
 		$settings->tspacketchk = $_POST['cmd_tspacketchk'];
+		$settings->tsreadex    = $_POST['cmd_tsreadex'];
 		$settings->save();
 		$exit_str = '設定しました。';
 	}

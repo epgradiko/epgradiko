@@ -901,7 +901,7 @@ function build_pastradiko_cmd( $recorder, $ft, $to){
 
 //リアルタイム視聴時のコマンド組み立て
 function build_realview_cmd( $type, $channel, $sid ){
-        global $record_cmd;
+        global $settings, $record_cmd;
 	if( isset($record_cmd[$type]['service_rec']['command']) ) $rec_mode = 'service_rec';
 	else if( isset($record_cmd[$type]['channel_rec']['command']) ) $rec_mode = 'channel_rec';
 	else return "";
@@ -931,14 +931,14 @@ function build_realview_cmd( $type, $channel, $sid ){
 	);
 	$return_str = strtr( $record_cmd[$type][$rec_mode]['command'], $str_rep );
 	//if( $record_cmd[$type]['type'] == 'video' ) $return_str .= '|tsreadex -x 18/38/39 -n -1,-2,-3,-4,-5,-6,-7 -a 13 -b 5 -c 1 -u 1 -d 13 -';
-	if( $record_cmd[$type]['type'] == 'video' ) $return_str .= '|tsreadex -x 18/38/39 -n -1 -a 13 -b 5 -c 1 -u 1 -d 13 -';
+	if( $record_cmd[$type]['type'] == 'video' ) $return_str .= '|'.$settings->tsreadex.' -x 18/38/39 -n -1 -a 13 -b 5 -c 1 -u 1 -d 13 -';
 	$return_str .= ' 2>/dev/null';
 	return $return_str;
 }
 
 //epg取得時のコマンド組み立て
 function build_epg_rec_cmd( $type, $channel, $duration, $output ){
-        global $settings,$record_cmd;
+        global $settings, $record_cmd;
 	if( !isset($record_cmd[$type]['epg_rec']) ) return "";
 	if( (!isset($type)|| !isset($channel)|| !isset($duration)|| !isset($output))
 	  ||($type ==''|| $channel == ''|| $duration ==''|| $output =='') ){
